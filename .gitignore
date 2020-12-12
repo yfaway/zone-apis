@@ -1,0 +1,11 @@
+.idea
+bin
+lib
+lib64
+include
+share
+habapp/config.xml
+habapp/log
+**/__pycache__/**
+*swo
+*swp
