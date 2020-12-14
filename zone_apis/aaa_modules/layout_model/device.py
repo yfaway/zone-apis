@@ -189,7 +189,7 @@ class Device(object):
         """
         self.lastActivatedTimestamp = time.time()
 
-    def __unicode__(self):
+    def __str__(self):
         value = u"{}: {}".format(self.__class__.__name__, self.getItemName())
 
         if self.isBatteryPowered():

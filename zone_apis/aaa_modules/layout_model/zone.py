@@ -1,9 +1,9 @@
 from aaa_modules.layout_model.event_info import EventInfo
 from aaa_modules.layout_model.device import Device
 
-from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
-from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
-from aaa_modules.layout_model.devices.switch import Light, Switch
+#from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
+#from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
+#from aaa_modules.layout_model.devices.switch import Light, Switch
 
 from aaa_modules.platform_encapsulator import PlatformEncapsulator as PE
 
@@ -52,7 +52,7 @@ class Zone:
     Each zone instance is IMMUTABLE. The various add/remove methods return a new
     Zone object. Note however that the OpenHab item underlying each
     device/sensor is not (the state changes).  See :meth:`addDevice`, 
-    :meth:`removeDevice`, :meth:`addNeighbor()`
+    :meth:`removeDevice`, :meth:`add_neighbor()`
 
     The zone itself doesn't know how to operate a device/sensor. The sensors
     themselves (all sensors derive from Device class) exposes the possible
@@ -81,8 +81,8 @@ class Zone:
     @Immutable (the Zone object only)
     """
 
-    def __init__(self, name, devices=[], level=Level.UNDEFINED,
-                 neighbors=[], actions={}, external=False,
+    def __init__(self, name, devices=None, level=Level.UNDEFINED,
+                 neighbors=None, actions=None, external=False,
                  display_icon=None, display_order=9999):
         """
         Creates a new zone.
@@ -93,12 +93,19 @@ class Zone:
         :param list(Neighbor) neighbors: the list of optional neighbor zones.
         :param dict(ZoneEvent -> list(Action)) actions: the optional \
             dictionary from :class:`.ZoneEvent` to :class:`.Action`
-        :param bool external: indicates if the zone is external
-        :param int display_icon: the icon associated with the zone, useful
+        :param Bool external: indicates if the zone is external
+        :param str display_icon: the icon associated with the zone, useful
             for displaying in sitemap.
         :param int display_order: the order with respective to the other zones,
             useful for arranging in sitemap.
         """
+
+        if actions is None:
+            actions = {}
+        if devices is None:
+            devices = []
+        if neighbors is None:
+            neighbors = []
 
         self.name = name
         self.level = level
@@ -139,7 +146,7 @@ class Zone:
         :rtype: Zone 
         :raise ValueError: if device is None or is not a subclass of :class:`.Device`
         """
-        if None == device:
+        if device is None:
             raise ValueError('device must not be None')
 
         if not isinstance(device, Device):
@@ -167,32 +174,32 @@ class Zone:
         """
         return [d for d in self.devices]
 
-    def getDevicesByType(self, cls):
+    def getDevicesByType(self, cls: type):
         """
         Returns a list of devices matching the given type.
 
-        :param Device cls: the device type
+        :param type cls: the device type
         :rtype: list(Device)
         """
-        if None == cls:
+        if cls is None:
             raise ValueError('cls must not be None')
         return [d for d in self.devices if isinstance(d, cls)]
 
-    def getDeviceByEvent(self, eventInfo):
+    def getDeviceByEvent(self, event_info):
         """
         Returns the device that generates the provided event.
 
-        :param EventInfo eventInfo:
+        :param EventInfo event_info:
         :rtype: Device
         """
 
-        if None == eventInfo:
+        if event_info is None:
             raise ValueError('eventInfo must not be None')
 
         return next((d for d in self.devices
-                     if d.containsItem(eventInfo.getItem())), None)
+                     if d.containsItem(event_info.getItem())), None)
 
-    def addNeighbor(self, neighbor):
+    def add_neighbor(self, neighbor):
         """
         Creates a new zone that is an exact copy of this one, but has the
         additional neighbor.
@@ -200,7 +207,7 @@ class Zone:
         :return: A NEW object.
         :rtype: Zone 
         """
-        if None == neighbor:
+        if neighbor is None:
             raise ValueError('neighbor must not be None')
 
         new_neighbors = list(self.neighbors)
@@ -209,7 +216,7 @@ class Zone:
         params = self._create_ctor_param_dictionary('neighbors', new_neighbors)
         return Zone(**params)
 
-    def addAction(self, action):
+    def add_action(self, action):
         """
         Creates a new zone that is an exact copy of this one, but has the
         additional action mapping.
@@ -223,22 +230,22 @@ class Zone:
 
         new_actions = dict(self.actions)
 
-        for zoneEvent in action.getRequiredEvents():
-            if new_actions.has_key(zoneEvent):
-                new_actions[zoneEvent].append(action)
+        for zone_event in action.getRequiredEvents():
+            if zone_event in new_actions:
+                new_actions[zone_event].append(action)
             else:
-                new_actions[zoneEvent] = [action]
+                new_actions[zone_event] = [action]
 
         params = self._create_ctor_param_dictionary('actions', new_actions)
         return Zone(**params)
 
-    def getActions(self, zoneEvent):
+    def get_actions(self, zone_event):
         """
         :return: the list of actions for the provided zoneEvent
         :rtype: list(Action)
         """
-        if self.actions.has_key(zoneEvent):
-            return self.actions[zoneEvent]
+        if zone_event in self.actions:
+            return self.actions[zone_event]
         else:
             return []
 
@@ -283,38 +290,42 @@ class Zone:
         """
         return list(self.neighbors)
 
-    def getNeighborZones(self, zoneManager, neighborTypes=[]):
+    def getNeighborZones(self, zone_manager, neighbor_types=None):
         """
-        :param list(NeighborType) neighborTypes: optional
+        :param zone_manager:
+        :param list(NeighborType) neighbor_types: optional
         :return: a list of neighboring zones for the provided neighbor type (optional).
         :rtype: list(Zone)
         """
-        if None == zoneManager:
+        if neighbor_types is None:
+            neighbor_types = []
+
+        if None == zone_manager:
             raise ValueError('zoneManager must not be None')
 
-        if None == neighborTypes or len(neighborTypes) == 0:
-            zones = [zoneManager.getZoneById(n.getZoneId()) \
+        if None == neighbor_types or len(neighbor_types) == 0:
+            zones = [zone_manager.getZoneById(n.getZoneId()) \
                      for n in self.neighbors]
         else:
-            zones = [zoneManager.getZoneById(n.getZoneId()) \
+            zones = [zone_manager.getZoneById(n.getZoneId()) \
                      for n in self.neighbors \
-                     if any(n.getType() == t for t in neighborTypes)]
+                     if any(n.getType() == t for t in neighbor_types)]
 
         return zones
 
-    def containsOpenHabItem(self, item, sensorType=None):
+    def containsOpenHabItem(self, item, sensor_type: type = None):
         """
         Returns True if this zone contains the given itemName; returns False 
         otherwise.
 
         :param Item item:
-        :param Device sensorType: an optional sub-class of Device. If specified,\
+        :param Device sensor_type: an optional sub-class of Device. If specified,\
             will search for itemName for those device types only. Otherwise,\
             search for all devices/sensors.
         :rtype: bool
         """
-        sensors = self.getDevices() if sensorType is None \
-            else self.getDevicesByType(sensorType)
+        sensors = self.getDevices() if sensor_type is None \
+            else self.getDevicesByType(sensor_type)
         return any(s.containsItem(item) for s in sensors)
 
     def getIlluminanceLevel(self):
@@ -345,21 +356,24 @@ class Zone:
         else:
             return any(s.isLightOnTime() for s in astro_sensors)
 
-    def isOccupied(self, ignoredDeviceTypes=[], secondsFromLastEvent=5 * 60):
+    def isOccupied(self, ignored_device_types=None, seconds_from_last_event=5 * 60):
         """
-        Returns an array of two items. The first item is True if - at least one switch turned on, or - a motion event was triggered within the provided # of seconds, or
-          - a network device was active in the local network within the
-            provided # of seconds.
-        If the first item is True, the item is a Device that indicates
-        occupancy. Otherwise it is None.
+        Returns an array of two items. The first item is True if - at least one switch turned on, or - a motion event
+        was triggered within the provided # of seconds, or - a network device was active in the local network within
+        the provided # of seconds. If the first item is True, the item is a Device that indicates occupancy.
+        Otherwise it is None.
 
-        :param list(Device) ignoredDeviceTypes: the devices not to be
+        :param seconds_from_last_event:
+        :param list(Device) ignored_device_types: the devices not to be
             considered for the occupancy check.
         :rtype: list(bool, Device)
         """
+        if ignored_device_types is None:
+            ignored_device_types = []
+
         for device in self.getDevices():
-            if not any(isinstance(device, l) for l in ignoredDeviceTypes):
-                if device.isOccupied(secondsFromLastEvent):
+            if not any(isinstance(device, deviceType) for deviceType in ignored_device_types):
+                if device.isOccupied(seconds_from_last_event):
                     return True, device
 
         return False, None
@@ -372,10 +386,10 @@ class Zone:
         """
         return any(l.isOn() for l in self.getDevicesByType(Light))
 
-    def shareSensorWith(self, zone, sensorType):
+    def shareSensorWith(self, zone, sensor_type):
         """
         Returns True if this zone shares at least one sensor of the given
-        sensorType with the provider zone.
+        sensor_type with the provider zone.
         Two sensors are considered the same if they link to the same channel.
 
         See :meth:`.Device.getChannel`
@@ -383,12 +397,12 @@ class Zone:
         :rtype: bool
         """
         our_sensor_channels = [s.getChannel()
-                             for s in self.getDevicesByType(sensorType)
-                             if None != s.getChannel()]
+                               for s in self.getDevicesByType(sensor_type)
+                               if s.getChannel() is not None]
 
         their_sensor_channels = [s.getChannel()
-                               for s in zone.getDevicesByType(sensorType)
-                               if None != s.getChannel()]
+                                 for s in zone.getDevicesByType(sensor_type)
+                                 if s.getChannel() is not None]
 
         intersection = set(our_sensor_channels).intersection(their_sensor_channels)
         return len(intersection) > 0
@@ -399,9 +413,9 @@ class Zone:
 
         :param scope.events events:
         """
-        for l in self.getDevicesByType(Light):
-            if l.isOn():
-                l.turnOff(events)
+        for light in self.getDevicesByType(Light):
+            if light.isOn():
+                light.turnOff(events)
 
     def onTimerExpired(self, events, item):
         """
@@ -419,12 +433,14 @@ class Zone:
 
         See :meth:`.Switch.onSwitchTurnedOn`
 
+        :param item:
+        :param events:
         :param ImmutableZoneManager immutable_zone_manager: a function that \
             returns a Zone object given a zone id string
         :rtype: boolean
         """
         is_processed = False
-        actions = self.getActions(ZoneEvent.SWITCH_TURNED_ON)
+        actions = self.get_actions(ZoneEvent.SWITCH_TURNED_ON)
 
         event_info = EventInfo(ZoneEvent.SWITCH_TURNED_ON, item, self,
                                immutable_zone_manager, events)
@@ -450,10 +466,10 @@ class Zone:
         :rtype: boolean
         """
         event_info = EventInfo(ZoneEvent.SWITCH_TURNED_OFF, item, self,
-                              immutable_zone_manager, events)
+                               immutable_zone_manager, events)
 
         is_processed = False
-        actions = self.getActions(ZoneEvent.SWITCH_TURNED_OFF)
+        actions = self.get_actions(ZoneEvent.SWITCH_TURNED_OFF)
 
         switches = self.getDevicesByType(Switch)
         for switch in switches:
@@ -490,20 +506,17 @@ class Zone:
         :rtype: boolean
         """
         event_info = EventInfo(zone_event_type, item, self,
-                              immutable_zone_manager, event_dispatcher)
+                               immutable_zone_manager, event_dispatcher)
 
         processed = False
-        for a in self.getActions(zone_event_type):
+        for a in self.get_actions(zone_event_type):
             if a.onAction(event_info):
                 processed = True
 
         return processed
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
-
-    def __unicode__(self):
-        str = u"Zone: {}, floor: {}, {}, displayIcon: {}, displayOrder: {}, {} devices".format(
+        value = u"Zone: {}, floor: {}, {}, displayIcon: {}, displayOrder: {}, {} devices".format(
             self.name,
             self.level,
             ('external' if self.isExternal() else 'internal'),
@@ -511,22 +524,22 @@ class Zone:
             self.displayOrder,
             len(self.devices))
         for d in self.devices:
-            str += u"\n  {}".format(unicode(d))
+            value += u"\n  {}".format(str(d))
 
         if len(self.actions) > 0:
-            str += u"\n"
+            value += u"\n"
             for key in self.actions.keys():
-                actionList = self.actions[key]
-                for action in actionList:
-                    str += u"\n  Action: {} -> {}".format(key, unicode(type(action).__name__))
+                action_list = self.actions[key]
+                for action in action_list:
+                    value += u"\n  Action: {} -> {}".format(key, str(type(action).__name__))
 
         if len(self.neighbors) > 0:
-            str += u"\n"
+            value += u"\n"
             for n in self.neighbors:
-                str += u"\n  Neighbor: {}, {}".format(
-                    n.getZoneId(), unicode(n.getType()))
+                value += u"\n  Neighbor: {}, {}".format(
+                    n.getZoneId(), str(n.getType()))
 
-        return str
+        return value
 
     def _create_ctor_param_dictionary(self, key_to_replace: str, new_value):
         """
@@ -538,8 +551,8 @@ class Zone:
         """
 
         params = {'name': self.name, 'devices': self.devices, 'level': self.level, 'neighbors': self.neighbors,
-                  'actions': self.actions, 'external': self.external, 'displayIcon': self.displayIcon,
-                  'displayOrder': self.displayOrder, key_to_replace: new_value}
+                  'actions': self.actions, 'external': self.external, 'display_icon': self.displayIcon,
+                  'display_order': self.displayOrder, key_to_replace: new_value}
 
         return params
 
