@@ -1,21 +1,27 @@
+from enum import Enum, unique
+from typing import Tuple, List, Union, Dict, Any
+
 from aaa_modules.layout_model.event_info import EventInfo
 from aaa_modules.layout_model.device import Device
 
-#from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
-#from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
-#from aaa_modules.layout_model.devices.switch import Light, Switch
+# from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
+# from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
+# from aaa_modules.layout_model.devices.switch import Light, Switch
+from aaa_modules.layout_model.neighbor import Neighbor
 
 from aaa_modules.platform_encapsulator import PlatformEncapsulator as PE
 
 
-class Level:
+@unique
+class Level(Enum):
     """ An enum of the vertical levels."""
 
-    UNDEFINED = -1  #: Undefined
-    BASEMENT = 0  #: The basement
-    FIRST_FLOOR = 1  #: The first floor
-    SECOND_FLOOR = 2  #: The second floor
-    THIRD_FLOOR = 3  #: The third floor
+    UNDEFINED = "UD"  #: Undefined
+    BASEMENT = "BM"  #: The basement
+    FIRST_FLOOR = "FF"  #: The first floor
+    SECOND_FLOOR = "SF"  #: The second floor
+    THIRD_FLOOR = "TF"  #: The third floor
+    VIRTUAL = "VT"  #: The third floor
 
 
 class ZoneEvent:
@@ -34,7 +40,7 @@ class ZoneEvent:
     HUMIDITY_CHANGED = 10  # The humidity percentage changed
     TEMPERATURE_CHANGED = 11  # The temperature changed
     GAS_TRIGGER_STATE_CHANGED = 12  # The gas sensor triggering boolean changed
-    GAS_VALUE_CHANGED = 12  # The gas sensor value changed
+    GAS_VALUE_CHANGED = 13  # The gas sensor value changed
 
 
 class Zone:
@@ -81,8 +87,8 @@ class Zone:
     @Immutable (the Zone object only)
     """
 
-    def __init__(self, name, devices=None, level=Level.UNDEFINED,
-                 neighbors=None, actions=None, external=False,
+    def __init__(self, name, devices: List[Device] = None, level=Level.UNDEFINED,
+                 neighbors: List[Neighbor] = None, actions=None, external=False,
                  display_icon=None, display_order=9999):
         """
         Creates a new zone.
@@ -110,7 +116,7 @@ class Zone:
         self.name = name
         self.level = level
         self.devices = [d for d in devices]
-        self.neighbors = list(neighbors)
+        self.neighbors = list(neighbors) # type : List[Neighbor]
         self.actions = dict(actions)  # shallow copy
         self.external = external
         self.displayIcon = display_icon
@@ -251,7 +257,7 @@ class Zone:
 
     def getId(self):
         """ :rtype: str """
-        return str(self.getLevel()) + '_' + self.getName()
+        return self.getLevel().value + '_' + self.getName()
 
     def getName(self):
         """ :rtype: str """
@@ -518,7 +524,7 @@ class Zone:
     def __str__(self):
         value = u"Zone: {}, floor: {}, {}, displayIcon: {}, displayOrder: {}, {} devices".format(
             self.name,
-            self.level,
+            self.level.name,
             ('external' if self.isExternal() else 'internal'),
             self.displayIcon,
             self.displayOrder,
@@ -537,7 +543,7 @@ class Zone:
             value += u"\n"
             for n in self.neighbors:
                 value += u"\n  Neighbor: {}, {}".format(
-                    n.getZoneId(), str(n.getType()))
+                    n.getZoneId(), n.get_type().name)
 
         return value
 

@@ -148,7 +148,6 @@ class PlatformEncapsulator:
         return StringItem(name)
 
     @staticmethod
-
     @staticmethod
     def runUnitTest(className):
         """ Run the unit test. """
@@ -197,10 +196,16 @@ def change_switch_state(item: SwitchItem, on: bool):
 def register_value_change_event(item: Item, handler):
     item.listen_event(handler, ValueChangeEvent)
 
+
 def log_error(message):
     """ Log an error message. """
-
     logger.error(message)
+
+
+def log_warning(message):
+    """ Log an warning message. """
+    logger.warning(message)
+
 
 def get_channel(item) -> str:
     """

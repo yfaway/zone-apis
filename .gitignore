@@ -9,3 +9,4 @@ habapp/log
 **/__pycache__/**
 *swo
 *swp
+pyvenv.cfg

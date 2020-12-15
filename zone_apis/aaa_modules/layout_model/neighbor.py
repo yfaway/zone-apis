@@ -40,7 +40,7 @@ class Neighbor:
     Represent a neighboring zone.
     """
 
-    def __init__(self, zone_id, neighbor_type):
+    def __init__(self, zone_id: str, neighbor_type: NeighborType):
         """
         Creates a new object
 
@@ -54,7 +54,7 @@ class Neighbor:
             raise ValueError('neighbor_type must not be None')
 
         self.zoneId = zone_id
-        self.neighbor_type = neighbor_type
+        self.neighbor_type = neighbor_type # type: NeighborType
 
     def getZoneId(self):
         """
@@ -62,7 +62,7 @@ class Neighbor:
         """
         return self.zoneId
 
-    def getType(self):
+    def get_type(self) -> NeighborType:
         """
         :rtype: NeighborType
         """
