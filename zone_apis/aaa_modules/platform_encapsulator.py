@@ -15,8 +15,11 @@ except ImportError:
     inHabApp = False
 else:
     import logging
+    from typing import Tuple, List, Union, Dict, Any
+
+    from HABApp.core import Items
     from HABApp.core.items import Item
-    from HABApp.openhab.items import ContactItem, StringItem, SwitchItem
+    from HABApp.openhab.items import ContactItem, DimmerItem, StringItem, SwitchItem
     from HABApp.openhab.definitions import OnOffValue
     from HABApp.core.events import ValueChangeEvent
 
@@ -161,7 +164,7 @@ def is_in_habapp() -> bool:
 def register_test_item(item: Item) -> None:
     """ Register the given item with the runtime. """
     if is_in_habapp():
-        HABApp.core.items.Item.get_create_item(item.name, item.get_value())
+        HABApp.core.Items.set_item(item)
     else:
         scope.itemRegistry.remove(item.getName())
         scope.itemRegistry.add(item)
@@ -180,6 +183,15 @@ def is_in_on_state(item: SwitchItem):
     return item.is_on()
 
 
+def create_dimmer_item(name: str, percentage: int = 0) -> DimmerItem:
+    """
+    :param name: the item name
+    :param int percentage: 0 (OFF) to 100 (full brightness)
+    :return: DimmerItem
+    """
+    return DimmerItem(name, percentage)
+
+
 def create_switch_item(name: str, on=False) -> SwitchItem:
     """
     :param name: the item name
@@ -193,16 +205,37 @@ def change_switch_state(item: SwitchItem, on: bool):
     item.set_value(OnOffValue.ON if on else OnOffValue.OFF)
 
 
+def set_dimmer_value(item: DimmerItem, percentage: int, in_unit_test=False):
+    if in_unit_test:
+        item.post_value(percentage)
+    else:
+        item.percent(percentage)
+
+
+def get_dimmer_percentage(item: DimmerItem) -> int:
+    return item.get_value(0)
+
+
 def register_value_change_event(item: Item, handler):
     item.listen_event(handler, ValueChangeEvent)
 
 
-def log_error(message):
+def log_debug(message: str):
+    """ Log a debug message. """
+    logger.debug(message)
+
+
+def log_info(message: str):
+    """ Log an info message. """
+    logger.info(message)
+
+
+def log_error(message: str):
     """ Log an error message. """
     logger.error(message)
 
 
-def log_warning(message):
+def log_warning(message: str):
     """ Log an warning message. """
     logger.warning(message)
 
@@ -227,3 +260,28 @@ def get_channel(item) -> str:
             return channel_meta.value
         else:
             return None
+
+
+def get_test_event_dispatcher():
+    """
+    Creates and returns a mocked event dispatcher to be used in unit tests.
+    :return: an anonymous class that has the method send_command
+    """
+
+    class EventDispatcher:
+        def send_command(self, item_name: str, command: Any):
+            item = Items.get_item(item_name)
+            if isinstance(item, SwitchItem):
+                item = SwitchItem.get_item(item_name)
+
+                if command == "ON":
+                    item.post_value(OnOffValue.ON)
+                elif command == "OFF":
+                    item.post_value(OnOffValue.OFF)
+            elif isinstance(item, DimmerItem):
+                item.post_value(int(command))
+            else:
+                log_error("type: {}".format(type(item)))
+                raise ValueError("Unsupported type for item '{}'".format(item_name))
+
+    return EventDispatcher()

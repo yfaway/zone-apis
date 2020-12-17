@@ -1,4 +1,3 @@
-import abc
 import unittest
 from aaa_modules import platform_encapsulator as PE
 
@@ -30,16 +29,6 @@ class DeviceTest(unittest.TestCase):
 
     def getMockedEventDispatcher(self):
         return MockedEventDispatcher(scope.itemRegistry)
-
-    def blah(self):
-        from HABApp.core.items import Item
-        from HABApp.openhab.items import ContactItem, SwitchItem
-        from HABApp.openhab.definitions import OnOffValue
-
-        item = Item.get_create_item("TestSwitch", OnOffValue.ON)
-        switch = SwitchItem("TestSwitch", OnOffValue.ON)
-        #PE.logger.error(Item.get_item(switch.name))
-        #PE.logger.error(switch)
 
 
 class MockedEventDispatcher:
