@@ -1,37 +1,28 @@
 import re
-from typing import Tuple, List, Union, Dict, Any
+from typing import List, Union, Dict, Any
 
 import HABApp
 from HABApp.core import Items
 from HABApp.core.events import ValueChangeEvent
-from HABApp.openhab.items import ContactItem, StringItem, SwitchItem
+from HABApp.openhab.items import SwitchItem
 
-from aaa_modules import platform_encapsulator as PE
+from aaa_modules import platform_encapsulator as pe
+from aaa_modules.layout_model.devices.dimmer import Dimmer
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
+from aaa_modules.layout_model.devices.switch import Fan, Light
 from aaa_modules.layout_model.zone import Zone, Level
 from aaa_modules.layout_model.neighbor import NeighborType, Neighbor
 
 
-def create_motion_sensor(item) -> MotionSensor:
-    """
-    Creates a MotionSensor and register for change event.
-    :param item: SwitchItem
-    :return: MotionSensor
-    """
-    sensor = MotionSensor(item)
-
-    def handler(event: ValueChangeEvent):
-        if PE.is_in_on_state(item):
-            sensor.on_triggered(event)
-
-    item.listen_event(handler, ValueChangeEvent)
-
-    return sensor
-
-
 def parse() -> list:
+    """
+    Parses the zones and devices.
+    :return:
+    """
     mappings = {
-        '.*MotionSensor$': create_motion_sensor
+        '.*MotionSensor$': _create_motion_sensor,
+        '.*LightSwitch.*': _create_switches,
+        '.*FanSwitch.*': _create_switches,
     }
 
     zone_mappings = {}
@@ -50,18 +41,18 @@ def parse() -> list:
             if device is not None:
                 zone_id = _get_zone_id_from_item_name(item.name)
                 if zone_id is None:
-                    PE.log_warning("Can't get zone id from item name '{}'".format(item.name))
+                    pe.log_warning("Can't get zone id from item name '{}'".format(item.name))
                     continue
 
                 if zone_id not in zone_mappings.keys():
-                    PE.log_warning("Invalid zone id '{}'".format(zone_id))
+                    pe.log_warning("Invalid zone id '{}'".format(zone_id))
                     continue
 
                 zone = zone_mappings[zone_id].addDevice(device)
                 zone_mappings[zone_id] = zone
 
     for z in zone_mappings.values():
-        PE.log_error(z)
+        pe.log_error(z)
 
     return items
 
@@ -72,7 +63,7 @@ def parse_zones() -> List[Zone]:
     :return: List[Zone]
     """
     pattern = 'Zone_([^_]+)'
-    zones = []
+    zones: List[Zone] = []
 
     items = Items.get_all_items()
     for item in items:
@@ -135,3 +126,78 @@ def _get_zone_id_from_item_name(item_name: str) -> Union[str, None]:
     location = match.group(2)
 
     return level_string + '_' + location
+
+
+def _create_motion_sensor(item) -> MotionSensor:
+    """
+    Creates a MotionSensor and register for change event.
+    :param item: SwitchItem
+    :return: MotionSensor
+    """
+    sensor = MotionSensor(item)
+
+    def handler(event: ValueChangeEvent):
+        if pe.is_in_on_state(item):
+            sensor.on_triggered(event)
+
+    item.listen_event(handler, ValueChangeEvent)
+
+    return sensor
+
+
+def _create_switches(item: SwitchItem) -> Union[None, Dimmer, Light, Fan]:
+    """
+    Parses and creates Dimmer, Fan or Light device.
+    :param item: SwitchItem
+    :return: Union[None, Dimmer, Light, Fan]
+    """
+    device_name_pattern = '([^_]+)_([^_]+)_(.+)'  # level_location_deviceName
+    item_name = item.name
+    illuminance_threshold_in_lux = 8
+
+    match = re.search(device_name_pattern, item_name)
+    if not match:
+        return None
+
+    device_name = match.group(3)
+
+    dimmable_key = 'dimmable'
+    duration_in_minutes_key = 'durationInMinutes'
+    disable_triggering_key = "disableTriggeringFromMotionSensor"
+
+    item_def = HABApp.openhab.interface.get_item(
+        item.name, f"noPrematureTurnOffTimeRange, {duration_in_minutes_key}, {dimmable_key}, {disable_triggering_key}")
+    metadata = item_def.metadata
+
+    if 'LightSwitch' == device_name or 'FanSwitch' == device_name:
+        duration_in_minutes = int(_get_meta_value(metadata, duration_in_minutes_key, -1))
+        if duration_in_minutes == -1:
+            raise ValueError(f"Missing durationInMinutes value for {item_name}'")
+    else:
+        duration_in_minutes = None
+
+    if 'LightSwitch' == device_name:
+        no_premature_turn_off_time_range = _get_meta_value(metadata, "noPrematureTurnOffTimeRange", None)
+
+        disable_triggering = True if "true" == _get_meta_value(metadata, disable_triggering_key) else False
+
+        if dimmable_key in metadata:
+            config = metadata.get(dimmable_key).get('config')
+            level = int(config.get('level'))
+            time_ranges = config.get('timeRanges')
+
+            switch = Dimmer(item, duration_in_minutes, level, time_ranges,
+                            illuminance_threshold_in_lux,
+                            disable_triggering,
+                            no_premature_turn_off_time_range)
+        else:
+            switch = Light(item, duration_in_minutes,
+                           illuminance_threshold_in_lux,
+                           disable_triggering,
+                           no_premature_turn_off_time_range)
+
+        return switch
+    elif 'FanSwitch' == device_name:
+        return Fan(item, duration_in_minutes)
+    else:
+        return None

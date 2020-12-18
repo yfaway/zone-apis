@@ -9,7 +9,7 @@ class Dimmer(Light):
     """
 
     def __init__(self, switch_item, duration_in_minutes: int, dim_level: int = 5, time_ranges: str = None,
-                 illuminance_level: str = None,
+                 illuminance_level: int = None,
                  disable_triggering_from_motion_sensor=False,
                  no_premature_turn_off_time_range=None):
         """

@@ -1,4 +1,4 @@
-from aaa_modules import platform_encapsulator as PE
+from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.device import Device
 
 
@@ -18,7 +18,7 @@ class MotionSensor(Device):
         """
         Returns true if the motion sensor's state is on; false otherwise.
         """
-        return PE.is_in_on_state(self.getItem())
+        return pe.is_in_on_state(self.getItem())
 
     def is_occupied(self, seconds_from_last_event=5 * 60):
         """
@@ -33,10 +33,9 @@ class MotionSensor(Device):
 
         return self.wasRecentlyActivated(seconds_from_last_event)
 
+    # noinspection PyUnusedLocal
     def on_triggered(self, event) -> None:
         """
         Handled the motion sensor ON event.
         """
-        PE.log_error("*** triggered")
-
         self._update_last_activated_timestamp()

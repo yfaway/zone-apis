@@ -167,8 +167,9 @@ class Switch(Device):
 
     def __str__(self):
         """ @override """
-        return u"{}".format(
-            super(Switch, self).__str__())
+        return u"{}, duration: {} mins{}".format(
+            super(Switch, self).__str__(), self.duration_in_minutes,
+            ", disable triggering by motion" if self.disable_triggering_from_motion_sensor else "")
 
 
 class Light(Switch):
