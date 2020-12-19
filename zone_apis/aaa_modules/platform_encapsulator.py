@@ -19,7 +19,7 @@ else:
 
     from HABApp.core import Items
     from HABApp.core.items import Item
-    from HABApp.openhab.items import ContactItem, DimmerItem, StringItem, SwitchItem
+    from HABApp.openhab.items import ContactItem, DimmerItem, NumberItem, StringItem, SwitchItem
     from HABApp.openhab.definitions import OnOffValue
     from HABApp.core.events import ValueChangeEvent
 
@@ -146,12 +146,6 @@ class PlatformEncapsulator:
 
         logger.error(message)
 
-    @staticmethod
-    def createStringItem(name):
-        return StringItem(name)
-
-    @staticmethod
-    @staticmethod
     def runUnitTest(className):
         """ Run the unit test. """
         run_test(className, logger)
@@ -183,6 +177,10 @@ def is_in_on_state(item: SwitchItem):
     return item.is_on()
 
 
+def create_number_item(name: str) -> NumberItem:
+    return NumberItem(name)
+
+
 def create_dimmer_item(name: str, percentage: int = 0) -> DimmerItem:
     """
     :param name: the item name
@@ -201,6 +199,10 @@ def create_switch_item(name: str, on=False) -> SwitchItem:
     return SwitchItem(name, OnOffValue.ON if on else OnOffValue.OFF)
 
 
+def create_string_item(name: str) -> StringItem:
+    return StringItem(name)
+
+
 def change_switch_state(item: SwitchItem, on: bool):
     item.set_value(OnOffValue.ON if on else OnOffValue.OFF)
 
@@ -214,6 +216,10 @@ def set_dimmer_value(item: DimmerItem, percentage: int, in_unit_test=False):
 
 def get_dimmer_percentage(item: DimmerItem) -> int:
     return item.get_value(0)
+
+
+def get_item_name(item):
+    return item.name
 
 
 def register_value_change_event(item: Item, handler):

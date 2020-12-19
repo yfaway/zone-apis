@@ -11,10 +11,11 @@ from aaa_modules.layout_model.devices.dimmer import Dimmer
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
 from aaa_modules.layout_model.devices.switch import Fan, Light
 from aaa_modules.layout_model.zone import Zone, Level
+from aaa_modules.layout_model.zone_manager import ZoneManager
 from aaa_modules.layout_model.neighbor import NeighborType, Neighbor
 
 
-def parse() -> list:
+def parse() -> ZoneManager:
     """
     Parses the zones and devices.
     :return:
@@ -51,10 +52,11 @@ def parse() -> list:
                 zone = zone_mappings[zone_id].addDevice(device)
                 zone_mappings[zone_id] = zone
 
+    zm = ZoneManager()
     for z in zone_mappings.values():
-        pe.log_error(z)
+        zm.add_zone(z)
 
-    return items
+    return zm._create_immutable_instance()
 
 
 def parse_zones() -> List[Zone]:

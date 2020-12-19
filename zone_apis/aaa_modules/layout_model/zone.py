@@ -6,10 +6,10 @@ from aaa_modules.layout_model.device import Device
 
 # from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 # from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
-# from aaa_modules.layout_model.devices.switch import Light, Switch
+from aaa_modules.layout_model.devices.switch import Light, Switch
 from aaa_modules.layout_model.neighbor import Neighbor
 
-from aaa_modules.platform_encapsulator import PlatformEncapsulator as PE
+from aaa_modules import platform_encapsulator as pe
 
 
 @unique
@@ -310,10 +310,10 @@ class Zone:
             raise ValueError('zoneManager must not be None')
 
         if None == neighbor_types or len(neighbor_types) == 0:
-            zones = [zone_manager.getZoneById(n.getZoneId()) \
+            zones = [zone_manager.get_zone_by_id(n.getZoneId()) \
                      for n in self.neighbors]
         else:
-            zones = [zone_manager.getZoneById(n.getZoneId()) \
+            zones = [zone_manager.get_zone_by_id(n.getZoneId()) \
                      for n in self.neighbors \
                      if any(n.getType() == t for t in neighbor_types)]
 
@@ -407,7 +407,7 @@ class Zone:
                                if s.getChannel() is not None]
 
         their_sensor_channels = [s.getChannel()
-                                 for s in zone.getDevicesByType(sensor_type)
+                                 for s in zone.get_devices_by_type(sensor_type)
                                  if s.getChannel() is not None]
 
         intersection = set(our_sensor_channels).intersection(their_sensor_channels)
@@ -431,7 +431,7 @@ class Zone:
         """
         return False
 
-    def onSwitchTurnedOn(self, events, item, immutable_zone_manager):
+    def on_switch_turned_on(self, events, item, immutable_zone_manager):
         """
         If item belongs to this zone, dispatches the event to the associated
         Switch object, execute the associated actions, and returns True.
@@ -453,7 +453,7 @@ class Zone:
 
         switches = self.getDevicesByType(Switch)
         for switch in switches:
-            if switch.onSwitchTurnedOn(events, item.getName()):
+            if switch.on_switch_turned_on(events, pe.get_item_name(item)):
                 for a in actions:
                     a.onAction(event_info)
 
@@ -461,7 +461,7 @@ class Zone:
 
         return is_processed
 
-    def onSwitchTurnedOff(self, events, item, immutable_zone_manager):
+    def on_switch_turned_off(self, events, item, immutable_zone_manager):
         """
         If item belongs to this zone, dispatches the event to the associated
         Switch object, execute the associated actions, and returns True.
@@ -479,7 +479,7 @@ class Zone:
 
         switches = self.getDevicesByType(Switch)
         for switch in switches:
-            if switch.onSwitchTurnedOff(events, item.getName()):
+            if switch.on_switch_turned_off(events, pe.get_item_name(item)):
                 for a in actions:
                     a.onAction(event_info)
 
@@ -487,8 +487,8 @@ class Zone:
 
         return is_processed
 
-    def dispatchEvent(self, zone_event, open_hab_events, item,
-                      immutable_zone_manager, enforce_item_in_zone):
+    def dispatch_event(self, zone_event, open_hab_events, item,
+                       immutable_zone_manager, enforce_item_in_zone):
         """
         :param item: the item that received the event
         :param ZoneEvent zone_event:

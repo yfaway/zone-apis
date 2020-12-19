@@ -96,7 +96,7 @@ class Switch(Device):
         """
         return pe.is_in_on_state(self.getItem())
 
-    def onSwitchTurnedOn(self, events, item_name):
+    def on_switch_turned_on(self, events, item_name):
         """
         Invoked when a switch on event is triggered. Note that a switch can be
         turned on through this class' turnOn method, or through the event bus, or
@@ -115,7 +115,7 @@ class Switch(Device):
 
         return isProcessed
 
-    def onSwitchTurnedOff(self, events, item_name):
+    def on_switch_turned_off(self, events, item_name):
         """
         Invoked when a switch off event is triggered. Note that a switch can be
         turned off through this class' turnOff method, or through the event bus,

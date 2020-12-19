@@ -35,15 +35,15 @@ class LightTest(DeviceTest):
     def testOnSwitchTurnedOn_validParams_timerIsTurnedOn(self):
         pe.change_switch_state(self.lightItem, True)
 
-        isProcessed = self.light.onSwitchTurnedOn(
+        is_processed = self.light.on_switch_turned_on(
             pe.get_test_event_dispatcher(), self.light.getItemName())
-        self.assertTrue(isProcessed)
+        self.assertTrue(is_processed)
         self.assertTrue(self.light._is_timer_active())
 
     def testOnSwitchTurnedOn_invalidItemName_returnsFalse(self):
-        isProcessed = self.light.onSwitchTurnedOn(
+        is_processed = self.light.on_switch_turned_on(
             pe.get_test_event_dispatcher(), "wrong name")
-        self.assertFalse(isProcessed)
+        self.assertFalse(is_processed)
 
     def testTurnOff_bothLightAndTimerOn_timerIsRenewed(self):
         pe.change_switch_state(self.lightItem, True)
@@ -57,15 +57,15 @@ class LightTest(DeviceTest):
         pe.change_switch_state(self.lightItem, True)
         self.light._start_timer(pe.get_test_event_dispatcher())
 
-        isProcessed = self.light.onSwitchTurnedOff(
+        is_processed = self.light.on_switch_turned_off(
             pe.get_test_event_dispatcher(), self.light.getItemName())
-        self.assertTrue(isProcessed)
+        self.assertTrue(is_processed)
         self.assertFalse(self.light._is_timer_active())
 
     def testOnSwitchTurnedOff_invalidItemName_returnsFalse(self):
-        isProcessed = self.light.onSwitchTurnedOff(
+        is_processed = self.light.on_switch_turned_off(
             pe.get_test_event_dispatcher(), "wrong name")
-        self.assertFalse(isProcessed)
+        self.assertFalse(is_processed)
 
     def testIsLowIlluminance_noThresholdSet_returnsFalse(self):
         self.assertFalse(self.light.isLowIlluminance(10))
