@@ -1,13 +1,14 @@
+import time
 from ..device_test import DeviceTest
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.zone import Zone
-# from aaa_modules.layout_model.zone_manager import ZoneManager
+from aaa_modules.layout_model.zone_manager import ZoneManager
 
 from aaa_modules.layout_model.devices.switch import Light
 
 
-# Unit tests for switch.py.
 class LightTest(DeviceTest):
+    """ Unit tests for switch.py. """
     def setUp(self):
         items = [pe.create_switch_item('TestLightName')]
         self.set_items(items)
@@ -25,7 +26,7 @@ class LightTest(DeviceTest):
         self.assertTrue(pe.is_in_on_state(self.lightItem))
 
     def testTurnOn_lightWasAlreadyOn_timerIsRenewed(self):
-        pe.change_switch_state(self.lightItem, True)
+        pe.set_switch_state(self.lightItem, True, True)
         self.assertFalse(self.light._is_timer_active())
 
         self.light.turnOn(pe.get_test_event_dispatcher())
@@ -33,7 +34,7 @@ class LightTest(DeviceTest):
         self.assertTrue(self.light._is_timer_active())
 
     def testOnSwitchTurnedOn_validParams_timerIsTurnedOn(self):
-        pe.change_switch_state(self.lightItem, True)
+        pe.set_switch_state(self.lightItem, True, True)
 
         is_processed = self.light.on_switch_turned_on(
             pe.get_test_event_dispatcher(), self.light.getItemName())
@@ -46,7 +47,7 @@ class LightTest(DeviceTest):
         self.assertFalse(is_processed)
 
     def testTurnOff_bothLightAndTimerOn_timerIsRenewed(self):
-        pe.change_switch_state(self.lightItem, True)
+        pe.set_switch_state(self.lightItem, True, True)
         self.light._start_timer(pe.get_test_event_dispatcher())
         self.assertTrue(self.light._is_timer_active())
 
@@ -54,7 +55,7 @@ class LightTest(DeviceTest):
         self.assertFalse(self.light._is_timer_active())
 
     def testOnSwitchTurnedOff_validParams_timerIsTurnedOn(self):
-        pe.change_switch_state(self.lightItem, True)
+        pe.set_switch_state(self.lightItem, True, True)
         self.light._start_timer(pe.get_test_event_dispatcher())
 
         is_processed = self.light.on_switch_turned_off(
@@ -82,21 +83,18 @@ class LightTest(DeviceTest):
         self.light = Light(self.lightItem, 10, 50)
         self.assertTrue(self.light.isLowIlluminance(10))
 
-    """
     def testTimerTurnedOff_validParams_switchIsOff(self):
         zm = ZoneManager()
-        self.light = Light(self.lightItem, 0.004) # makes it 0.24 sec
-        self.light = self.light.setZoneManager(zm._createImmutableInstance())
+        self.light = Light(self.lightItem, 0.004)  # makes it 0.24 sec
+        self.light = self.light.setZoneManager(zm._create_immutable_instance())
 
         zone = Zone('ff', [self.light])
-        zm.addZone(zone)
+        zm.add_zone(zone)
 
-
-        self.lightItem.setState(scope.OnOffType.ON)
+        pe.set_switch_state(self.lightItem, True, True)
         self.light._start_timer(pe.get_test_event_dispatcher())
-        self.assertTrue(self.light._isTimerActive())
+        self.assertTrue(self.light._is_timer_active())
 
         time.sleep(0.3)
-        self.assertFalse(self.light._isTimerActive())
+        self.assertFalse(self.light._is_timer_active())
         self.assertFalse(self.light.isOn())
-    """

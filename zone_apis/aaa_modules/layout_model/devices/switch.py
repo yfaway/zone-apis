@@ -14,7 +14,7 @@ class Switch(Device):
     switch is turned off not by the timer, the timer is cancelled.
     """
 
-    def __init__(self, switch_item, duration_in_minutes: int,
+    def __init__(self, switch_item, duration_in_minutes: float,
                  disable_triggering_from_motion_sensor: bool = False):
         """
         Ctor
@@ -175,7 +175,7 @@ class Switch(Device):
 class Light(Switch):
     """ Represents a regular light.  """
 
-    def __init__(self, switch_item, duration_in_minutes: int, illuminance_level: int = None,
+    def __init__(self, switch_item, duration_in_minutes: float, illuminance_level: int = None,
                  disable_triggering_from_motion_sensor=False,
                  no_premature_turn_off_time_range: str = None):
         """
@@ -187,8 +187,8 @@ class Light(Switch):
         """
         Switch.__init__(self, switch_item, duration_in_minutes,
                         disable_triggering_from_motion_sensor)
-        self.illuminanceLevel = illuminance_level
-        self.noPrematureTurnOffTimeRange = no_premature_turn_off_time_range
+        self.illuminance_level = illuminance_level
+        self.no_premature_turn_off_time_range = no_premature_turn_off_time_range
 
     def getIlluminanceThreshold(self):
         """
@@ -196,7 +196,7 @@ class Light(Switch):
 
         :rtype: int or None
         """
-        return self.illuminanceLevel
+        return self.illuminance_level
 
     def isLowIlluminance(self, current_illuminance):
         """
@@ -222,12 +222,13 @@ class Light(Switch):
 
         :rtype: bool
         """
-        if self.noPrematureTurnOffTimeRange == None:
+        if self.no_premature_turn_off_time_range is None:
             return True
-        elif time_utilities.isInTimeRange(self.noPrematureTurnOffTimeRange):
+
+        if time_utilities.isInTimeRange(self.no_premature_turn_off_time_range):
             return False
-        else:
-            return True
+
+        return True
 
     def isOccupied(self, seconds_from_last_event=5 * 60):
         """
@@ -242,8 +243,10 @@ class Light(Switch):
         """
         @override
         """
-        return u"{}, illuminance: {}".format(
-            super(Light, self).__str__(), self.illuminanceLevel)
+        return u"{}, illuminance: {}{}".format(
+            super(Light, self).__str__(), self.illuminance_level,
+            ", no premature turn-off time range: {}".format(self.no_premature_turn_off_time_range)
+            if self.no_premature_turn_off_time_range is not None else "")
 
 
 class Fan(Switch):

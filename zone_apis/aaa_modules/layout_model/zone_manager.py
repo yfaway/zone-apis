@@ -60,7 +60,8 @@ class ZoneManager:
         :return: the associated zone or None if the zoneId is not found
         :rtype: Zone
         """
-        return self.zones[zone_id] if zone_id in self.zones else None
+        zone = self.zones[zone_id] if zone_id in self.zones else None
+        return zone
 
     def get_devices_by_type(self, cls: Type):
         """

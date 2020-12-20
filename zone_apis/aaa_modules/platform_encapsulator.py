@@ -203,8 +203,14 @@ def create_string_item(name: str) -> StringItem:
     return StringItem(name)
 
 
-def change_switch_state(item: SwitchItem, on: bool):
-    item.set_value(OnOffValue.ON if on else OnOffValue.OFF)
+def set_switch_state(item: SwitchItem, on: bool, in_unit_test=False):
+    if in_unit_test:
+        item.set_value(OnOffValue.ON if on else OnOffValue.OFF)
+    else:
+        if on:
+            item.on()
+        else:
+            item.off()
 
 
 def set_dimmer_value(item: DimmerItem, percentage: int, in_unit_test=False):
@@ -215,6 +221,32 @@ def set_dimmer_value(item: DimmerItem, percentage: int, in_unit_test=False):
 
 
 def get_dimmer_percentage(item: DimmerItem) -> int:
+    return item.get_value(0)
+
+
+def set_number_value(item: NumberItem, value: float, in_unit_test=False):
+    if in_unit_test:
+        item.post_value(value)
+    else:
+        item.oh_send_command(str(value))
+
+
+def get_number_value(item: NumberItem) -> float:
+    return item.get_value(0)
+
+
+def set_string_value(item: StringItem, value: str, in_unit_test=False):
+    if in_unit_test:
+        item.post_value(value)
+    else:
+        item.oh_send_command(value)
+
+
+def get_string_value(item: StringItem) -> str:
+    return item.get_value()
+
+
+def get_number_value(item: NumberItem) -> float:
     return item.get_value(0)
 
 

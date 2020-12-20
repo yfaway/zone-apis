@@ -5,7 +5,7 @@ from .device_test import DeviceTest
 from aaa_modules.layout_model.zone import Zone, ZoneEvent
 from aaa_modules.layout_model.devices.dimmer import Dimmer
 from aaa_modules.layout_model.devices.switch import Fan, Light, Switch
-# from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
+from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
 
 # from aaa_modules.layout_model.actions.turn_on_switch import TurnOnSwitch
@@ -33,7 +33,7 @@ class ZoneManagerTest(DeviceTest):
          self.illuminanceSensorItem, self.astroSensorItem, self.dimmerItem,
          self.fanItem] = items
 
-        # self.illuminanceSensor = IlluminanceSensor(self.illuminanceSensorItem)
+        self.illuminanceSensor = IlluminanceSensor(self.illuminanceSensorItem)
         self.light = Light(self.lightItem, 2,
                            ILLUMINANCE_THRESHOLD_IN_LUX)
         self.motionSensor = MotionSensor(self.motionSensorItem)

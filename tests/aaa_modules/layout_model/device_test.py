@@ -1,5 +1,17 @@
 import unittest
+from typing import List
+
 from aaa_modules import platform_encapsulator as PE
+from aaa_modules.layout_model.zone import Zone
+from aaa_modules.layout_model.zone_manager import ZoneManager
+
+
+def create_zone_manager(zones: List[Zone]) -> ZoneManager:
+    zm = ZoneManager()
+    for zone in zones:
+        zm.add_zone(zone)
+
+    return zm
 
 
 class DeviceTest(unittest.TestCase):
@@ -7,7 +19,7 @@ class DeviceTest(unittest.TestCase):
     Base test class for Device derived sensors.
     """
 
-    def set_items(self, items:list) -> None:
+    def set_items(self, items: list) -> None:
         """
         Configures the test items to register / unregister before and after each test.
         :param items: list of items

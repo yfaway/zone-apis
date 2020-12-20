@@ -5,7 +5,7 @@ from aaa_modules.layout_model.event_info import EventInfo
 from aaa_modules.layout_model.device import Device
 
 # from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
-# from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
+from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
 from aaa_modules.layout_model.devices.switch import Light, Switch
 from aaa_modules.layout_model.neighbor import Neighbor
 
@@ -116,7 +116,7 @@ class Zone:
         self.name = name
         self.level = level
         self.devices = [d for d in devices]
-        self.neighbors = list(neighbors) # type : List[Neighbor]
+        self.neighbors = list(neighbors)  # type : List[Neighbor]
         self.actions = dict(actions)  # shallow copy
         self.external = external
         self.displayIcon = display_icon
@@ -306,16 +306,16 @@ class Zone:
         if neighbor_types is None:
             neighbor_types = []
 
-        if None == zone_manager:
+        if zone_manager is None:
             raise ValueError('zoneManager must not be None')
 
-        if None == neighbor_types or len(neighbor_types) == 0:
-            zones = [zone_manager.get_zone_by_id(n.getZoneId()) \
+        if neighbor_types is None or len(neighbor_types) == 0:
+            zones = [zone_manager.get_zone_by_id(n.getZoneId())
                      for n in self.neighbors]
         else:
-            zones = [zone_manager.get_zone_by_id(n.getZoneId()) \
+            zones = [zone_manager.get_zone_by_id(n.getZoneId())
                      for n in self.neighbors \
-                     if any(n.getType() == t for t in neighbor_types)]
+                     if any(n.get_type() == t for t in neighbor_types)]
 
         return zones
 
@@ -341,7 +341,7 @@ class Zone:
 
         :rtype: int
         """
-        illuminances = [s.getIlluminanceLevel() for s in self.getDevicesByType(
+        illuminances = [s.get_illuminance_level() for s in self.getDevicesByType(
             IlluminanceSensor)]
         zone_illuminance = -1
         if len(illuminances) > 0:
@@ -360,7 +360,7 @@ class Zone:
         if len(astro_sensors) == 0:
             return None
         else:
-            return any(s.isLightOnTime() for s in astro_sensors)
+            return any(s.is_light_on_time() for s in astro_sensors)
 
     def isOccupied(self, ignored_device_types=None, seconds_from_last_event=5 * 60):
         """
@@ -421,7 +421,7 @@ class Zone:
         """
         for light in self.getDevicesByType(Light):
             if light.isOn():
-                light.turnOff(events)
+                light.trigger_action_from_zone(events)
 
     def onTimerExpired(self, events, item):
         """
