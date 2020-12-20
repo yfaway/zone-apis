@@ -1,10 +1,10 @@
 from enum import Enum, unique
 from typing import Tuple, List, Union, Dict, Any
 
+from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 from aaa_modules.layout_model.event_info import EventInfo
 from aaa_modules.layout_model.device import Device
 
-# from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
 from aaa_modules.layout_model.devices.switch import Light, Switch
 from aaa_modules.layout_model.neighbor import Neighbor
@@ -24,7 +24,8 @@ class Level(Enum):
     VIRTUAL = "VT"  #: The third floor
 
 
-class ZoneEvent:
+@unique
+class ZoneEvent(Enum):
     """ An enum of triggering zone events. """
 
     UNDEFINED = -1  # Undefined
@@ -407,7 +408,7 @@ class Zone:
                                if s.getChannel() is not None]
 
         their_sensor_channels = [s.getChannel()
-                                 for s in zone.get_devices_by_type(sensor_type)
+                                 for s in zone.getDevicesByType(sensor_type)
                                  if s.getChannel() is not None]
 
         intersection = set(our_sensor_channels).intersection(their_sensor_channels)

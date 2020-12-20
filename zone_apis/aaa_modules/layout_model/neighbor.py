@@ -54,7 +54,7 @@ class Neighbor:
             raise ValueError('neighbor_type must not be None')
 
         self.zoneId = zone_id
-        self.neighbor_type = neighbor_type # type: NeighborType
+        self.neighbor_type = neighbor_type  # type: NeighborType
 
     def getZoneId(self):
         """
@@ -74,6 +74,5 @@ class Neighbor:
 
         :rtype: boolean
         """
-        return NeighborType.OPEN_SPACE == self.getType() or \
-               NeighborType.OPEN_SPACE_MASTER == self.getType() or \
-               NeighborType.OPEN_SPACE_SLAVE == self.getType()
+        return self.get_type() in \
+               [NeighborType.OPEN_SPACE, NeighborType.OPEN_SPACE_MASTER, NeighborType.OPEN_SPACE_SLAVE]
