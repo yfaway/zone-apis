@@ -315,14 +315,14 @@ class Zone:
                      for n in self.neighbors]
         else:
             zones = [zone_manager.get_zone_by_id(n.getZoneId())
-                     for n in self.neighbors \
+                     for n in self.neighbors
                      if any(n.get_type() == t for t in neighbor_types)]
 
         return zones
 
     def containsOpenHabItem(self, item, sensor_type: type = None):
         """
-        Returns True if this zone contains the given itemName; returns False 
+        Returns True if this zone contains the given item; returns False
         otherwise.
 
         :param Item item:

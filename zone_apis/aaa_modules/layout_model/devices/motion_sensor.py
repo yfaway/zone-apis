@@ -20,7 +20,7 @@ class MotionSensor(Device):
         """
         return pe.is_in_on_state(self.getItem())
 
-    def is_occupied(self, seconds_from_last_event=5 * 60):
+    def isOccupied(self, seconds_from_last_event=5 * 60):
         """
         Returns true if a motion event was triggered within the provided # of
         seconds. Returns false otherwise.

@@ -18,10 +18,10 @@ class MotionSensorTest(DeviceTest):
         self.assertTrue(self.motionSensor.is_on())
 
     def testIsOccupied_various_returnsExpected(self):
-        self.assertFalse(self.motionSensor.is_occupied())
+        self.assertFalse(self.motionSensor.isOccupied())
 
         self.motionSensor.on_triggered(None)
-        self.assertTrue(self.motionSensor.is_occupied())
+        self.assertTrue(self.motionSensor.isOccupied())
 
         pe.set_switch_state(self.get_items()[0], True, True)
-        self.assertTrue(self.motionSensor.is_occupied())
+        self.assertTrue(self.motionSensor.isOccupied())

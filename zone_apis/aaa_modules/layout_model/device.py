@@ -1,7 +1,7 @@
 from copy import copy
 import time
 
-from aaa_modules import platform_encapsulator as PE
+from aaa_modules import platform_encapsulator as pe
 
 
 class Device(object):
@@ -36,7 +36,7 @@ class Device(object):
         Returns true if this device contains the specified item.
         Subclass needs to override if it contains more than one item.
         """
-        return self.item == item
+        return pe.get_item_name(self.item) == pe.get_item_name(item)
 
     def getItem(self):
         """
@@ -52,7 +52,7 @@ class Device(object):
 
         :rtype: str
         """
-        if PE.is_in_habapp():
+        if pe.is_in_habapp():
             return self.item.name
         else:
             return self.item.getName()
@@ -64,17 +64,17 @@ class Device(object):
         :rtype: str the channel string or None if the item is not linked to
         a channel
         """
-        return PE.get_channel(self.getItem())
+        return pe.get_channel(self.getItem())
 
-    def setBatteryPowered(self, boolValue):
+    def setBatteryPowered(self, bool_value):
         """
         :return: A NEW object with the batteryPowered attribute set to the
                 specified value
         """
-        newObj = copy(self)
-        newObj.batteryPowered = boolValue
+        new_obj = copy(self)
+        new_obj.batteryPowered = bool_value
 
-        return newObj
+        return new_obj
 
     def isBatteryPowered(self):
         """
@@ -85,14 +85,14 @@ class Device(object):
 
         return self.batteryPowered
 
-    def setUseWifi(self, boolValue):
+    def setUseWifi(self, bool_value):
         """
         :return: A NEW object with the wifi attribute set to the specified value
         """
-        newObj = copy(self)
-        newObj.wifi = boolValue
+        new_obj = copy(self)
+        new_obj.wifi = bool_value
 
-        return newObj
+        return new_obj
 
     def useWifi(self):
         """
@@ -102,14 +102,14 @@ class Device(object):
         """
         return self.wifi
 
-    def setAutoReport(self, boolValue):
+    def setAutoReport(self, bool_value):
         """
         :return: A NEW object with the autoReport attribute set to the specified value.
         """
-        newObj = copy(self)
-        newObj.autoReport = boolValue
+        new_obj = copy(self)
+        new_obj.autoReport = bool_value
 
-        return newObj
+        return new_obj
 
     def isAutoReport(self):
         """
@@ -119,15 +119,15 @@ class Device(object):
         """
         return self.autoReport
 
-    def setZoneManager(self, zoneManager):
+    def setZoneManager(self, zone_manager):
         """
         :return: A NEW object with the zoneManager attribute set to the
             specified value.
         """
-        newObj = copy(self)
-        newObj.zoneManager = zoneManager
+        new_obj = copy(self)
+        new_obj.zoneManager = zone_manager
 
-        return newObj
+        return new_obj
 
     def getZoneManager(self):
         """
@@ -138,7 +138,7 @@ class Device(object):
         """
         return self.zoneManager
 
-    def isOccupied(self, secondsFromLastEvent=5 * 60):
+    def isOccupied(self, seconds_from_last_event=5 * 60):
         """
         Returns boolean indicating if the present state of the device might
         indicate that the zone is occupied.
@@ -177,11 +177,11 @@ class Device(object):
         :rtype: bool True if the device was activated during the specified
             seconds; False otherwise.
         """
-        prevTimestamp = self.getLastActivatedTimestamp()
-        if None == prevTimestamp:
+        prev_timestamp = self.getLastActivatedTimestamp()
+        if prev_timestamp is None:
             return False
         else:
-            return (time.time() - prevTimestamp) <= seconds
+            return (time.time() - prev_timestamp) <= seconds
 
     def _update_last_activated_timestamp(self):
         """
