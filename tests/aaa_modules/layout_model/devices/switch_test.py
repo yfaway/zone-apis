@@ -86,7 +86,7 @@ class LightTest(DeviceTest):
     def testTimerTurnedOff_validParams_switchIsOff(self):
         zm = ZoneManager()
         self.light = Light(self.lightItem, 0.004)  # makes it 0.24 sec
-        self.light = self.light.setZoneManager(zm._create_immutable_instance())
+        self.light = self.light.setZoneManager(zm.get_immutable_instance())
 
         zone = Zone('ff', [self.light])
         zm.add_zone(zone)

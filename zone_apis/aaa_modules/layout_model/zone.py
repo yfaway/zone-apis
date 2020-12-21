@@ -493,7 +493,7 @@ class Zone:
         """
         :param item: the item that received the event
         :param ZoneEvent zone_event:
-        :param scope.events open_hab_events:
+        :param events open_hab_events:
         :param ImmutableZoneManager immutable_zone_manager:
         :param bool enforce_item_in_zone: if set to true, the actions won't be
             triggered if the zone doesn't contain the item.

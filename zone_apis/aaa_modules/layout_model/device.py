@@ -52,7 +52,7 @@ class Device(object):
 
         :rtype: str
         """
-        if pe.is_in_habapp():
+        if pe.is_in_hab_app():
             return self.item.name
         else:
             return self.item.getName()

@@ -4,39 +4,48 @@ from typing import List, Union, Dict, Any
 import HABApp
 from HABApp.core import Items
 from HABApp.core.events import ValueChangeEvent
+from HABApp.core.items import BaseValueItem
+from HABApp.core.items.base_item import BaseItem
 from HABApp.openhab.items import SwitchItem
 
 from aaa_modules import platform_encapsulator as pe
+from aaa_modules.layout_model.actions.turn_off_adjacent_zones import TurnOffAdjacentZones
+from aaa_modules.layout_model.actions.turn_on_switch import TurnOnSwitch
 from aaa_modules.layout_model.devices.dimmer import Dimmer
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
-from aaa_modules.layout_model.devices.switch import Fan, Light
-from aaa_modules.layout_model.zone import Zone, Level
+from aaa_modules.layout_model.devices.switch import Fan, Light, Switch
+from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
+from aaa_modules.layout_model.zone import Zone, Level, ZoneEvent
 from aaa_modules.layout_model.zone_manager import ZoneManager
 from aaa_modules.layout_model.neighbor import NeighborType, Neighbor
 
+switchActions = [TurnOnSwitch(), TurnOffAdjacentZones()]
 
-def parse() -> ZoneManager:
+
+def parse() -> ImmutableZoneManager:
     """
     Parses the zones and devices.
     :return:
     """
     mappings = {
-        '.*MotionSensor$': _create_motion_sensor,
-        '.*LightSwitch.*': _create_switches,
+        '[^g].*MotionSensor$': _create_motion_sensor,
+        '[^g].*LightSwitch.*': _create_switches,
         '.*FanSwitch.*': _create_switches,
     }
+
+    zm: ZoneManager = ZoneManager()
 
     zone_mappings = {}
     for zone in parse_zones():
         zone_mappings[zone.getId()] = zone
 
-    items = Items.get_all_items()
+    items: List[BaseItem] = Items.get_all_items()
     for item in items:
         for pattern in mappings.keys():
 
             device = None
             if re.match(pattern, item.name) is not None:
-                device = mappings[pattern](item)
+                device = mappings[pattern](zm, item)
                 # PE.log_error(sensor_item.getItemName())
 
             if device is not None:
@@ -52,11 +61,14 @@ def parse() -> ZoneManager:
                 zone = zone_mappings[zone_id].addDevice(device)
                 zone_mappings[zone_id] = zone
 
-    zm = ZoneManager()
+    for z in zone_mappings.values():
+        z = _add_actions(z)
+        zone_mappings[z.getId()] = z
+
     for z in zone_mappings.values():
         zm.add_zone(z)
 
-    return zm._create_immutable_instance()
+    return zm.get_immutable_instance()
 
 
 def parse_zones() -> List[Zone]:
@@ -107,6 +119,14 @@ def parse_zones() -> List[Zone]:
     return zones
 
 
+def _add_actions(zone: Zone) -> Zone:
+    if len(zone.getDevicesByType(Switch)) > 0:
+        for a in switchActions:
+            zone = zone.add_action(a)
+
+    return zone
+
+
 def _get_meta_value(metadata: Dict[str, Any], key, default_value=None) -> str:
     """ Helper method to get the metadata value. """
     value = metadata.get(key)
@@ -130,7 +150,7 @@ def _get_zone_id_from_item_name(item_name: str) -> Union[str, None]:
     return level_string + '_' + location
 
 
-def _create_motion_sensor(item) -> MotionSensor:
+def _create_motion_sensor(zm: ZoneManager, item) -> MotionSensor:
     """
     Creates a MotionSensor and register for change event.
     :param item: SwitchItem
@@ -140,14 +160,15 @@ def _create_motion_sensor(item) -> MotionSensor:
 
     def handler(event: ValueChangeEvent):
         if pe.is_in_on_state(item):
-            sensor.on_triggered(event)
+            zm.update_device_last_activated_time(item)
+            dispatch_event(zm, ZoneEvent.MOTION, item)
 
     item.listen_event(handler, ValueChangeEvent)
 
     return sensor
 
 
-def _create_switches(item: SwitchItem) -> Union[None, Dimmer, Light, Fan]:
+def _create_switches(zm: ZoneManager, item: SwitchItem) -> Union[None, Dimmer, Light, Fan]:
     """
     Parses and creates Dimmer, Fan or Light device.
     :param item: SwitchItem
@@ -178,6 +199,7 @@ def _create_switches(item: SwitchItem) -> Union[None, Dimmer, Light, Fan]:
     else:
         duration_in_minutes = None
 
+    device = None
     if 'LightSwitch' == device_name:
         no_premature_turn_off_time_range = _get_meta_value(metadata, "noPrematureTurnOffTimeRange", None)
 
@@ -188,18 +210,37 @@ def _create_switches(item: SwitchItem) -> Union[None, Dimmer, Light, Fan]:
             level = int(config.get('level'))
             time_ranges = config.get('timeRanges')
 
-            switch = Dimmer(item, duration_in_minutes, level, time_ranges,
+            device = Dimmer(item, duration_in_minutes, level, time_ranges,
                             illuminance_threshold_in_lux,
                             disable_triggering,
                             no_premature_turn_off_time_range)
         else:
-            switch = Light(item, duration_in_minutes,
+            device = Light(item, duration_in_minutes,
                            illuminance_threshold_in_lux,
                            disable_triggering,
                            no_premature_turn_off_time_range)
 
-        return switch
     elif 'FanSwitch' == device_name:
-        return Fan(item, duration_in_minutes)
-    else:
-        return None
+        device = Fan(item, duration_in_minutes)
+
+    if device is not None:
+        def handler(event: ValueChangeEvent):
+            if pe.is_in_on_state(item):
+                if not zm.on_switch_turned_on(pe.get_event_dispatcher(), item):
+                    pe.log_debug(f'Switch on event for {item.name} is not processed.')
+            else:
+                if not zm.on_switch_turned_off(pe.get_event_dispatcher(), item):
+                    pe.log_debug(f'Switch off event for {item.name} is not processed.')
+
+        item.listen_event(handler, ValueChangeEvent)
+
+    return device
+
+
+def dispatch_event(zm: ZoneManager, zone_event: ZoneEvent, item: BaseValueItem, enforce_item_in_zone=True):
+    """
+    Dispatches an event to the ZoneManager. If the event is not processed,
+    create a debug log.
+    """
+    if not zm.dispatch_event(zone_event, pe.get_event_dispatcher(), item, enforce_item_in_zone):
+        pe.log_debug(f'Event {zone_event} for item {item.name} is not processed.')

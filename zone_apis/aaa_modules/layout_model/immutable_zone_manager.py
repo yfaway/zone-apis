@@ -14,7 +14,7 @@ class ImmutableZoneManager:
         self.get_zone_by_id_fcn = get_zone_by_id_fcn
         self.get_devices_by_type_fcn = get_devices_by_type_fcn
 
-    def getContainingZone(self, device):
+    def get_containing_zone(self, device):
         """
         Returns the first zone containing the device or None if the device
         does not belong to a zone.
@@ -25,13 +25,13 @@ class ImmutableZoneManager:
         if device is None:
             raise ValueError('device must not be None')
 
-        for zone in self.getZones():
+        for zone in self.get_zones():
             if zone.hasDevice(device):
                 return zone
 
         return None
 
-    def getZones(self):
+    def get_zones(self):
         """
         Returns a new list contains all zone.
 
@@ -39,17 +39,17 @@ class ImmutableZoneManager:
         """
         return self.get_zones_fcn()
 
-    def getZoneById(self, zoneId):
+    def get_zone_by_id(self, zone_id):
         """
         Returns the zone associated with the given zoneId.
 
-        :param string zoneId: the value returned by Zone::getId()
+        :param string zone_id: the value returned by Zone::getId()
         :return: the associated zone or None if the zoneId is not found
         :rtype: Zone
         """
-        return self.get_zone_by_id_fcn(zoneId)
+        return self.get_zone_by_id_fcn(zone_id)
 
-    def getDevicesByType(self, cls):
+    def get_devices_by_type(self, cls):
         """
         Returns a list of devices in all zones matching the given type.
 
@@ -60,7 +60,7 @@ class ImmutableZoneManager:
 
     def __str__(self):
         value = u""
-        for z in self.getZones():
+        for z in self.get_zones():
             value = f"{value}\n{str(z)}"
 
         return value

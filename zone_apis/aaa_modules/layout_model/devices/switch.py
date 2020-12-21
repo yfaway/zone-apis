@@ -41,7 +41,7 @@ class Switch(Device):
         """
 
         def turn_off_switch():
-            zone = self.getZoneManager().getContainingZone(self)
+            zone = self.getZoneManager().get_containing_zone(self)
 
             (occupied, device) = zone.isOccupied([Fan, Light], 60)
             if not occupied:

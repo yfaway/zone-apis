@@ -153,10 +153,10 @@ class ZoneManager:
         :return: True if at least one zone processed the event; False otherwise
         :rtype: bool
         """
-        self._update_device_last_activated_time(item)
+        self.update_device_last_activated_time(item)
 
         return_values = [
-            z.on_switch_turned_on(events, item, self._create_immutable_instance())
+            z.on_switch_turned_on(events, item, self.get_immutable_instance())
             for z in self.zones.values()]
         return any(return_values)
 
@@ -169,7 +169,7 @@ class ZoneManager:
         """
         return_values = []
         for z in self.zones.values():
-            return_values.append(z.on_switch_turned_off(events, item, self._create_immutable_instance()))
+            return_values.append(z.on_switch_turned_off(events, item, self.get_immutable_instance()))
         return any(return_values)
 
     # noinspection PyUnusedLocal
@@ -180,7 +180,7 @@ class ZoneManager:
         :return: True if at least one zone processed the event; False otherwise
         :rtype: bool
         """
-        self._update_device_last_activated_time(item)
+        self.update_device_last_activated_time(item)
 
         return True
 
@@ -194,15 +194,15 @@ class ZoneManager:
         :param bool enforce_item_in_zone: if set to true, the actions won't be
             triggered if the zone doesn't contain the item.
         """
-        self._update_device_last_activated_time(item)
+        self.update_device_last_activated_time(item)
 
-        zm = self._create_immutable_instance()
+        zm = self.get_immutable_instance()
         return_values = [
             z.dispatch_event(zone_event, open_hab_events, item, zm, enforce_item_in_zone)
             for z in self.zones.values()]
         return any(return_values)
 
-    def _update_device_last_activated_time(self, item):
+    def update_device_last_activated_time(self, item):
         """
         Determine if the itemName is associated with a managed device. If yes,
         update it last activated time to the current epoch second.
@@ -213,7 +213,11 @@ class ZoneManager:
                 # noinspection PyProtectedMember
                 d._update_last_activated_timestamp()
 
-    def _create_immutable_instance(self):
+    def get_immutable_instance(self) -> ImmutableZoneManager:
+        """
+        Return an immutable zone manager instance that contains the same data as in this object.
+        :rtype: ImmutableZoneManager
+        """
         return ImmutableZoneManager(self.get_zones,
                                     self.get_zone_by_id,
                                     self.get_devices_by_type)

@@ -12,7 +12,7 @@ except ImportError:
     from core.testing import run_test
 
     logger = LoggerFactory.getLogger("org.eclipse.smarthome.model.script.Rules")
-    inHabApp = False
+    in_hab_app = False
 else:
     import logging
     from typing import Tuple, List, Union, Dict, Any
@@ -23,7 +23,7 @@ else:
     from HABApp.openhab.definitions import OnOffValue
     from HABApp.core.events import ValueChangeEvent
 
-    inHabApp = True
+    in_hab_app = True
     logger = logging.getLogger('ZoneApis')
 
 
@@ -151,13 +151,13 @@ class PlatformEncapsulator:
         run_test(className, logger)
 
 
-def is_in_habapp() -> bool:
-    return inHabApp
+def is_in_hab_app() -> bool:
+    return in_hab_app
 
 
 def register_test_item(item: Item) -> None:
     """ Register the given item with the runtime. """
-    if is_in_habapp():
+    if is_in_hab_app():
         HABApp.core.Items.set_item(item)
     else:
         scope.itemRegistry.remove(item.getName())
@@ -285,8 +285,11 @@ def get_channel(item) -> str:
     :rtype: str the channel string or None if the item is not linked to
     a channel
     """
-    if (inHabApp):
-        return None
+    if in_hab_app:
+        item_def = HABApp.openhab.interface.get_item(item.name, "channel")
+        metadata = item_def.metadata
+        value = metadata.get("channel")
+        return value['value'] if value is not None else None
     else:
         from core import osgi
         from org.eclipse.smarthome.core.items import MetadataKey
@@ -294,11 +297,18 @@ def get_channel(item) -> str:
 
         channel_meta = meta_registry.get(
             MetadataKey('channel', item.getName()))
-        if None != channel_meta:
+        if channel_meta is not None:
             return channel_meta.value
         else:
             return None
 
+
+def get_event_dispatcher():
+    class EventDispatcher:
+        def send_command(self, item_name: str, command: Any):
+            HABApp.openhab.interface.send_command(item_name, command)
+
+    return EventDispatcher()
 
 def get_test_event_dispatcher():
     """
