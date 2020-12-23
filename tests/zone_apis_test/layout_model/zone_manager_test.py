@@ -1,14 +1,14 @@
 from aaa_modules.layout_model.zone_manager import ZoneManager
 from aaa_modules import platform_encapsulator as pe
 
-from .device_test import DeviceTest
 from aaa_modules.layout_model.zone import Zone, ZoneEvent
 from aaa_modules.layout_model.devices.dimmer import Dimmer
 from aaa_modules.layout_model.devices.switch import Fan, Light, Switch
 from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
+from aaa_modules.layout_model.actions.turn_on_switch import TurnOnSwitch
 
-# from aaa_modules.layout_model.actions.turn_on_switch import TurnOnSwitch
+from zone_apis_test.layout_model.device_test import DeviceTest
 
 ILLUMINANCE_THRESHOLD_IN_LUX = 8
 INVALID_ITEM_NAME = 'invalid item name'
@@ -133,18 +133,16 @@ class ZoneManagerTest(DeviceTest):
                                                 pe.get_test_event_dispatcher(),
                                                 pe.create_string_item(INVALID_ITEM_NAME)))
 
-    """
     def testOnMotionSensorTurnedOn_withApplicableZone_returnsTrue(self):
         self.assertFalse(self.light.isOn())
-        self.illuminanceSensorItem.setState(DecimalType(ILLUMINANCE_THRESHOLD_IN_LUX - 1))
+        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1, True)
 
         zone = Zone('ff', [self.light, self.motionSensor, self.illuminanceSensor])
-        zone = zone.addAction(TurnOnSwitch())
-        self.zm.addZone(zone)
+        zone = zone.add_action(TurnOnSwitch())
+        self.zm.add_zone(zone)
 
-        self.assertTrue(self.zm.dispatchEvent(ZoneEvent.MOTION, 
-                    pe.get_test_event_dispatcher(), self.motionSensor.getItem()))
-    """
+        self.assertTrue(self.zm.dispatch_event(ZoneEvent.MOTION,
+                                               pe.get_test_event_dispatcher(), self.motionSensor.getItem()))
 
     def testOnTimerExpired_noZone_returnsFalse(self):
         self.assertFalse(self.zm.on_timer_expired(

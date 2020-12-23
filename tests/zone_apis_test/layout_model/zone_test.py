@@ -14,7 +14,7 @@ from aaa_modules.layout_model.devices.switch import Fan, Light
 from aaa_modules.layout_model.actions.turn_on_switch import TurnOnSwitch
 from aaa_modules.layout_model.actions.turn_off_adjacent_zones import TurnOffAdjacentZones
 
-from device_test import DeviceTest, create_zone_manager
+from zone_apis_test.layout_model.device_test import DeviceTest, create_zone_manager
 
 ILLUMINANCE_THRESHOLD_IN_LUX = 10
 

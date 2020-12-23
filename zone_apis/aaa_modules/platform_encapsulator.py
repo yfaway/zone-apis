@@ -12,7 +12,7 @@ except ImportError:
     from core.testing import run_test
 
     logger = LoggerFactory.getLogger("org.eclipse.smarthome.model.script.Rules")
-    in_hab_app = False
+    _in_hab_app = False
 else:
     import logging
     from typing import Tuple, List, Union, Dict, Any
@@ -23,8 +23,10 @@ else:
     from HABApp.openhab.definitions import OnOffValue
     from HABApp.core.events import ValueChangeEvent
 
-    in_hab_app = True
+    _in_hab_app = True
     logger = logging.getLogger('ZoneApis')
+
+_in_unit_tests = False
 
 
 class PlatformEncapsulator:
@@ -152,7 +154,7 @@ class PlatformEncapsulator:
 
 
 def is_in_hab_app() -> bool:
-    return in_hab_app
+    return _in_hab_app
 
 
 def register_test_item(item: Item) -> None:
@@ -285,11 +287,14 @@ def get_channel(item) -> str:
     :rtype: str the channel string or None if the item is not linked to
     a channel
     """
-    if in_hab_app:
-        item_def = HABApp.openhab.interface.get_item(item.name, "channel")
-        metadata = item_def.metadata
-        value = metadata.get("channel")
-        return value['value'] if value is not None else None
+    if _in_hab_app:
+        if is_in_unit_tests():
+            return None
+        else:
+            item_def = HABApp.openhab.interface.get_item(item.name, "channel")
+            metadata = item_def.metadata
+            value = metadata.get("channel")
+            return value['value'] if value is not None else None
     else:
         from core import osgi
         from org.eclipse.smarthome.core.items import MetadataKey
@@ -309,6 +314,7 @@ def get_event_dispatcher():
             HABApp.openhab.interface.send_command(item_name, command)
 
     return EventDispatcher()
+
 
 def get_test_event_dispatcher():
     """
@@ -333,3 +339,12 @@ def get_test_event_dispatcher():
                 raise ValueError("Unsupported type for item '{}'".format(item_name))
 
     return EventDispatcher()
+
+
+def set_in_unit_tests(value: bool):
+    global _in_unit_tests
+    _in_unit_tests = value
+
+
+def is_in_unit_tests():
+    return _in_unit_tests

@@ -1,6 +1,7 @@
-from ..device_test import DeviceTest
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
+
+from zone_apis_test.layout_model.device_test import DeviceTest
 
 
 class IlluminanceSensorTest(DeviceTest):

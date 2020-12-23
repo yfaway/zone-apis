@@ -1,7 +1,6 @@
 from aaa_modules import platform_encapsulator as pe
-from ..device_test import DeviceTest
-
 from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
+from zone_apis_test.layout_model.device_test import DeviceTest
 
 
 class AstroSensorTest(DeviceTest):

@@ -1,7 +1,7 @@
 import unittest
 from typing import List
 
-from aaa_modules import platform_encapsulator as PE
+from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.zone import Zone
 from aaa_modules.layout_model.zone_manager import ZoneManager
 
@@ -19,6 +19,21 @@ class DeviceTest(unittest.TestCase):
     Base test class for Device derived sensors.
     """
 
+    def setUp(self):
+        """ Adds the items to the registry. """
+
+        pe.set_in_unit_tests(True)
+
+        for item in self.items:
+            pe.register_test_item(item)
+
+    def tearDown(self):
+        """ Removes the items from the registry. """
+        for item in self.items:
+            pe.unregister_test_item(item)
+
+        pe.set_in_unit_tests(False)
+
     def set_items(self, items: list) -> None:
         """
         Configures the test items to register / unregister before and after each test.
@@ -28,16 +43,6 @@ class DeviceTest(unittest.TestCase):
 
     def get_items(self) -> list:
         return self.items
-
-    # Adds the items to the registry.
-    def setUp(self):
-        for item in self.items:
-            PE.register_test_item(item)
-
-    # Removes the items from the registry.
-    def tearDown(self):
-        for item in self.items:
-            PE.unregister_test_item(item)
 
     def getMockedEventDispatcher(self):
         return MockedEventDispatcher(scope.itemRegistry)

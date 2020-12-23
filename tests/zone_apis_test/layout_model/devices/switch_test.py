@@ -1,10 +1,10 @@
 import time
-from ..device_test import DeviceTest
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.zone import Zone
 from aaa_modules.layout_model.zone_manager import ZoneManager
-
 from aaa_modules.layout_model.devices.switch import Light
+
+from zone_apis_test.layout_model.device_test import DeviceTest
 
 
 class LightTest(DeviceTest):

@@ -5,8 +5,8 @@ lib64
 include
 share
 habapp/log
-habapp/config.xml
-habapp/logging.xml
+habapp/config.yml
+habapp/logging.yml
 **/__pycache__/**
 *swo
 *swp

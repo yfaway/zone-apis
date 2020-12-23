@@ -8,7 +8,7 @@ from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSenso
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
 from aaa_modules.layout_model.devices.switch import Light
 
-from ..device_test import DeviceTest, create_zone_manager
+from zone_apis_test.layout_model.device_test import DeviceTest, create_zone_manager
 
 ILLUMINANCE_THRESHOLD_IN_LUX = 10
 

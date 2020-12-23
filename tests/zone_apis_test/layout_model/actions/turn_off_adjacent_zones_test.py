@@ -5,7 +5,7 @@ from aaa_modules.layout_model.zone import Zone, ZoneEvent
 from aaa_modules.layout_model.neighbor import Neighbor, NeighborType
 from aaa_modules.layout_model.devices.switch import Fan, Light
 
-from ..device_test import DeviceTest, create_zone_manager
+from zone_apis_test.layout_model.device_test import DeviceTest, create_zone_manager
 
 ILLUMINANCE_THRESHOLD_IN_LUX = 10
 

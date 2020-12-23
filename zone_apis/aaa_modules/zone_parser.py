@@ -36,7 +36,7 @@ def parse() -> ImmutableZoneManager:
     zm: ZoneManager = ZoneManager()
 
     zone_mappings = {}
-    for zone in parse_zones():
+    for zone in _parse_zones():
         zone_mappings[zone.getId()] = zone
 
     items: List[BaseItem] = Items.get_all_items()
@@ -71,7 +71,7 @@ def parse() -> ImmutableZoneManager:
     return zm.get_immutable_instance()
 
 
-def parse_zones() -> List[Zone]:
+def _parse_zones() -> List[Zone]:
     """
     Parses items with the zone pattern in the name and constructs the associated Zone objects.
     :return: List[Zone]
