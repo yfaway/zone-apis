@@ -11,7 +11,9 @@ from HABApp.openhab.items import SwitchItem
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.actions.turn_off_adjacent_zones import TurnOffAdjacentZones
 from aaa_modules.layout_model.actions.turn_on_switch import TurnOnSwitch
+from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 from aaa_modules.layout_model.devices.dimmer import Dimmer
+from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
 from aaa_modules.layout_model.devices.switch import Fan, Light, Switch
 from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
@@ -31,6 +33,7 @@ def parse() -> ImmutableZoneManager:
         '[^g].*MotionSensor$': _create_motion_sensor,
         '[^g].*LightSwitch.*': _create_switches,
         '.*FanSwitch.*': _create_switches,
+        '[^g].*_Illuminance.*': _create_illuminance_sensor,
     }
 
     zm: ZoneManager = ZoneManager()
@@ -60,6 +63,13 @@ def parse() -> ImmutableZoneManager:
 
                 zone = zone_mappings[zone_id].addDevice(device)
                 zone_mappings[zone_id] = zone
+
+    # Add the AstroSensor to any zone that has a Light device.
+    astro_sensor = AstroSensor(Items.get_item('VT_Time_Of_Day'))
+    for zone in zone_mappings.values():
+        if len(zone.getDevicesByType(Light)) > 0 or len(zone.getDevicesByType(Dimmer)) > 0:
+            zone = zone.addDevice(astro_sensor)
+            zone_mappings[zone.getId()] = zone
 
     for z in zone_mappings.values():
         z = _add_actions(z)
@@ -166,6 +176,15 @@ def _create_motion_sensor(zm: ZoneManager, item) -> MotionSensor:
     item.listen_event(handler, ValueChangeEvent)
 
     return sensor
+
+
+def _create_illuminance_sensor(zm: ZoneManager, item) -> IlluminanceSensor:
+    """
+    Creates an illuminance sensor
+    :param item: NumberItem
+    :return: IlluminanceSensor
+    """
+    return IlluminanceSensor(item)
 
 
 def _create_switches(zm: ZoneManager, item: SwitchItem) -> Union[None, Dimmer, Light, Fan]:
