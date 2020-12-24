@@ -11,10 +11,12 @@ from HABApp.openhab.items import SwitchItem
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.actions.turn_off_adjacent_zones import TurnOffAdjacentZones
 from aaa_modules.layout_model.actions.turn_on_switch import TurnOnSwitch
+from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition, AlarmState
 from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 from aaa_modules.layout_model.devices.dimmer import Dimmer
 from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
+from aaa_modules.layout_model.devices.plug import Plug
 from aaa_modules.layout_model.devices.switch import Fan, Light, Switch
 from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
 from aaa_modules.layout_model.zone import Zone, Level, ZoneEvent
@@ -30,10 +32,12 @@ def parse() -> ImmutableZoneManager:
     :return:
     """
     mappings = {
+        '.*AlarmPartition$': _create_alarm_partition,
         '[^g].*MotionSensor$': _create_motion_sensor,
         '[^g].*LightSwitch.*': _create_switches,
         '.*FanSwitch.*': _create_switches,
         '[^g].*_Illuminance.*': _create_illuminance_sensor,
+        '[^g].*_Plug$': _create_plug,
     }
 
     zm: ZoneManager = ZoneManager()
@@ -49,7 +53,6 @@ def parse() -> ImmutableZoneManager:
             device = None
             if re.match(pattern, item.name) is not None:
                 device = mappings[pattern](zm, item)
-                # PE.log_error(sensor_item.getItemName())
 
             if device is not None:
                 zone_id = _get_zone_id_from_item_name(item.name)
@@ -185,6 +188,41 @@ def _create_illuminance_sensor(zm: ZoneManager, item) -> IlluminanceSensor:
     :return: IlluminanceSensor
     """
     return IlluminanceSensor(item)
+
+
+def _create_plug(zm: ZoneManager, item) -> Plug:
+    """
+    Creates a smart plug.
+    :param item: SwitchItem
+    :return: Plug
+    """
+    power_item_name = item.name + '_Power'
+    if Items.item_exists(power_item_name):
+        power_item = Items.get_item(power_item_name)
+    else:
+        power_item = None
+
+    return Plug(item, power_item)
+
+
+def _create_alarm_partition(zm: ZoneManager, item: SwitchItem) -> AlarmPartition:
+    """
+    Creates an alarm partition.
+    :param item: SwitchItem
+    :return: AlarmPartition
+    """
+    arm_mode_item = Items.get_item(item.name + '_ArmMode')
+
+    def handler(event: ValueChangeEvent):
+        if AlarmState.ARM_AWAY == AlarmState(int(event.value)):
+            dispatch_event(zm, ZoneEvent.PARTITION_ARMED_AWAY, item)
+        elif AlarmState.UNARMED == AlarmState(int(event.value)) \
+                and AlarmState.ARM_AWAY == AlarmState(int(event.old_value)):
+            dispatch_event(zm, ZoneEvent.PARTITION_DISARMED_FROM_AWAY, item)
+
+    arm_mode_item.listen_event(handler, ValueChangeEvent)
+
+    return AlarmPartition(item, arm_mode_item)
 
 
 def _create_switches(zm: ZoneManager, item: SwitchItem) -> Union[None, Dimmer, Light, Fan]:

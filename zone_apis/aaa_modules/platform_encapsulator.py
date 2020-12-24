@@ -249,7 +249,7 @@ def get_string_value(item: StringItem) -> str:
 
 
 def get_number_value(item: NumberItem) -> float:
-    return item.get_value(0)
+    return int(item.get_value(0))
 
 
 def get_item_name(item):
@@ -334,6 +334,8 @@ def get_test_event_dispatcher():
                     item.post_value(OnOffValue.OFF)
             elif isinstance(item, DimmerItem):
                 item.post_value(int(command))
+            elif isinstance(item, NumberItem):
+                item.post_value(command)
             else:
                 log_error("type: {}".format(type(item)))
                 raise ValueError("Unsupported type for item '{}'".format(item_name))
