@@ -6,13 +6,15 @@ from HABApp.core import Items
 from HABApp.core.events import ValueChangeEvent
 from HABApp.core.items import BaseValueItem
 from HABApp.core.items.base_item import BaseItem
-from HABApp.openhab.items import SwitchItem
+from HABApp.openhab.items import SwitchItem, StringItem
 
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.actions.turn_off_adjacent_zones import TurnOffAdjacentZones
 from aaa_modules.layout_model.actions.turn_on_switch import TurnOnSwitch
+from aaa_modules.layout_model.devices.activity_times import ActivityTimes
 from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition, AlarmState
 from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
+from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink
 from aaa_modules.layout_model.devices.dimmer import Dimmer
 from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
@@ -33,6 +35,7 @@ def parse() -> ImmutableZoneManager:
     """
     mappings = {
         '.*AlarmPartition$': _create_alarm_partition,
+        '.*_ChromeCast$': _create_chrome_cast,
         '[^g].*MotionSensor$': _create_motion_sensor,
         '[^g].*LightSwitch.*': _create_switches,
         '.*FanSwitch.*': _create_switches,
@@ -73,6 +76,19 @@ def parse() -> ImmutableZoneManager:
         if len(zone.getDevicesByType(Light)) > 0 or len(zone.getDevicesByType(Dimmer)) > 0:
             zone = zone.addDevice(astro_sensor)
             zone_mappings[zone.getId()] = zone
+
+    # Add specific devices to the Virtual Zone
+    zone = next((z for z in zone_mappings.values() if z.getName() == 'Virtual'), None)
+    if zone is not None:
+        time_map = {
+            'wakeup': '6 - 9',
+            'lunch': '12:00 - 13:30',
+            'quiet': '14:00 - 16:00, 20:00 - 22:59',
+            'dinner': '17:50 - 20:00',
+            'sleep': '23:00 - 7:00'
+        }
+        zone = zone.addDevice(ActivityTimes(time_map))
+        zone_mappings[zone.getId()] = zone
 
     for z in zone_mappings.values():
         z = _add_actions(z)
@@ -223,6 +239,19 @@ def _create_alarm_partition(zm: ZoneManager, item: SwitchItem) -> AlarmPartition
     arm_mode_item.listen_event(handler, ValueChangeEvent)
 
     return AlarmPartition(item, arm_mode_item)
+
+
+def _create_chrome_cast(zm: ZoneManager, item: StringItem) -> ChromeCastAudioSink:
+    item_def = HABApp.openhab.interface.get_item(item.name, "sinkName")
+    metadata = item_def.metadata
+
+    sink_name = _get_meta_value(metadata, "sinkName", None)
+    player_item = Items.get_item(item.name + "Player")
+    volume_item = Items.get_item(item.name + "Volume")
+    title_item = Items.get_item(item.name + "Title")
+    idling_item = Items.get_item(item.name + "Idling")
+
+    return ChromeCastAudioSink(sink_name, player_item, volume_item, title_item, idling_item)
 
 
 def _create_switches(zm: ZoneManager, item: SwitchItem) -> Union[None, Dimmer, Light, Fan]:

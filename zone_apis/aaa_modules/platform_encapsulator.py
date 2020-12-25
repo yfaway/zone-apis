@@ -19,7 +19,7 @@ else:
 
     from HABApp.core import Items
     from HABApp.core.items import Item
-    from HABApp.openhab.items import ContactItem, DimmerItem, NumberItem, StringItem, SwitchItem
+    from HABApp.openhab.items import ContactItem, DimmerItem, NumberItem, StringItem, SwitchItem, PlayerItem
     from HABApp.openhab.definitions import OnOffValue
     from HABApp.core.events import ValueChangeEvent
 
@@ -234,7 +234,7 @@ def set_number_value(item: NumberItem, value: float, in_unit_test=False):
 
 
 def get_number_value(item: NumberItem) -> float:
-    return item.get_value(0)
+    return int(item.get_value(0))
 
 
 def set_string_value(item: StringItem, value: str, in_unit_test=False):
@@ -248,8 +248,22 @@ def get_string_value(item: StringItem) -> str:
     return item.get_value()
 
 
-def get_number_value(item: NumberItem) -> float:
-    return int(item.get_value(0))
+def change_player_state_to_pause(item: PlayerItem):
+    if is_in_unit_tests():
+        item.set_value("PAUSE")
+    else:
+        item.oh_send_command("PAUSE")
+
+
+def change_player_state_to_play(item: PlayerItem):
+    if is_in_unit_tests():
+        item.set_value("PLAY")
+    else:
+        item.oh_send_command("PLAY")
+
+
+def is_player_playing(item: PlayerItem):
+    return item.get_value() == "PLAY"
 
 
 def get_item_name(item):
