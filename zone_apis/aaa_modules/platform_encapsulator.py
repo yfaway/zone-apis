@@ -183,6 +183,9 @@ def create_number_item(name: str) -> NumberItem:
     return NumberItem(name)
 
 
+def create_player_item(name: str) -> PlayerItem:
+    return PlayerItem(name)
+
 def create_dimmer_item(name: str, percentage: int = 0) -> DimmerItem:
     """
     :param name: the item name

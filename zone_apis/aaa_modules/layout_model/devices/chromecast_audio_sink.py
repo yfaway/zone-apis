@@ -22,7 +22,7 @@ class ChromeCastAudioSink(Device):
             name can be retrieved by running "openhab-cli console" and then
             "smarthome:audio sinks".
         :raise ValueError: if any parameter is invalid
-        """
+    """
         Device.__init__(self, pe.create_string_item(f'Chromecast-{sink_name}'))
 
         self._sink_name = sink_name
