@@ -74,7 +74,7 @@ class AlertManager:
         if volume > 0:
             casts: List[ChromeCastAudioSink] = zone_manager.get_devices_by_type(ChromeCastAudioSink)
             for cast in casts:
-                cast.playMessage(alert.get_subject(), volume)
+                cast.play_message(alert.get_subject(), volume)
 
         return True
 

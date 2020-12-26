@@ -41,7 +41,7 @@ class ChromeCastAudioSink(Device):
         self._lastCommandTimestamp = time.time()
         self._lastCommand = None
 
-    def playMessage(self, message, volume=50):
+    def play_message(self, message, volume=50):
         """
         Play the given message on one or more ChromeCast and wait till it finishes 
         (up to MAX_SAY_WAIT_TIME_IN_SECONDS seconds). Afterward, pause the player.
@@ -63,8 +63,7 @@ class ChromeCastAudioSink(Device):
 
         pe.set_number_value(self._volume_item, volume)
         if not self._testMode:
-            #Voice.say(message, None, self.getSinkName())
-            pass
+            pe.play_text_to_speech_message(self.get_sink_name(), message)
         else:
             self._testLastCommand = 'playMessage'
 
@@ -88,7 +87,7 @@ class ChromeCastAudioSink(Device):
 
         return True
 
-    def playSoundFile(self, local_file, duration_in_secs, volume=None):
+    def play_sound_file(self, local_file, duration_in_secs, volume=None):
         """
         Plays the provided local sound file. See '/etc/openhab2/sound'.
         Returns immediately if the same command was recently executed (see
@@ -111,13 +110,13 @@ class ChromeCastAudioSink(Device):
             self._testLastCommand = 'playSoundFile'
             return True
 
-        was_active = self.isActive()
+        was_active = self.is_active()
         previous_volume = pe.get_number_value(self._volume_item)
 
         if volume is not None:
             pe.set_number_value(self._volume_item, volume)
 
-        #Audio.playSound(self.getSinkName(), local_file)
+        pe.play_local_audio_file(self.get_sink_name(), local_file)
 
         if was_active:
             time.sleep(duration_in_secs + 1)
@@ -126,7 +125,7 @@ class ChromeCastAudioSink(Device):
 
         return True
 
-    def playStream(self, url, volume=None):
+    def play_stream(self, url, volume=None):
         """
         Play the given stream url.
 
@@ -148,10 +147,10 @@ class ChromeCastAudioSink(Device):
         if volume is not None:
             pe.set_number_value(self._volume_item, volume)
 
-        if url == self.getStreamUrl():
+        if url == self.get_stream_url():
             self.resume()
         else:
-            #Audio.playStream(self.getSinkName(), url)
+            pe.play_stream_url(self.get_sink_name(), url)
             self.streamUrl = url
 
         return True
@@ -176,13 +175,13 @@ class ChromeCastAudioSink(Device):
             return
 
         if pe.is_in_on_state(self._idling_item):
-            #Audio.playStream(self.getSinkName(), self.getStreamUrl())
+            pe.play_stream_url(self.get_sink_name(), self.get_stream_url())
             pass
         else:
-            #Audio.playStream(self.getSinkName(), self.getStreamUrl())
+            pe.play_stream_url(self.get_sink_name(), self.get_stream_url())
             pe.change_player_state_to_play(self._player_item)
 
-    def isActive(self):
+    def is_active(self):
         """
         Return true if the the chromecast is playing something.
         """
@@ -195,7 +194,7 @@ class ChromeCastAudioSink(Device):
         title = pe.get_string_value(self._title_item)
         return title is not None and title != ''
 
-    def getStreamUrl(self):
+    def get_stream_url(self):
         """
         Returns the current stream Uri or None if no stream set.
 
@@ -203,7 +202,7 @@ class ChromeCastAudioSink(Device):
         """
         return self.streamUrl
 
-    def getLastTtsMessage(self):
+    def get_last_tts_message(self):
         """
         :rtype: str
         """
@@ -217,16 +216,9 @@ class ChromeCastAudioSink(Device):
         """
         return self._sink_name
 
-    def _setTestMode(self):
+    def _set_test_mode(self):
         self._testMode = True
         self._testLastCommand = None
 
-    def _getLastTestCommand(self):
+    def _get_last_test_command(self):
         return self._testLastCommand
-
-# s = ChromeCastAudioSink('FF_GreatRoom_ChromeCast', "chromecast:audio:greatRoom")
-# s.playMessage('the sink name for voice and audio play. The sink \
-#            name can be retrieved by running', 30)
-# s.playSoundFile('bell-outside.wav', 15, 30)
-# s.playStream("https://wwfm.streamguys1.com/live-mp3", 30)
-# s.pause()

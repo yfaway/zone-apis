@@ -25,7 +25,7 @@ class AlertManagerTest(DeviceTest):
         super(AlertManagerTest, self).setUp()
 
         self._cast = ChromeCastAudioSink("sink name", items[0], items[1], items[2], items[3])
-        self._cast._setTestMode()
+        self._cast._set_test_mode()
 
         time_map = {
             'wakeup': '6 - 9',
@@ -61,7 +61,7 @@ class AlertManagerTest(DeviceTest):
 
         casts = self._get_all_casts()
         for cast in casts:
-            self.assertEqual(SUBJECT, cast.getLastTtsMessage())
+            self.assertEqual(SUBJECT, cast.get_last_tts_message())
 
         self.assertEqual(alert.get_subject(), self._fixture._lastEmailedSubject)
 
@@ -72,7 +72,7 @@ class AlertManagerTest(DeviceTest):
 
         casts = self._get_all_casts()
         for cast in casts:
-            self.assertEqual(SUBJECT, cast.getLastTtsMessage())
+            self.assertEqual(SUBJECT, cast.get_last_tts_message())
 
         self.assertEqual(None, self._fixture._lastEmailedSubject)
 
@@ -83,7 +83,7 @@ class AlertManagerTest(DeviceTest):
 
         casts = self._get_all_casts()
         for cast in casts:
-            self.assertEqual(SUBJECT, cast.getLastTtsMessage())
+            self.assertEqual(SUBJECT, cast.get_last_tts_message())
 
     def testProcessAlert_withinInterval_returnsFalse(self):
         alert = Alert.create_critical_alert(SUBJECT, None, [], MODULE, 1)

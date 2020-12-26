@@ -26,6 +26,15 @@ else:
     _in_hab_app = True
     logger = logging.getLogger('ZoneApis')
 
+ACTION_AUDIO_SINK_ITEM_NAME = 'AudioVoiceSinkName'
+ACTION_TEXT_TO_SPEECH_MESSAGE_ITEM_NAME = 'TextToSpeechMessage'
+ACTION_AUDIO_LOCAL_FILE_LOCATION_ITEM_NAME = 'AudioFileLocation'
+ACTION_AUDIO_STREAM_URL_ITEM_NAME = 'AudioStreamUrl'
+""" 
+The previous 4 items are used to play TTS message and audio file/URL. 
+The corresponding script to process these actions are in JSR223 side, within OpenHab.
+"""
+
 _in_unit_tests = False
 
 
@@ -185,6 +194,7 @@ def create_number_item(name: str) -> NumberItem:
 
 def create_player_item(name: str) -> PlayerItem:
     return PlayerItem(name)
+
 
 def create_dimmer_item(name: str, percentage: int = 0) -> DimmerItem:
     """
@@ -367,3 +377,21 @@ def set_in_unit_tests(value: bool):
 
 def is_in_unit_tests():
     return _in_unit_tests
+
+
+def play_local_audio_file(sink_name: str, file_location: str):
+    """ Plays a local audio file on the given audio sink. """
+    HABApp.openhab.interface.send_command(ACTION_AUDIO_SINK_ITEM_NAME, sink_name)
+    HABApp.openhab.interface.send_command(ACTION_AUDIO_LOCAL_FILE_LOCATION_ITEM_NAME, file_location)
+
+
+def play_stream_url(sink_name: str, url: str):
+    """ Plays a stream URL on the given audio sink. """
+    HABApp.openhab.interface.send_command(ACTION_AUDIO_SINK_ITEM_NAME, sink_name)
+    HABApp.openhab.interface.send_command(ACTION_AUDIO_STREAM_URL_ITEM_NAME, url)
+
+
+def play_text_to_speech_message(sink_name: str, tts: str):
+    """ Plays a text to speech message on the given audio sink. """
+    HABApp.openhab.interface.send_command(ACTION_AUDIO_SINK_ITEM_NAME, sink_name)
+    HABApp.openhab.interface.send_command(ACTION_TEXT_TO_SPEECH_MESSAGE_ITEM_NAME, tts)
