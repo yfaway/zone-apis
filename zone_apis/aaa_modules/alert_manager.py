@@ -5,7 +5,6 @@ from aaa_modules.alert import Alert
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.devices.activity_times import ActivityTimes
 from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink
-from aaa_modules.layout_model.zone_manager import ZoneManager
 
 _ADMIN_EMAIL_KEY = 'admin-email-address'
 _OWNER_EMAIL_KEY = 'owner-email-address'
@@ -31,7 +30,7 @@ class AlertManager:
         # Tracks the timestamp of the last alert in a module.
         self._moduleTimestamps = {}
 
-    def process_alert(self, alert: Alert, zone_manager: ZoneManager = None):
+    def process_alert(self, alert: Alert, zone_manager = None):
         """
         Processes the provided alert.
         If the alert's level is WARNING or CRITICAL, the TTS subject will be played
@@ -63,13 +62,17 @@ class AlertManager:
             if zone_manager is None:
                 volume = 60
             else:
-                activity = zone_manager.get_devices_by_type(ActivityTimes)[0]
-                if activity.isSleepTime():
-                    volume = 0
-                elif activity.isQuietTime():
-                    volume = 40
+                activities = zone_manager.get_devices_by_type(ActivityTimes)
+                if len(activities) > 0:
+                    activity = activities[0]
+                    if activity.isSleepTime():
+                        volume = 0
+                    elif activity.isQuietTime():
+                        volume = 40
+                    else:
+                        volume = 60
                 else:
-                    volume = 60
+                    volume = 50
 
         if volume > 0:
             casts: List[ChromeCastAudioSink] = zone_manager.get_devices_by_type(ChromeCastAudioSink)
@@ -129,7 +132,7 @@ class AlertManager:
 
         if not self._testMode:
             body = '' if alert.get_body() is None else alert.get_body()
-            pe.send_email('mail:smtp:gmail', email_addresses, alert.get_subject(), body, alert.get_attachment_urls())
+            pe.send_email(email_addresses, alert.get_subject(), body, alert.get_attachment_urls())
 
         self._lastEmailedSubject = alert.get_subject()
 

@@ -19,7 +19,7 @@ class AlarmPartitionTest(DeviceTest):
         self.assertFalse(self.alarmPartition.is_in_alarm())
 
     def testIsInAlarm_inAlarm_returnsTrue(self):
-        pe.set_switch_state(self.alarmPartition.getItem(), True, True)
+        pe.set_switch_state(self.alarmPartition.getItem(), True)
         self.assertTrue(self.alarmPartition.is_in_alarm())
 
     def testArmAway_noParam_setCorrectValue(self):

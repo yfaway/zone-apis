@@ -1,3 +1,4 @@
+from aaa_modules.alert_manager import AlertManager
 from aaa_modules.layout_model.zone import Zone
 from aaa_modules.layout_model.device import Device
 
@@ -8,11 +9,23 @@ class ImmutableZoneManager:
     Instances of this class is passed to the method Action#onAction.
     """
 
-    def __init__(self, get_zones_fcn, get_zone_by_id_fcn,
-                 get_devices_by_type_fcn):
+    def __init__(self, get_zones_fcn, get_zone_by_id_fcn, get_devices_by_type_fcn, alert_manager: AlertManager = None):
         self.get_zones_fcn = get_zones_fcn
         self.get_zone_by_id_fcn = get_zone_by_id_fcn
         self.get_devices_by_type_fcn = get_devices_by_type_fcn
+        self.alert_manager = alert_manager
+
+    def set_alert_manager(self, alert_manager: AlertManager):
+        """ Sets the alert manager and returns a new instance of this class. """
+
+        params = {'get_zones_fcn': self.get_zones_fcn,
+                  'get_zone_by_id_fcn': self.get_zone_by_id_fcn,
+                  'get_devices_by_type_fcn': self.get_devices_by_type_fcn,
+                  'alert_manager': alert_manager}
+        return ImmutableZoneManager(**params)
+
+    def get_alert_manager(self) -> AlertManager:
+        return self.alert_manager
 
     def get_containing_zone(self, device):
         """

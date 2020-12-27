@@ -1,7 +1,6 @@
 from aaa_modules import platform_encapsulator as pe
 
-from aaa_modules.layout_model.zone import Zone, Level, ZoneEvent, createExternalZone, createFirstFloorZone, \
-    createSecondFloorZone
+from aaa_modules.layout_model.zone import Zone, Level, ZoneEvent
 from aaa_modules.layout_model.neighbor import Neighbor, NeighborType
 from aaa_modules.layout_model.event_info import EventInfo
 
@@ -66,20 +65,20 @@ class ZoneTest(DeviceTest):
 
     def testCreateExternalZone_validParams_returnsAnExternalZone(self):
         zone_name = 'bed room'
-        zone = createExternalZone(zone_name)
+        zone = Zone.create_external_zone(zone_name)
         self.assertEqual(zone_name, zone.getName())
         self.assertTrue(zone.isExternal())
 
     def testCreateFirstFloorZone_validParams_returnsAFirstFloorZone(self):
         zone_name = 'bed room'
-        zone = createFirstFloorZone(zone_name)
+        zone = Zone.create_first_floor_zone(zone_name)
         self.assertEqual(zone_name, zone.getName())
         self.assertEqual(Level.FIRST_FLOOR, zone.getLevel())
         self.assertFalse(zone.isExternal())
 
     def testCreateSecondFloorZone_validParams_returnsASecondFloorZone(self):
         zone_name = 'bed room'
-        zone = createSecondFloorZone(zone_name)
+        zone = Zone.create_second_floor_zone(zone_name)
         self.assertEqual(zone_name, zone.getName())
         self.assertEqual(Level.SECOND_FLOOR, zone.getLevel())
         self.assertFalse(zone.isExternal())
@@ -195,7 +194,7 @@ class ZoneTest(DeviceTest):
         self.assertEqual(-1, zone.getIlluminanceLevel())
 
     def testGetIlluminanceLevel_withSensor_returnsPositiveValue(self):
-        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX, True)
+        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX)
 
         zone = Zone('ff', [self.lightWithIlluminance, self.motionSensor,
                            self.illuminanceSensor])
@@ -206,12 +205,12 @@ class ZoneTest(DeviceTest):
         self.assertEqual(None, zone.isLightOnTime())
 
     def testIsLightOnTime_withSensorIndicatesDayTime_returnsFalse(self):
-        pe.set_string_value(self.astroSensorItem, 'MORNING', True)
+        pe.set_string_value(self.astroSensorItem, 'MORNING')
         zone = Zone('ff', [self.lightWithIlluminance, self.astroSensor])
         self.assertFalse(zone.isLightOnTime())
 
     def testIsLightOnTime_withSensorIndicatesEveningTime_returnsTrue(self):
-        pe.set_string_value(self.astroSensorItem, AstroSensor.LIGHT_ON_TIMES[0], True)
+        pe.set_string_value(self.astroSensorItem, AstroSensor.LIGHT_ON_TIMES[0])
         zone = Zone('ff', [self.lightWithIlluminance, self.astroSensor])
         self.assertTrue(zone.isLightOnTime())
 
@@ -265,7 +264,7 @@ class ZoneTest(DeviceTest):
 
     def testOnMotionSensorTurnedOn_illuminanceAboveThreshold_returnsFalse(self):
         self.assertFalse(self.light.isOn())
-        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX + 1, True)
+        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX + 1)
 
         zone = Zone('ff', [self.lightWithIlluminance, self.motionSensor,
                            self.illuminanceSensor])
@@ -278,7 +277,7 @@ class ZoneTest(DeviceTest):
 
     def testOnMotionSensorTurnedOn_illuminanceBelowThreshold_turnsOnLight(self):
         self.assertFalse(self.light.isOn())
-        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1, True)
+        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
         zone = Zone('ff', [self.lightWithIlluminance, self.motionSensor,
                            self.illuminanceSensor])
@@ -291,7 +290,7 @@ class ZoneTest(DeviceTest):
         self.assertTrue(self.light.isOn())
 
     def testOnMotionSensorTurnedOn_notLightOnTime_returnsFalse(self):
-        pe.set_string_value(self.astroSensorItem, 'MORNING', True)
+        pe.set_string_value(self.astroSensorItem, 'MORNING')
 
         zone = Zone('ff', [self.light, self.astroSensor])
         zone = zone.add_action(TurnOnSwitch())
@@ -302,8 +301,8 @@ class ZoneTest(DeviceTest):
 
     def testOnMotionSensorTurnedOn_notLightOnTimeButIlluminanceBelowThreshold_turnsOnLight(self):
         self.assertFalse(self.light.isOn())
-        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1, True)
-        pe.set_string_value(self.astroSensorItem, 'MORNING', True)
+        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
+        pe.set_string_value(self.astroSensorItem, 'MORNING')
 
         zone = Zone('ff', [self.lightWithIlluminance, self.motionSensor,
                            self.illuminanceSensor, self.astroSensor])
@@ -317,7 +316,7 @@ class ZoneTest(DeviceTest):
     def testOnMotionSensorTurnedOn_lightOnTime_turnsOnLight(self):
         self.assertFalse(self.light.isOn())
 
-        pe.set_string_value(self.astroSensorItem, AstroSensor.LIGHT_ON_TIMES[0], True)
+        pe.set_string_value(self.astroSensorItem, AstroSensor.LIGHT_ON_TIMES[0])
         zone = Zone('ff', [self.light, self.motionSensor, self.astroSensor])
         zone = zone.add_action(TurnOnSwitch())
 

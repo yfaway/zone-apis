@@ -2,16 +2,23 @@ import unittest
 from typing import List
 
 from aaa_modules import platform_encapsulator as pe
+from aaa_modules.alert_manager import AlertManager
+from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
 from aaa_modules.layout_model.zone import Zone
 from aaa_modules.layout_model.zone_manager import ZoneManager
 
 
-def create_zone_manager(zones: List[Zone]) -> ZoneManager:
+def create_zone_manager(zones: List[Zone]) -> ImmutableZoneManager:
     zm = ZoneManager()
     for zone in zones:
         zm.add_zone(zone)
 
-    return zm
+    alert_manager = AlertManager()
+    alert_manager._set_test_mode(True)
+
+    immutable_zm = zm.get_immutable_instance().set_alert_manager(alert_manager)
+
+    return immutable_zm
 
 
 class DeviceTest(unittest.TestCase):

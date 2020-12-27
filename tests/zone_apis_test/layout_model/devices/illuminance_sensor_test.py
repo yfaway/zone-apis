@@ -17,5 +17,5 @@ class IlluminanceSensorTest(DeviceTest):
     def testGetIlluminanceLevel_noParams_returnsValidValue(self):
         self.assertEqual(0, self.illuminanceSensor.get_illuminance_level())
 
-        pe.set_number_value(self.item, 50, True)
+        pe.set_number_value(self.item, 50)
         self.assertEqual(50, self.illuminanceSensor.get_illuminance_level())

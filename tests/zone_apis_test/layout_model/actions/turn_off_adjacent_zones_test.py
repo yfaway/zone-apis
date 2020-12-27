@@ -55,7 +55,7 @@ class TurnOffAdjacentZonesTest(DeviceTest):
         self.assertFalse(self.lobby.isLightOn())
 
     def testOnAction_openSpaceButDisableTurnOffByNeighbor_mustNotTurnsOffLight(self):
-        pe.set_switch_state(self.foyer_light_item, True, True)
+        pe.set_switch_state(self.foyer_light_item, True)
         self.assertTrue(self.foyer.isLightOn())
 
         self.assertTrue(self.trigger_action_from_zone(self.lobby))
@@ -66,8 +66,8 @@ class TurnOffAdjacentZonesTest(DeviceTest):
         self.assertFalse(self.trigger_action_from_zone(self.shower))
 
     def testOnAction_neighborWithFan_mustNotTurnOffNeighborFan(self):
-        pe.set_switch_state(self.fan_item, True, True)
-        pe.set_switch_state(self.lobby_light_item, True, True)
+        pe.set_switch_state(self.fan_item, True)
+        pe.set_switch_state(self.lobby_light_item, True)
 
         self.assertTrue(self.trigger_action_from_zone(self.washroom))
         self.assertFalse(self.lobby.isLightOn())

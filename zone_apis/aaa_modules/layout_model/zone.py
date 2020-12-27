@@ -1,5 +1,5 @@
 from enum import Enum, unique
-from typing import Tuple, List, Union, Dict, Any
+from typing import List
 
 from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 from aaa_modules.layout_model.event_info import EventInfo
@@ -87,6 +87,33 @@ class Zone:
 
     @Immutable (the Zone object only)
     """
+
+    @classmethod
+    def create_second_floor_zone(cls, name):
+        """
+        Creates an internal second floor zone with the given name.
+        :rtype: Zone
+        """
+        params = {'name': name, 'level': Level.SECOND_FLOOR}
+        return Zone(**params)
+
+    @classmethod
+    def create_first_floor_zone(cls, name):
+        """
+        Creates an internal first floor zone with the given name.
+        :rtype: Zone
+        """
+        params = {'name': name, 'level': Level.FIRST_FLOOR}
+        return Zone(**params)
+
+    @classmethod
+    def create_external_zone(cls, name, level=Level.FIRST_FLOOR):
+        """
+        Creates an external zone with the given name.
+        :rtype: Zone
+        """
+        params = {'name': name, 'level': level, 'external': True}
+        return Zone(**params)
 
     def __init__(self, name, devices: List[Device] = None, level=Level.UNDEFINED,
                  neighbors: List[Neighbor] = None, actions=None, external=False,
@@ -563,29 +590,3 @@ class Zone:
 
         return params
 
-
-def createSecondFloorZone(name):
-    """
-    Creates an internal second floor zone with the given name.
-    :rtype: Zone
-    """
-    params = {'name': name, 'level': Level.SECOND_FLOOR}
-    return Zone(**params)
-
-
-def createFirstFloorZone(name):
-    """
-    Creates an internal first floor zone with the given name.
-    :rtype: Zone
-    """
-    params = {'name': name, 'level': Level.FIRST_FLOOR}
-    return Zone(**params)
-
-
-def createExternalZone(name, level=Level.FIRST_FLOOR):
-    """
-    Creates an external zone with the given name.
-    :rtype: Zone
-    """
-    params = {'name': name, 'level': level, 'external': True}
-    return Zone(**params)

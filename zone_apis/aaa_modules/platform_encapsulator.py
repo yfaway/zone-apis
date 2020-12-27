@@ -185,7 +185,21 @@ def is_in_on_state(item: SwitchItem):
     :param SwitchItem item:
     :return: True if the state is ON.
     """
-    return item.is_on()
+    if isinstance(item, SwitchItem):
+        return item.is_on()
+
+    return False
+
+
+def is_in_open_state(item: ContactItem):
+    """
+    :param SwitchItem item:
+    :return: True if the state is OPEN.
+    """
+    if isinstance(item, ContactItem):
+        return item.is_open()
+
+    return False
 
 
 def create_number_item(name: str) -> NumberItem:
@@ -218,8 +232,8 @@ def create_string_item(name: str) -> StringItem:
     return StringItem(name)
 
 
-def set_switch_state(item: SwitchItem, on: bool, in_unit_test=False):
-    if in_unit_test:
+def set_switch_state(item: SwitchItem, on: bool):
+    if is_in_unit_tests():
         item.set_value(OnOffValue.ON if on else OnOffValue.OFF)
     else:
         if on:
@@ -228,8 +242,8 @@ def set_switch_state(item: SwitchItem, on: bool, in_unit_test=False):
             item.off()
 
 
-def set_dimmer_value(item: DimmerItem, percentage: int, in_unit_test=False):
-    if in_unit_test:
+def set_dimmer_value(item: DimmerItem, percentage: int):
+    if is_in_unit_tests():
         item.post_value(percentage)
     else:
         item.percent(percentage)
@@ -239,8 +253,8 @@ def get_dimmer_percentage(item: DimmerItem) -> int:
     return item.get_value(0)
 
 
-def set_number_value(item: NumberItem, value: float, in_unit_test=False):
-    if in_unit_test:
+def set_number_value(item: NumberItem, value: float):
+    if is_in_unit_tests():
         item.post_value(value)
     else:
         item.oh_send_command(str(value))
@@ -250,8 +264,8 @@ def get_number_value(item: NumberItem) -> float:
     return int(item.get_value(0))
 
 
-def set_string_value(item: StringItem, value: str, in_unit_test=False):
-    if in_unit_test:
+def set_string_value(item: StringItem, value: str):
+    if is_in_unit_tests():
         item.post_value(value)
     else:
         item.oh_send_command(value)
@@ -403,7 +417,7 @@ def send_email(email_addresses: List[str], subject: str, body: str = '', attachm
     if attachment_urls is None:
         attachment_urls = []
 
-    HABApp.openhab.interface.send_command('EmailSubject', subject)
+    HABApp.openhab.interface.send_command('EmailSubject', f'HABApp: {subject}')
     HABApp.openhab.interface.send_command('EmailBody', body)
     HABApp.openhab.interface.send_command('EmailAttachmentUrls', ', '.join(attachment_urls))
     HABApp.openhab.interface.send_command('EmailAddresses', ', '.join(email_addresses))

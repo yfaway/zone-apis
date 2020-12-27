@@ -9,12 +9,14 @@ from HABApp.core.items.base_item import BaseItem
 from HABApp.openhab.items import SwitchItem, StringItem
 
 from aaa_modules import platform_encapsulator as pe
+from aaa_modules.alert_manager import AlertManager
 from aaa_modules.layout_model.actions.turn_off_adjacent_zones import TurnOffAdjacentZones
 from aaa_modules.layout_model.actions.turn_on_switch import TurnOnSwitch
 from aaa_modules.layout_model.devices.activity_times import ActivityTimes
 from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition, AlarmState
 from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink
+from aaa_modules.layout_model.devices.contact import Door
 from aaa_modules.layout_model.devices.dimmer import Dimmer
 from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
@@ -36,6 +38,7 @@ def parse() -> ImmutableZoneManager:
     mappings = {
         '.*AlarmPartition$': _create_alarm_partition,
         '.*_ChromeCast$': _create_chrome_cast,
+        '.*Door$': _create_door,
         '[^g].*MotionSensor$': _create_motion_sensor,
         '[^g].*LightSwitch.*': _create_switches,
         '.*FanSwitch.*': _create_switches,
@@ -97,7 +100,10 @@ def parse() -> ImmutableZoneManager:
     for z in zone_mappings.values():
         zm.add_zone(z)
 
-    return zm.get_immutable_instance()
+    immutable_zm = zm.get_immutable_instance()
+    immutable_zm = immutable_zm.set_alert_manager(AlertManager())
+
+    return immutable_zm
 
 
 def _parse_zones() -> List[Zone]:
@@ -179,6 +185,21 @@ def _get_zone_id_from_item_name(item_name: str) -> Union[str, None]:
     return level_string + '_' + location
 
 
+def _create_door(zm: ZoneManager, item) -> Door:
+    sensor = Door(item)
+
+    # noinspection PyUnusedLocal
+    def handler(event: ValueChangeEvent):
+        if pe.is_in_on_state(item) or pe.is_in_open_state(item):
+            dispatch_event(zm, ZoneEvent.CONTACT_OPEN, item)
+        else:
+            dispatch_event(zm, ZoneEvent.CONTACT_CLOSED, item)
+
+    item.listen_event(handler, ValueChangeEvent)
+
+    return sensor
+
+
 def _create_motion_sensor(zm: ZoneManager, item) -> MotionSensor:
     """
     Creates a MotionSensor and register for change event.
@@ -187,6 +208,7 @@ def _create_motion_sensor(zm: ZoneManager, item) -> MotionSensor:
     """
     sensor = MotionSensor(item)
 
+    # noinspection PyUnusedLocal
     def handler(event: ValueChangeEvent):
         if pe.is_in_on_state(item):
             zm.update_device_last_activated_time(item)
@@ -197,6 +219,7 @@ def _create_motion_sensor(zm: ZoneManager, item) -> MotionSensor:
     return sensor
 
 
+# noinspection PyUnusedLocal
 def _create_illuminance_sensor(zm: ZoneManager, item) -> IlluminanceSensor:
     """
     Creates an illuminance sensor
@@ -206,6 +229,7 @@ def _create_illuminance_sensor(zm: ZoneManager, item) -> IlluminanceSensor:
     return IlluminanceSensor(item)
 
 
+# noinspection PyUnusedLocal
 def _create_plug(zm: ZoneManager, item) -> Plug:
     """
     Creates a smart plug.
@@ -241,6 +265,7 @@ def _create_alarm_partition(zm: ZoneManager, item: SwitchItem) -> AlarmPartition
     return AlarmPartition(item, arm_mode_item)
 
 
+# noinspection PyUnusedLocal
 def _create_chrome_cast(zm: ZoneManager, item: StringItem) -> ChromeCastAudioSink:
     item_def = HABApp.openhab.interface.get_item(item.name, "sinkName")
     metadata = item_def.metadata
@@ -310,6 +335,7 @@ def _create_switches(zm: ZoneManager, item: SwitchItem) -> Union[None, Dimmer, L
         device = Fan(item, duration_in_minutes)
 
     if device is not None:
+        # noinspection PyUnusedLocal
         def handler(event: ValueChangeEvent):
             if pe.is_in_on_state(item):
                 if not zm.on_switch_turned_on(pe.get_event_dispatcher(), item):
