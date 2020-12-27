@@ -128,10 +128,8 @@ class AlertManager:
             raise ValueError('Missing email addresses.')
 
         if not self._testMode:
-            # body = '' if alert.getBody() is None else alert.getBody()
-            # actions.get("mail", "mail:smtp:gmail").sendMail(
-            #    ', '.join(email_addresses), alert.getSubject(), body, alert.getAttachmentUrls())
-            pass
+            body = '' if alert.get_body() is None else alert.get_body()
+            pe.send_email('mail:smtp:gmail', email_addresses, alert.get_subject(), body, alert.get_attachment_urls())
 
         self._lastEmailedSubject = alert.get_subject()
 

@@ -395,3 +395,15 @@ def play_text_to_speech_message(sink_name: str, tts: str):
     """ Plays a text to speech message on the given audio sink. """
     HABApp.openhab.interface.send_command(ACTION_AUDIO_SINK_ITEM_NAME, sink_name)
     HABApp.openhab.interface.send_command(ACTION_TEXT_TO_SPEECH_MESSAGE_ITEM_NAME, tts)
+
+
+def send_email(email_addresses: List[str], subject: str, body: str = '', attachment_urls: List[str] = None):
+    """ Send an email using the OpenHab email action. """
+
+    if attachment_urls is None:
+        attachment_urls = []
+
+    HABApp.openhab.interface.send_command('EmailSubject', subject)
+    HABApp.openhab.interface.send_command('EmailBody', body)
+    HABApp.openhab.interface.send_command('EmailAttachmentUrls', ', '.join(attachment_urls))
+    HABApp.openhab.interface.send_command('EmailAddresses', ', '.join(email_addresses))
