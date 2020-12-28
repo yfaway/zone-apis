@@ -1,3 +1,5 @@
+from typing import Type
+
 from aaa_modules.alert_manager import AlertManager
 from aaa_modules.layout_model.zone import Zone
 from aaa_modules.layout_model.device import Device
@@ -62,7 +64,7 @@ class ImmutableZoneManager:
         """
         return self.get_zone_by_id_fcn(zone_id)
 
-    def get_devices_by_type(self, cls):
+    def get_devices_by_type(self, cls: Type):
         """
         Returns a list of devices in all zones matching the given type.
 

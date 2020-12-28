@@ -65,7 +65,7 @@ class TurnOnSwitchTest(DeviceTest):
 
     def testOnAction_renewTimerIfLightIsAlreadyOnEvenIfIlluminanceIsAboveThreshold_returnsTrue(self):
         pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX + 1)
-        self.light1.turnOn(pe.get_test_event_dispatcher())
+        self.light1.turnOn(pe.get_event_dispatcher())
 
         self.assertTrue(self.turnOn())
 
@@ -78,7 +78,7 @@ class TurnOnSwitchTest(DeviceTest):
         self.assertFalse(self.turnOn())
 
     def testOnAction_switchWasJustTurnedOff_returnsFalse(self):
-        self.light1.on_switch_turned_off(pe.get_test_event_dispatcher(), self.light1.getItemName())
+        self.light1.on_switch_turned_off(pe.get_event_dispatcher(), self.light1.getItemName())
 
         pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
@@ -102,7 +102,7 @@ class TurnOnSwitchTest(DeviceTest):
         self.motionSensor1.getChannel = lambda: 'a channel'
         self.motionSensor2.getChannel = lambda: 'a channel'
 
-        self.light2.on_switch_turned_off(pe.get_test_event_dispatcher(), self.light2.getItemName())
+        self.light2.on_switch_turned_off(pe.get_event_dispatcher(), self.light2.getItemName())
 
         pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
@@ -176,7 +176,7 @@ class TurnOnSwitchTest(DeviceTest):
 
         event_info = EventInfo(ZoneEvent.MOTION, self.lightItem1,
                                self.zone2, create_zone_manager([self.zone1, self.zone2, self.zone3]),
-                               pe.get_test_event_dispatcher())
+                               pe.get_event_dispatcher())
 
         return_val = TurnOnSwitch().onAction(event_info)
         self.assertFalse(return_val)
@@ -186,7 +186,7 @@ class TurnOnSwitchTest(DeviceTest):
     def turnOn(self):
         event_info = EventInfo(ZoneEvent.MOTION, self.lightItem1,
                                self.zone1, create_zone_manager([self.zone1, self.zone2, self.zone3]),
-                               pe.get_test_event_dispatcher())
+                               pe.get_event_dispatcher())
 
         return TurnOnSwitch().onAction(event_info)
 

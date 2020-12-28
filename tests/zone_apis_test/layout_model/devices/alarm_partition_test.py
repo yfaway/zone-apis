@@ -23,19 +23,19 @@ class AlarmPartitionTest(DeviceTest):
         self.assertTrue(self.alarmPartition.is_in_alarm())
 
     def testArmAway_noParam_setCorrectValue(self):
-        self.alarmPartition.arm_away(pe.get_test_event_dispatcher())
+        self.alarmPartition.arm_away(pe.get_event_dispatcher())
 
         self.assertEqual(AlarmState.ARM_AWAY,
                          self.alarmPartition.get_arm_mode())
 
     def testArmStay_noParam_setCorrectValue(self):
-        self.alarmPartition.arm_stay(pe.get_test_event_dispatcher())
+        self.alarmPartition.arm_stay(pe.get_event_dispatcher())
 
         self.assertEqual(AlarmState.ARM_STAY,
                          self.alarmPartition.get_arm_mode())
 
     def testDisarm_noParam_setCorrectValue(self):
-        self.alarmPartition.disarm(pe.get_test_event_dispatcher())
+        self.alarmPartition.disarm(pe.get_event_dispatcher())
 
         self.assertEqual(AlarmState.UNARMED,
                          self.alarmPartition.get_arm_mode())

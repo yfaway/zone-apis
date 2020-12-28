@@ -122,7 +122,7 @@ class ZoneManagerTest(DeviceTest):
 
     def testOnMotionSensorTurnedOn_noZone_returnsFalse(self):
         self.assertFalse(self.zm.dispatch_event(ZoneEvent.MOTION,
-                                                pe.get_test_event_dispatcher(),
+                                                pe.get_event_dispatcher(),
                                                 pe.create_string_item(INVALID_ITEM_NAME)))
 
     def testOnMotionSensorTurnedOn_withNonApplicableZone_returnsFalse(self):
@@ -130,7 +130,7 @@ class ZoneManagerTest(DeviceTest):
         self.zm.add_zone(zone)
 
         self.assertFalse(self.zm.dispatch_event(ZoneEvent.MOTION,
-                                                pe.get_test_event_dispatcher(),
+                                                pe.get_event_dispatcher(),
                                                 pe.create_string_item(INVALID_ITEM_NAME)))
 
     def testOnMotionSensorTurnedOn_withApplicableZone_returnsTrue(self):
@@ -142,51 +142,51 @@ class ZoneManagerTest(DeviceTest):
         self.zm.add_zone(zone)
 
         self.assertTrue(self.zm.dispatch_event(ZoneEvent.MOTION,
-                                               pe.get_test_event_dispatcher(), self.motionSensor.getItem()))
+                                               pe.get_event_dispatcher(), self.motionSensor.getItem()))
 
     def testOnTimerExpired_noZone_returnsFalse(self):
         self.assertFalse(self.zm.on_timer_expired(
-            pe.get_test_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
+            pe.get_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
 
     def testOnTimerExpired_withNonApplicableZone_returnsFalse(self):
         zone = Zone('ff', [self.light, self.motionSensor])
         self.zm.add_zone(zone)
 
         self.assertFalse(self.zm.on_timer_expired(
-            pe.get_test_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
+            pe.get_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
 
     def testOnSwitchTurnedOn_noZone_returnsFalse(self):
         self.assertFalse(self.zm.on_switch_turned_on(
-            pe.get_test_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
+            pe.get_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
 
     def testOnSwitchTurnedOn_withNonApplicableZone_returnsFalse(self):
         zone = Zone('ff', [self.light, self.motionSensor])
         self.zm.add_zone(zone)
 
         self.assertFalse(self.zm.on_switch_turned_on(
-            pe.get_test_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
+            pe.get_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
 
     def testOnSwitchTurnedOn_withApplicableZone_returnsTrue(self):
         zone = Zone('ff', [self.light, self.motionSensor])
         self.zm.add_zone(zone)
 
         self.assertTrue(self.zm.on_switch_turned_on(
-            pe.get_test_event_dispatcher(), self.light.getItem()))
+            pe.get_event_dispatcher(), self.light.getItem()))
 
     def testOnSwitchTurnedOff_noZone_returnsFalse(self):
         self.assertFalse(self.zm.on_switch_turned_off(
-            pe.get_test_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
+            pe.get_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
 
     def testOnSwitchTurnedOff_withNonApplicableZone_returnsFalse(self):
         zone = Zone('ff', [self.light, self.motionSensor])
         self.zm.add_zone(zone)
 
         self.assertFalse(self.zm.on_switch_turned_off(
-            pe.get_test_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
+            pe.get_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
 
     def testOnSwitchTurnedOff_withApplicableZone_returnsTrue(self):
         zone = Zone('ff', [self.light, self.motionSensor])
         self.zm.add_zone(zone)
 
         self.assertTrue(self.zm.on_switch_turned_off(
-            pe.get_test_event_dispatcher(), self.light.getItem()))
+            pe.get_event_dispatcher(), self.light.getItem()))

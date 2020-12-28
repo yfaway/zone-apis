@@ -80,6 +80,6 @@ class TurnOffAdjacentZonesTest(DeviceTest):
         :return: Boolean
         """
         event_info = EventInfo(ZoneEvent.SWITCH_TURNED_ON, self.washroom_light_item, zone,
-                               self.zone_manager, pe.get_test_event_dispatcher())
+                               self.zone_manager, pe.get_event_dispatcher())
 
         return TurnOffAdjacentZones().onAction(event_info)

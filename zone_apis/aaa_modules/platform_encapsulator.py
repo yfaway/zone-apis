@@ -38,130 +38,6 @@ The corresponding script to process these actions are in JSR223 side, within Ope
 _in_unit_tests = False
 
 
-class PlatformEncapsulator:
-    """
-    Abstract away the OpenHab classes.
-    """
-
-    @staticmethod
-    def isStateAvailable(state):
-        """
-        :return: True if the state is not of type UndefType.
-        """
-
-        return not isinstance(state, UnDefType)
-
-    @staticmethod
-    def isInStateOn(state):
-        """
-        :param State state:
-        :return: True if the state is ON.
-        """
-
-        return OnOffType.ON == state
-
-    @staticmethod
-    def isInStateOff(state):
-        """
-        :param State state:
-        :return: True if the state is OFF.
-        """
-
-        return OnOffType.OFF == state
-
-    @staticmethod
-    def isInStateOpen(state):
-        """
-        :param State state:
-        :return: True if the state is OPEN.
-        """
-
-        return OpenClosedType.OPEN == state
-
-    @staticmethod
-    def isInStateClosed(state):
-        """
-        :param State state:
-        :return: True if the state is CLOSED.
-        """
-
-        return OpenClosedType.CLOSED == state
-
-    @staticmethod
-    def getIntegerStateValue(item, defaultVal):
-        """
-        :param Item item:
-        :param * defaultVal: the value to return if the state is not available
-        :return: the integer state value or defaultVal is the state is not
-            available.
-        :rtype: int
-        """
-
-        if PlatformEncapsulator.isStateAvailable(item.getState()):
-            return item.getState().intValue()
-        else:
-            return defaultVal
-
-    @staticmethod
-    def setDecimalState(item, decimalValue):
-        """
-        :param NumberItem item:
-        :param int decimalValue:
-        """
-        item.setState(DecimalType(decimalValue))
-
-    @staticmethod
-    def setOnState(item):
-        """
-        :param SwitchItem item:
-        """
-        item.setState(OnOffType.ON)
-
-    @staticmethod
-    def setOffState(item):
-        """
-        :param SwitchItem item:
-        """
-        item.setState(OnOffType.OFF)
-
-    @staticmethod
-    def getLogger():
-        """
-        Returns the logger.
-
-        :rtype: Logger
-        """
-        return logger
-
-    @staticmethod
-    def logDebug(message):
-        """ Log a debug message. """
-
-        logger.debug(message)
-
-    @staticmethod
-    def logInfo(message):
-        """ Log an info message. """
-
-        logger.info(message)
-
-    @staticmethod
-    def logWarning(message):
-        """ Log an warning message. """
-
-        logger.warn(message)
-
-    @staticmethod
-    def logError(message):
-        """ Log an error message. """
-
-        logger.error(message)
-
-    def runUnitTest(className):
-        """ Run the unit test. """
-        run_test(className, logger)
-
-
 def is_in_hab_app() -> bool:
     return _in_hab_app
 
@@ -169,7 +45,7 @@ def is_in_hab_app() -> bool:
 def register_test_item(item: Item) -> None:
     """ Register the given item with the runtime. """
     if is_in_hab_app():
-        HABApp.core.Items.set_item(item)
+        HABApp.core.Items.add_item(item)
     else:
         scope.itemRegistry.remove(item.getName())
         scope.itemRegistry.add(item)
@@ -350,38 +226,34 @@ def get_channel(item) -> str:
 
 
 def get_event_dispatcher():
-    class EventDispatcher:
-        def send_command(self, item_name: str, command: Any):
-            HABApp.openhab.interface.send_command(item_name, command)
+    if not is_in_unit_tests():
+        class EventDispatcher:
+            # noinspection PyMethodMayBeStatic
+            def send_command(self, item_name: str, command: Any):
+                HABApp.openhab.interface.send_command(item_name, command)
 
-    return EventDispatcher()
+        return EventDispatcher()
+    else:
+        class TestEventDispatcher:
+            # noinspection PyMethodMayBeStatic
+            def send_command(self, item_name: str, command: Any):
+                item = Items.get_item(item_name)
+                if isinstance(item, SwitchItem):
+                    item = SwitchItem.get_item(item_name)
 
+                    if command == "ON":
+                        item.post_value(OnOffValue.ON)
+                    elif command == "OFF":
+                        item.post_value(OnOffValue.OFF)
+                elif isinstance(item, DimmerItem):
+                    item.post_value(int(command))
+                elif isinstance(item, NumberItem):
+                    item.post_value(command)
+                else:
+                    log_error("type: {}".format(type(item)))
+                    raise ValueError("Unsupported type for item '{}'".format(item_name))
 
-def get_test_event_dispatcher():
-    """
-    Creates and returns a mocked event dispatcher to be used in unit tests.
-    :return: an anonymous class that has the method send_command
-    """
-
-    class EventDispatcher:
-        def send_command(self, item_name: str, command: Any):
-            item = Items.get_item(item_name)
-            if isinstance(item, SwitchItem):
-                item = SwitchItem.get_item(item_name)
-
-                if command == "ON":
-                    item.post_value(OnOffValue.ON)
-                elif command == "OFF":
-                    item.post_value(OnOffValue.OFF)
-            elif isinstance(item, DimmerItem):
-                item.post_value(int(command))
-            elif isinstance(item, NumberItem):
-                item.post_value(command)
-            else:
-                log_error("type: {}".format(type(item)))
-                raise ValueError("Unsupported type for item '{}'".format(item_name))
-
-    return EventDispatcher()
+        return TestEventDispatcher()
 
 
 def set_in_unit_tests(value: bool):
@@ -421,3 +293,4 @@ def send_email(email_addresses: List[str], subject: str, body: str = '', attachm
     HABApp.openhab.interface.send_command('EmailBody', body)
     HABApp.openhab.interface.send_command('EmailAttachmentUrls', ', '.join(attachment_urls))
     HABApp.openhab.interface.send_command('EmailAddresses', ', '.join(email_addresses))
+

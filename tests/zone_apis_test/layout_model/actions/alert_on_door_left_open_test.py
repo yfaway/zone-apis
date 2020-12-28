@@ -28,13 +28,13 @@ class AlertOnExternalDoorLeftOpenTest(DeviceTest):
 
     def testOnAction_notAnExternalZone_returnsFalse(self):
         event_info = EventInfo(ZoneEvent.CONTACT_OPEN, self.get_items()[0], Zone('innerZone'), self.zm,
-                               pe.get_test_event_dispatcher())
+                               pe.get_event_dispatcher())
         value = AlertOnExternalDoorLeftOpen().onAction(event_info)
         self.assertFalse(value)
 
     def testOnAction_externalZoneWithNoDoor_returnsFalseAndTimerStarted(self):
         event_info = EventInfo(ZoneEvent.CONTACT_OPEN, self.get_items()[0],
-                               Zone.create_external_zone('aZone'), self.zm, pe.get_test_event_dispatcher())
+                               Zone.create_external_zone('aZone'), self.zm, pe.get_event_dispatcher())
         value = AlertOnExternalDoorLeftOpen().onAction(event_info)
         self.assertFalse(value)
 
@@ -42,7 +42,7 @@ class AlertOnExternalDoorLeftOpenTest(DeviceTest):
         pe.set_switch_state(self.get_items()[0], True)
 
         event_info = EventInfo(ZoneEvent.CONTACT_OPEN, self.get_items()[0], self.zone1, self.zm,
-                               pe.get_test_event_dispatcher())
+                               pe.get_event_dispatcher())
         action = AlertOnExternalDoorLeftOpen(0.1)
         value = action.onAction(event_info)
 
@@ -56,7 +56,7 @@ class AlertOnExternalDoorLeftOpenTest(DeviceTest):
         pe.set_switch_state(self.get_items()[0], True)
 
         event_info = EventInfo(ZoneEvent.CONTACT_OPEN, self.get_items()[0], self.zone1, self.zm,
-                               pe.get_test_event_dispatcher())
+                               pe.get_event_dispatcher())
 
         action = AlertOnExternalDoorLeftOpen()
         value = action.onAction(event_info)

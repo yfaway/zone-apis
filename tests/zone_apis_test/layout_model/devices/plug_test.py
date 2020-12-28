@@ -18,7 +18,7 @@ class PlugTest(DeviceTest):
         self.assertFalse(self.plug.is_on())
 
     def testTurnOn_withScopeEvents_returnsTrue(self):
-        self.plug.turn_on(pe.get_test_event_dispatcher())
+        self.plug.turn_on(pe.get_event_dispatcher())
         pe.set_number_value(self.get_items()[1], 100)
 
         self.assertTrue(self.plug.is_on())
@@ -28,5 +28,5 @@ class PlugTest(DeviceTest):
         pe.set_switch_state(self.plug.getItem(), True)
         self.assertTrue(self.plug.is_on())
 
-        self.plug.turn_off(pe.get_test_event_dispatcher())
+        self.plug.turn_off(pe.get_event_dispatcher())
         self.assertFalse(self.plug.is_on())
