@@ -1,3 +1,5 @@
+from HABApp.openhab.exceptions import ItemNotFoundError
+
 try:
     import HABApp
 except ImportError:
@@ -208,10 +210,13 @@ def get_channel(item) -> str:
         if is_in_unit_tests():
             return None
         else:
-            item_def = HABApp.openhab.interface.get_item(item.name, "channel")
-            metadata = item_def.metadata
-            value = metadata.get("channel")
-            return value['value'] if value is not None else None
+            try:
+                item_def = HABApp.openhab.interface.get_item(item.name, "channel")
+                metadata = item_def.metadata
+                value = metadata.get("channel")
+                return value['value'] if value is not None else None
+            except ItemNotFoundError:
+                return None
     else:
         from core import osgi
         from org.eclipse.smarthome.core.items import MetadataKey

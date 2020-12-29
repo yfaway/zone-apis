@@ -30,6 +30,7 @@ class Device(object):
         self.autoReport = auto_report
         self.lastActivatedTimestamp = None
         self.zoneManager = None
+        self.channel = None
 
     def containsItem(self, item):
         """
@@ -57,14 +58,24 @@ class Device(object):
         else:
             return self.item.getName()
 
-    def getChannel(self):
+    def set_channel(self, channel: str):
+        """
+        Set the OpenHab channel string (configured in the item metadata).
+
+        :return: A NEW object with the additional newly set channel.
+        """
+        new_obj = copy(self)
+        new_obj.channel = channel
+
+        return new_obj
+
+    def get_channel(self) -> str:
         """
         Returns the OpenHab channel string linked with the item.
 
-        :rtype: str the channel string or None if the item is not linked to
-        a channel
+        :rtype: str the channel string or None if the item is not linked to a channel
         """
-        return pe.get_channel(self.getItem())
+        return self.channel
 
     def setBatteryPowered(self, bool_value):
         """

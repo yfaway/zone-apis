@@ -230,7 +230,7 @@ class ZoneTest(DeviceTest):
         zone1 = Zone('ff', [self.lightWithIlluminance, self.astroSensor])
         zone2 = Zone('foyer', [self.lightWithIlluminance])
 
-        self.lightWithIlluminance.getChannel = lambda: 'a channel'
+        self.lightWithIlluminance.get_channel = lambda: 'a channel'
         self.assertTrue(zone1.shareSensorWith(zone2, Light))
 
     def testOnTimerExpired_invalidTimerItem_returnsFalse(self):

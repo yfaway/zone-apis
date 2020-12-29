@@ -88,8 +88,8 @@ class TurnOnSwitchTest(DeviceTest):
         self.setUpNeighborRelationship(self.zone2, NeighborType.OPEN_SPACE, True)
 
         # shared channel
-        self.motionSensor1.getChannel = lambda: 'a channel'
-        self.motionSensor2.getChannel = lambda: 'a channel'
+        self.motionSensor1.get_channel = lambda: 'a channel'
+        self.motionSensor2.get_channel = lambda: 'a channel'
 
         pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
@@ -99,8 +99,8 @@ class TurnOnSwitchTest(DeviceTest):
         self.setUpNeighborRelationship(self.zone2, NeighborType.OPEN_SPACE, True)
 
         # shared channel
-        self.motionSensor1.getChannel = lambda: 'a channel'
-        self.motionSensor2.getChannel = lambda: 'a channel'
+        self.motionSensor1.get_channel = lambda: 'a channel'
+        self.motionSensor2.get_channel = lambda: 'a channel'
 
         self.light2.on_switch_turned_off(pe.get_event_dispatcher(), self.light2.getItemName())
 

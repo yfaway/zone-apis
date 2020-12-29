@@ -430,13 +430,13 @@ class Zone:
 
         :rtype: bool
         """
-        our_sensor_channels = [s.getChannel()
+        our_sensor_channels = [s.get_channel()
                                for s in self.getDevicesByType(sensor_type)
-                               if s.getChannel() is not None]
+                               if s.get_channel() is not None]
 
-        their_sensor_channels = [s.getChannel()
+        their_sensor_channels = [s.get_channel()
                                  for s in zone.getDevicesByType(sensor_type)
-                                 if s.getChannel() is not None]
+                                 if s.get_channel() is not None]
 
         intersection = set(our_sensor_channels).intersection(their_sensor_channels)
         return len(intersection) > 0

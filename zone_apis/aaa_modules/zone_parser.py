@@ -75,6 +75,7 @@ def parse() -> ImmutableZoneManager:
                     pe.log_warning("Invalid zone id '{}'".format(zone_id))
                     continue
 
+                device = device.set_channel(pe.get_channel(device.getItem()))
                 device = device.set_zone_manager(immutable_zm)
 
                 zone = zone_mappings[zone_id].addDevice(device)
