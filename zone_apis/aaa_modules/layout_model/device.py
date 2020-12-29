@@ -119,7 +119,7 @@ class Device(object):
         """
         return self.autoReport
 
-    def setZoneManager(self, zone_manager):
+    def set_zone_manager(self, zone_manager):
         """
         :return: A NEW object with the zoneManager attribute set to the
             specified value.

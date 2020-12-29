@@ -32,7 +32,10 @@ switchActions = [TurnOnSwitch(), TurnOffAdjacentZones()]
 
 def parse() -> ImmutableZoneManager:
     """
-    Parses the zones and devices.
+    - Parses the zones and devices.
+    - Adds devices to the zones.
+    - Adds default actions to the zones.
+
     :return:
     """
     mappings = {
@@ -47,6 +50,8 @@ def parse() -> ImmutableZoneManager:
     }
 
     zm: ZoneManager = ZoneManager()
+    immutable_zm = zm.get_immutable_instance()
+    immutable_zm = immutable_zm.set_alert_manager(AlertManager())
 
     zone_mappings = {}
     for zone in _parse_zones():
@@ -70,11 +75,13 @@ def parse() -> ImmutableZoneManager:
                     pe.log_warning("Invalid zone id '{}'".format(zone_id))
                     continue
 
+                device = device.set_zone_manager(immutable_zm)
+
                 zone = zone_mappings[zone_id].addDevice(device)
                 zone_mappings[zone_id] = zone
 
     # Add the AstroSensor to any zone that has a Light device.
-    astro_sensor = AstroSensor(Items.get_item('VT_Time_Of_Day'))
+    astro_sensor = AstroSensor(Items.get_item('VT_Time_Of_Day')).set_zone_manager(immutable_zm)
     for zone in zone_mappings.values():
         if len(zone.getDevicesByType(Light)) > 0 or len(zone.getDevicesByType(Dimmer)) > 0:
             zone = zone.addDevice(astro_sensor)
@@ -99,9 +106,6 @@ def parse() -> ImmutableZoneManager:
 
     for z in zone_mappings.values():
         zm.add_zone(z)
-
-    immutable_zm = zm.get_immutable_instance()
-    immutable_zm = immutable_zm.set_alert_manager(AlertManager())
 
     return immutable_zm
 
@@ -354,5 +358,6 @@ def dispatch_event(zm: ZoneManager, zone_event: ZoneEvent, item: BaseValueItem, 
     Dispatches an event to the ZoneManager. If the event is not processed,
     create a debug log.
     """
+    pe.log_info(f"Dispatching event {zone_event.name} for {item.name}")
     if not zm.dispatch_event(zone_event, pe.get_event_dispatcher(), item, enforce_item_in_zone):
         pe.log_debug(f'Event {zone_event} for item {item.name} is not processed.')
