@@ -565,7 +565,7 @@ class Zone:
             for key in self.actions.keys():
                 action_list = self.actions[key]
                 for action in action_list:
-                    value += u"\n  Action: {} -> {}".format(key, str(type(action).__name__))
+                    value += u"\n  Action: {} -> {}".format(key.name, type(action).__name__)
 
         if len(self.neighbors) > 0:
             value += u"\n"

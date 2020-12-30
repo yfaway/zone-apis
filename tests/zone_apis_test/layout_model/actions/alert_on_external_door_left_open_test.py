@@ -8,11 +8,11 @@ from aaa_modules.layout_model.zone import Zone, ZoneEvent
 from aaa_modules.layout_model.devices.contact import Door
 from zone_apis_test.layout_model.device_test import DeviceTest, create_zone_manager
 
-from aaa_modules.layout_model.actions.alert_on_door_left_open import AlertOnExternalDoorLeftOpen
+from aaa_modules.layout_model.actions.alert_on_external_door_left_open import AlertOnExternalDoorLeftOpen
 
 
 class AlertOnExternalDoorLeftOpenTest(DeviceTest):
-    """ Unit tests for alert_on_door_left_open.py. """
+    """ Unit tests for alert_on_external_door_left_open.py. """
 
     def setUp(self):
         items = [pe.create_switch_item('Door1'), pe.create_switch_item('Door2')]

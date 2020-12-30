@@ -1,5 +1,8 @@
 import re
-from typing import List, Union, Dict, Any
+from typing import List, Union, Dict, Any, Type
+import pkgutil
+import inspect
+import importlib
 
 import HABApp
 from HABApp.core import Items
@@ -10,8 +13,7 @@ from HABApp.openhab.items import SwitchItem, StringItem
 
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.alert_manager import AlertManager
-from aaa_modules.layout_model.actions.turn_off_adjacent_zones import TurnOffAdjacentZones
-from aaa_modules.layout_model.actions.turn_on_switch import TurnOnSwitch
+from aaa_modules.layout_model.action import Action
 from aaa_modules.layout_model.devices.activity_times import ActivityTimes
 from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition, AlarmState
 from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
@@ -21,13 +23,11 @@ from aaa_modules.layout_model.devices.dimmer import Dimmer
 from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
 from aaa_modules.layout_model.devices.plug import Plug
-from aaa_modules.layout_model.devices.switch import Fan, Light, Switch
+from aaa_modules.layout_model.devices.switch import Fan, Light
 from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
 from aaa_modules.layout_model.zone import Zone, Level, ZoneEvent
 from aaa_modules.layout_model.zone_manager import ZoneManager
 from aaa_modules.layout_model.neighbor import NeighborType, Neighbor
-
-switchActions = [TurnOnSwitch(), TurnOffAdjacentZones()]
 
 
 def parse() -> ImmutableZoneManager:
@@ -101,8 +101,9 @@ def parse() -> ImmutableZoneManager:
         zone = zone.addDevice(ActivityTimes(time_map))
         zone_mappings[zone.getId()] = zone
 
+    action_classes = _get_default_action_classes()
     for z in zone_mappings.values():
-        z = _add_actions(z)
+        z = _add_actions(z, action_classes)
         zone_mappings[z.getId()] = z
 
     for z in zone_mappings.values():
@@ -159,10 +160,29 @@ def _parse_zones() -> List[Zone]:
     return zones
 
 
-def _add_actions(zone: Zone) -> Zone:
-    if len(zone.getDevicesByType(Switch)) > 0:
-        for a in switchActions:
-            zone = zone.add_action(a)
+def _add_actions(zone: Zone, action_classes: List[Type]) -> Zone:
+    """
+    Programmatically add default actions defined in 'layout_model.actions' to each zone based on various criteria.
+    """
+    for clazz in action_classes:
+        action: Action = clazz()
+
+        satisfied = True  # must have all devices
+        for device_type in action.getRequiredDevices():
+            if len(zone.getDevicesByType(device_type)) == 0:
+                satisfied = False
+                break
+
+        if not satisfied:
+            continue
+
+        if zone.isInternal() and not action.isApplicableToInternalZone():
+            continue
+
+        if zone.isExternal() and not action.isApplicableToExternalZone():
+            continue
+
+        zone = zone.add_action(action)
 
     return zone
 
@@ -362,3 +382,29 @@ def dispatch_event(zm: ZoneManager, zone_event: ZoneEvent, item: BaseValueItem, 
     pe.log_info(f"Dispatching event {zone_event.name} for {item.name}")
     if not zm.dispatch_event(zone_event, pe.get_event_dispatcher(), item, enforce_item_in_zone):
         pe.log_debug(f'Event {zone_event} for item {item.name} is not processed.')
+
+
+def _get_default_action_classes() -> List[Type]:
+    """
+    Retrieve a list of action class types defined in "aaa_modules.layout_model.actions".
+    """
+    classes = []
+
+    import aaa_modules.layout_model.actions as actions
+
+    for importer, module_name, is_pkg in pkgutil.iter_modules(actions.__path__):
+        actions_package = "aaa_modules.layout_model.actions"
+        module = importlib.import_module(f"{actions_package}.{module_name}")
+
+        for (name, value) in inspect.getmembers(module, lambda member: inspect.isclass(member)):
+            normalized_module_name = module_name.replace('_', '').lower()
+            if name.lower() == normalized_module_name:
+                try:
+                    clazz = getattr(module, name)
+                    obj = clazz()
+                    if isinstance(obj, Action):
+                        classes.append(clazz)
+                except AttributeError:
+                    pass
+
+    return classes

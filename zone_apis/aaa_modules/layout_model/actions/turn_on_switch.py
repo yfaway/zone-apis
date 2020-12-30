@@ -15,7 +15,7 @@ from aaa_modules.layout_model.zone_manager import ZoneManager
 DEBUG = False
 
 
-@action(events=[ZoneEvent.MOTION], internal=True, external=True)
+@action(events=[ZoneEvent.MOTION], devices=[Switch], internal=True, external=True)
 class TurnOnSwitch:
     """
     Turns on a switch (fan, dimmer or regular light), after being triggered by
