@@ -20,10 +20,15 @@ from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink
 from aaa_modules.layout_model.devices.contact import Door
 from aaa_modules.layout_model.devices.dimmer import Dimmer
+from aaa_modules.layout_model.devices.gas_sensor import GasSensor, NaturalGasSensor, SmokeSensor, Co2GasSensor
+from aaa_modules.layout_model.devices.humidity_sensor import HumiditySensor
 from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
+from aaa_modules.layout_model.devices.network_presence import NetworkPresence
 from aaa_modules.layout_model.devices.plug import Plug
 from aaa_modules.layout_model.devices.switch import Fan, Light
+from aaa_modules.layout_model.devices.temperature_sensor import TemperatureSensor
+from aaa_modules.layout_model.devices.tv import Tv
 from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
 from aaa_modules.layout_model.zone import Zone, Level, ZoneEvent
 from aaa_modules.layout_model.zone_manager import ZoneManager
@@ -45,8 +50,15 @@ def parse() -> ImmutableZoneManager:
         '[^g].*MotionSensor$': _create_motion_sensor,
         '[^g].*LightSwitch.*': _create_switches,
         '.*FanSwitch.*': _create_switches,
-        '[^g].*_Illuminance.*': _create_illuminance_sensor,
+        '[^g].*_Illuminance.*': lambda zone_manager, an_item: IlluminanceSensor(an_item),
+        '[^g].*Humidity$': lambda zone_manager, an_item: HumiditySensor(an_item),
+        '[^g].*_NetworkPresence.*': lambda zone_manager, an_item: NetworkPresence(an_item),
         '[^g].*_Plug$': _create_plug,
+        '[^g].*_Co2$': _create_gas_sensor(Co2GasSensor),
+        '[^g].*_NaturalGas$': _create_gas_sensor(NaturalGasSensor),
+        '[^g].*_Smoke$': _create_gas_sensor(SmokeSensor),
+        '.*_Tv$': lambda zone_manager, an_item: Tv(an_item),
+        '[^g].*Temperature$': lambda zone_manager, an_item: TemperatureSensor(an_item),
     }
 
     zm: ZoneManager = ZoneManager()
@@ -245,16 +257,6 @@ def _create_motion_sensor(zm: ZoneManager, item) -> MotionSensor:
 
 
 # noinspection PyUnusedLocal
-def _create_illuminance_sensor(zm: ZoneManager, item) -> IlluminanceSensor:
-    """
-    Creates an illuminance sensor
-    :param item: NumberItem
-    :return: IlluminanceSensor
-    """
-    return IlluminanceSensor(item)
-
-
-# noinspection PyUnusedLocal
 def _create_plug(zm: ZoneManager, item) -> Plug:
     """
     Creates a smart plug.
@@ -268,6 +270,19 @@ def _create_plug(zm: ZoneManager, item) -> Plug:
         power_item = None
 
     return Plug(item, power_item)
+
+
+def _create_gas_sensor(cls):
+    """
+    :return: a function that create the specific gas sensor type.
+    """
+
+    # noinspection PyUnusedLocal
+    def inner_fcn(zm: ZoneManager, item) -> GasSensor:
+        state_item = Items.get_item(item.name + 'State')
+        return cls(item, state_item)
+
+    return inner_fcn
 
 
 def _create_alarm_partition(zm: ZoneManager, item: SwitchItem) -> AlarmPartition:

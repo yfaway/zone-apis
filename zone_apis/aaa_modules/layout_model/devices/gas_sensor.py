@@ -1,0 +1,68 @@
+from aaa_modules.layout_model.device import Device
+from aaa_modules import platform_encapsulator as pe
+
+
+class GasSensor(Device):
+    """
+    Represents a generic gas sensor.
+    """
+
+    def __init__(self, value_item, state_item):
+        """
+        Ctor
+
+        :param NumberItem value_item: the item to get the value reading
+        :param SwitchItem state_item: the item to get the state reading
+        :raise ValueError: if value_item is invalid
+        """
+        Device.__init__(self, value_item)
+
+        if state_item is None:
+            raise ValueError('state_item must not be None')
+
+        self._state_item = state_item
+
+    def get_value(self):
+        """
+        :return: the current sensor value.
+        :rtype: int
+        """
+        return pe.get_number_value(self.getItem())
+
+    def is_triggered(self):
+        """
+        :return: true if the gas sensor has detected a high level of
+             concentration
+        :rtype: bool
+        """
+        return pe.is_in_on_state(self._state_item)
+
+    def containsItem(self, item):
+        """ Override. """
+        return super(GasSensor, self).containsItem(item) or self._state_item == item
+
+    def resetValueStates(self):
+        """ Override. """
+        pe.set_number_value(self.getItem(), -1)
+        pe.set_switch_state(self._state_item, False)
+
+
+class Co2GasSensor(GasSensor):
+    """ Represents a CO2 sensor.  """
+
+    def __init__(self, value_item, state_item):
+        GasSensor.__init__(self, value_item, state_item)
+
+
+class NaturalGasSensor(GasSensor):
+    """ Represents a natural gas sensor.  """
+
+    def __init__(self, value_item, state_item):
+        GasSensor.__init__(self, value_item, state_item)
+
+
+class SmokeSensor(GasSensor):
+    """ Represents a smoke sensor.  """
+
+    def __init__(self, value_item, state_item):
+        GasSensor.__init__(self, value_item, state_item)
