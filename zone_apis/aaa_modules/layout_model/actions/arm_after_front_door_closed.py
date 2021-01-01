@@ -1,6 +1,7 @@
 from threading import Timer
 
 from aaa_modules.alert import Alert
+from aaa_modules.layout_model.devices.plug import Plug
 from aaa_modules.layout_model.zone import ZoneEvent
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition
@@ -16,7 +17,7 @@ class ArmAfterFrontDoorClosed:
     Once armed, an alert will be sent out.
     """
 
-    def __init__(self, max_elapsed_time_in_seconds:float = 15 * 60):
+    def __init__(self, max_elapsed_time_in_seconds:float = 12 * 60):
         """
         Ctor
 
@@ -54,10 +55,6 @@ class ArmAfterFrontDoorClosed:
                     self.timer.cancel()
 
                 def arm_and_send_alert():
-                    # Don't know why list comprehension version like below 
-                    # doesn't work, Jython just hang on this statement:
-                    # if not any(z.isOccupied(elapsedTime) for z in zoneManager.getZones()):
-                    # Below is a work around.
                     occupied = False
                     active_device = None
 
@@ -65,12 +62,11 @@ class ArmAfterFrontDoorClosed:
                         if z.isExternal():
                             continue
 
-                        # motion sensor switches off after around 3', need to
-                        # that into account.
+                        # motion sensor switches off after around 3', need to take that into consideration.
                         motion_delay_in_sec = 3 * 60
                         delay_time_in_sec = self.max_elapsed_time_in_seconds + motion_delay_in_sec
 
-                        (occupied, active_device) = z.isOccupied([], delay_time_in_sec)
+                        (occupied, active_device) = z.isOccupied([Plug], delay_time_in_sec)
                         if occupied:
                             break
 

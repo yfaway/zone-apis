@@ -557,12 +557,12 @@ class Zone:
             self.displayIcon,
             self.displayOrder,
             len(self.devices))
-        for d in self.devices:
+        for d in sorted(self.devices, key=lambda item: item.__class__.__name__):
             value += u"\n  {}".format(str(d))
 
         if len(self.actions) > 0:
             value += u"\n"
-            for key in self.actions.keys():
+            for key in sorted(self.actions.keys(), key=lambda item: item.name):
                 action_list = self.actions[key]
                 for action in action_list:
                     value += u"\n  Action: {} -> {}".format(key.name, type(action).__name__)
@@ -589,4 +589,3 @@ class Zone:
                   'display_order': self.displayOrder, key_to_replace: new_value}
 
         return params
-
