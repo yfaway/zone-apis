@@ -63,8 +63,8 @@ class Action(object):
         return True
 
 
-def action(devices=[], events=[], internal=True, external=False,
-           levels=[]):
+def action(devices=None, events=None, internal=True, external=False,
+           levels=None):
     """
     A decorator that accepts an action class and do the followings:
       - Create a subclass that extends the decorated class and Action.
@@ -81,7 +81,14 @@ def action(devices=[], events=[], internal=True, external=False,
         the empty list default value indicates applicale to all zone levels.
     """
 
-    def actionDecorator(clazz):
+    if levels is None:
+        levels = []
+    if events is None:
+        events = []
+    if devices is None:
+        devices = []
+
+    def action_decorator(clazz):
         def init(self, *args, **kwargs):
             clazz.__init__(self, *args, **kwargs)
 
@@ -95,7 +102,7 @@ def action(devices=[], events=[], internal=True, external=False,
         subclass.onAction = validate(clazz.onAction)
         return subclass
 
-    return actionDecorator
+    return action_decorator
 
 
 def validate(function):

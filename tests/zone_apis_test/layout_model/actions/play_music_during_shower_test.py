@@ -1,4 +1,5 @@
 from aaa_modules import platform_encapsulator as pe
+from aaa_modules.layout_model.devices.switch import Fan
 
 from zone_apis_test.layout_model.device_test import DeviceTest, create_zone_manager
 from aaa_modules.layout_model.event_info import EventInfo
@@ -21,6 +22,7 @@ class PlayMusicDuringShowerTest(DeviceTest):
         self.set_items(items)
         super(PlayMusicDuringShowerTest, self).setUp()
 
+        self.fan = Fan(items[0], 2)
         self.sink = ChromeCastAudioSink('sinkName', items[1], items[2], items[3], items[4])
         self.action = PlayMusicDuringShower("anUrl")
 
@@ -39,7 +41,7 @@ class PlayMusicDuringShowerTest(DeviceTest):
         self.assertFalse(value)
 
     def testOnAction_switchOnEventAndAudioSinkInZone_playsStreamAndReturnsTrue(self):
-        zone1 = Zone('shower').addDevice(self.sink)
+        zone1 = Zone('shower').addDevice(self.sink).addDevice(self.fan)
 
         event_info = EventInfo(ZoneEvent.SWITCH_TURNED_ON, self.get_items()[0], zone1,
                                None, pe.get_event_dispatcher())
@@ -48,7 +50,7 @@ class PlayMusicDuringShowerTest(DeviceTest):
         self.assertEqual('playStream', self.sink._get_last_test_command())
 
     def testOnAction_switchOnEventAndAudioSinkInNeighborZone_playsStreamAndReturnsTrue(self):
-        zone1 = Zone('shower')
+        zone1 = Zone('shower').addDevice(self.fan)
         zone2 = Zone('washroom').addDevice(self.sink)
 
         zone1 = zone1.add_neighbor(Neighbor(zone2.getId(), NeighborType.OPEN_SPACE))
@@ -60,7 +62,7 @@ class PlayMusicDuringShowerTest(DeviceTest):
         self.assertEqual('playStream', self.sink._get_last_test_command())
 
     def testOnAction_switchOffEvent_pauseStreamAndReturnsTrue(self):
-        zone1 = Zone('shower').addDevice(self.sink)
+        zone1 = Zone('shower').addDevice(self.sink).addDevice(self.fan)
 
         event_info = EventInfo(ZoneEvent.SWITCH_TURNED_OFF, self.get_items()[0], zone1,
                                None, pe.get_event_dispatcher())

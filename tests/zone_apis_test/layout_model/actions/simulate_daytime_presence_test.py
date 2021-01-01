@@ -1,6 +1,7 @@
 import time
 
 from aaa_modules import platform_encapsulator as pe
+from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
 
 from aaa_modules.layout_model.event_info import EventInfo
 from aaa_modules.layout_model.zone import Zone, ZoneEvent, Level
@@ -26,6 +27,7 @@ class SimulateDaytimePresenceTest(DeviceTest):
         self.set_items(items)
         super(SimulateDaytimePresenceTest, self).setUp()
 
+        self.motion_sensor = MotionSensor(items[0])
         self.partition = AlarmPartition(items[1], items[2])
         self.audioSink = ChromeCastAudioSink('sinkName', items[3], items[4], items[5], items[6])
 
@@ -111,7 +113,7 @@ class SimulateDaytimePresenceTest(DeviceTest):
 
         self.partition.arm_away(pe.get_event_dispatcher())
 
-        porch = Zone.create_external_zone('porch').addDevice(self.partition)
+        porch = Zone.create_external_zone('porch').addDevice(self.partition).addDevice(self.motion_sensor)
         great_room = Zone("GR", [self.audioSink], Level.FIRST_FLOOR)
 
         for d in excluded_devices:
