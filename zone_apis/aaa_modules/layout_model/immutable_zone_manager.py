@@ -1,7 +1,7 @@
 from typing import Type
 
 from aaa_modules.alert_manager import AlertManager
-from aaa_modules.layout_model.zone import Zone
+from aaa_modules.layout_model.zone import Zone, ZoneEvent
 from aaa_modules.layout_model.device import Device
 
 
@@ -72,6 +72,82 @@ class ImmutableZoneManager:
         :rtype: list(Device)
         """
         return self.get_devices_by_type_fcn(cls)
+
+    def dispatch_event(self, zone_event: ZoneEvent, open_hab_events, item, enforce_item_in_zone=True):
+        """
+        Dispatches the event to the zones.
+
+        :param item:
+        :param ZoneEvent zone_event:
+        :param events open_hab_events:
+        :param bool enforce_item_in_zone: if set to true, the actions won't be
+            triggered if the zone doesn't contain the item.
+        """
+        self.update_device_last_activated_time(item)
+
+        return_values = [
+            z.dispatch_event(zone_event, open_hab_events, item, self, enforce_item_in_zone)
+            for z in self.get_zones()]
+        return any(return_values)
+
+    # noinspection PyUnusedLocal
+    def on_network_device_connected(self, events, item):
+        """
+        Dispatches the network device connected (to local network) to each zone.
+
+        :return: True if at least one zone processed the event; False otherwise
+        :rtype: bool
+        """
+        self.update_device_last_activated_time(item)
+
+        return True
+
+    def on_switch_turned_on(self, events, item):
+        """
+        Dispatches the switch turned on event to each zone.
+
+        :return: True if at least one zone processed the event; False otherwise
+        :rtype: bool
+        """
+        self.update_device_last_activated_time(item)
+
+        return_values = [z.on_switch_turned_on(events, item, self) for z in self.get_zones()]
+        return any(return_values)
+
+    def on_switch_turned_off(self, events, item):
+        """
+        Dispatches the switch turned off event to each zone.
+
+        :return: True if at least one zone processed the event; False otherwise
+        :rtype: bool
+        """
+        return_values = []
+        for z in self.get_zones():
+            return_values.append(z.on_switch_turned_off(events, item, self))
+        return any(return_values)
+
+    def on_timer_expired(self, events, item):
+        """
+        Dispatches the timer expiry event to each zone.
+
+        :param scope.events events: the global events object
+        :param Item item:
+        :return: True if at least one zone processed the event; False otherwise
+        :rtype: bool
+        """
+        return_values = [z.onTimerExpired(events, item) for z in self.get_zones()]
+        return any(return_values)
+
+    def update_device_last_activated_time(self, item):
+        """
+        Determine if the item is associated with a managed device. If yes,
+        update it last activated time to the current epoch second.
+        """
+        for zone in self.get_zones():
+            devices = [d for d in zone.getDevices() if d.containsItem(item)]
+            for d in devices:
+                # noinspection PyProtectedMember
+                d._update_last_activated_timestamp()
 
     def __str__(self):
         value = u""

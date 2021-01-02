@@ -75,7 +75,7 @@ def parse() -> ImmutableZoneManager:
 
             device = None
             if re.match(pattern, item.name) is not None:
-                device = mappings[pattern](zm, item)
+                device = mappings[pattern](immutable_zm, item)
 
             if device is not None:
                 zone_id = _get_zone_id_from_item_name(item.name)
@@ -227,7 +227,7 @@ def _get_zone_id_from_item_name(item_name: str) -> Union[str, None]:
     return level_string + '_' + location
 
 
-def _create_door(zm: ZoneManager, item) -> Door:
+def _create_door(zm: ImmutableZoneManager, item) -> Door:
     sensor = Door(item)
 
     # noinspection PyUnusedLocal
@@ -242,7 +242,7 @@ def _create_door(zm: ZoneManager, item) -> Door:
     return sensor
 
 
-def _create_motion_sensor(zm: ZoneManager, item) -> MotionSensor:
+def _create_motion_sensor(zm: ImmutableZoneManager, item) -> MotionSensor:
     """
     Creates a MotionSensor and register for change event.
     :param item: SwitchItem
@@ -261,7 +261,7 @@ def _create_motion_sensor(zm: ZoneManager, item) -> MotionSensor:
     return sensor
 
 
-def _create_humidity_sensor(zm: ZoneManager, item) -> HumiditySensor:
+def _create_humidity_sensor(zm: ImmutableZoneManager, item) -> HumiditySensor:
     """
     Creates a MotionSensor and register for change event.
     :param item: SwitchItem
@@ -277,7 +277,7 @@ def _create_humidity_sensor(zm: ZoneManager, item) -> HumiditySensor:
     return sensor
 
 
-def _create_network_presence_device(zm: ZoneManager, item) -> NetworkPresence:
+def _create_network_presence_device(zm: ImmutableZoneManager, item) -> NetworkPresence:
     """
     Creates a MotionSensor and register for change event.
     :param item: SwitchItem
@@ -294,7 +294,7 @@ def _create_network_presence_device(zm: ZoneManager, item) -> NetworkPresence:
     return sensor
 
 
-def _create_temperature_sensor(zm: ZoneManager, item) -> TemperatureSensor:
+def _create_temperature_sensor(zm: ImmutableZoneManager, item) -> TemperatureSensor:
     """
     Creates a MotionSensor and register for change event.
     :param item: SwitchItem
@@ -311,7 +311,7 @@ def _create_temperature_sensor(zm: ZoneManager, item) -> TemperatureSensor:
 
 
 # noinspection PyUnusedLocal
-def _create_plug(zm: ZoneManager, item) -> Plug:
+def _create_plug(zm: ImmutableZoneManager, item) -> Plug:
     """
     Creates a smart plug.
     :param item: SwitchItem
@@ -331,7 +331,7 @@ def _create_gas_sensor(cls):
     :return: a function that create the specific gas sensor type.
     """
     # noinspection PyUnusedLocal
-    def inner_fcn(zm: ZoneManager, item) -> GasSensor:
+    def inner_fcn(zm: ImmutableZoneManager, item) -> GasSensor:
         # noinspection PyUnusedLocal
         def state_change_handler(event: ValueChangeEvent):
             dispatch_event(zm, ZoneEvent.GAS_TRIGGER_STATE_CHANGED, item)
@@ -350,7 +350,7 @@ def _create_gas_sensor(cls):
     return inner_fcn
 
 
-def _create_alarm_partition(zm: ZoneManager, item: SwitchItem) -> AlarmPartition:
+def _create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmPartition:
     """
     Creates an alarm partition.
     :param item: SwitchItem
@@ -371,7 +371,7 @@ def _create_alarm_partition(zm: ZoneManager, item: SwitchItem) -> AlarmPartition
 
 
 # noinspection PyUnusedLocal
-def _create_chrome_cast(zm: ZoneManager, item: StringItem) -> ChromeCastAudioSink:
+def _create_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> ChromeCastAudioSink:
     item_def = HABApp.openhab.interface.get_item(item.name, "sinkName")
     metadata = item_def.metadata
 
@@ -384,7 +384,7 @@ def _create_chrome_cast(zm: ZoneManager, item: StringItem) -> ChromeCastAudioSin
     return ChromeCastAudioSink(sink_name, player_item, volume_item, title_item, idling_item)
 
 
-def _create_switches(zm: ZoneManager, item: SwitchItem) -> Union[None, Dimmer, Light, Fan]:
+def _create_switches(zm: ImmutableZoneManager, item: SwitchItem) -> Union[None, Dimmer, Light, Fan]:
     """
     Parses and creates Dimmer, Fan or Light device.
     :param item: SwitchItem
@@ -454,7 +454,7 @@ def _create_switches(zm: ZoneManager, item: SwitchItem) -> Union[None, Dimmer, L
     return device
 
 
-def dispatch_event(zm: ZoneManager, zone_event: ZoneEvent, item: BaseValueItem, enforce_item_in_zone=True):
+def dispatch_event(zm: ImmutableZoneManager, zone_event: ZoneEvent, item: BaseValueItem, enforce_item_in_zone=True):
     """
     Dispatches an event to the ZoneManager. If the event is not processed,
     create a debug log.
