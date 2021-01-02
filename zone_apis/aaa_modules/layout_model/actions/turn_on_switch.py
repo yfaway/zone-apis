@@ -27,7 +27,7 @@ class TurnOnSwitch:
     A light/dimmer switch won't be turned on if:
     1. The light has the flag set to ignore motion event, or
     2. The adjacent zone is of type OPEN_SPACE_MASTER with the light on, or
-    3. The light was jsut turned off, or
+    3. The light was just turned off, or
     4. The neighbor zone has a light switch that shares the same motion sensor,
     and that light switch was just recently turned off.
 

@@ -51,14 +51,14 @@ def parse() -> ImmutableZoneManager:
         '[^g].*LightSwitch.*': _create_switches,
         '.*FanSwitch.*': _create_switches,
         '[^g].*_Illuminance.*': lambda zone_manager, an_item: IlluminanceSensor(an_item),
-        '[^g].*Humidity$': lambda zone_manager, an_item: HumiditySensor(an_item),
+        '[^g].*Humidity$': _create_humidity_sensor,
         '[^g].*_NetworkPresence.*': lambda zone_manager, an_item: NetworkPresence(an_item),
         '[^g].*_Plug$': _create_plug,
         '[^g].*_Co2$': _create_gas_sensor(Co2GasSensor),
         '[^g].*_NaturalGas$': _create_gas_sensor(NaturalGasSensor),
         '[^g].*_Smoke$': _create_gas_sensor(SmokeSensor),
         '.*_Tv$': lambda zone_manager, an_item: Tv(an_item),
-        '[^g].*Temperature$': lambda zone_manager, an_item: TemperatureSensor(an_item),
+        '[^g].*Temperature$': _create_temperature_sensor,
     }
 
     zm: ZoneManager = ZoneManager()
@@ -113,10 +113,7 @@ def parse() -> ImmutableZoneManager:
         zone = zone.addDevice(ActivityTimes(time_map))
         zone_mappings[zone.getId()] = zone
 
-    action_classes = _get_default_action_classes()
-    for z in zone_mappings.values():
-        z = _add_actions(z, action_classes)
-        zone_mappings[z.getId()] = z
+    zone_mappings = _add_actions(zone_mappings)
 
     for z in zone_mappings.values():
         zm.add_zone(z)
@@ -172,31 +169,39 @@ def _parse_zones() -> List[Zone]:
     return zones
 
 
-def _add_actions(zone: Zone, action_classes: List[Type]) -> Zone:
+def _add_actions(zone_mappings: Dict) -> Dict:
     """
     Programmatically add default actions defined in 'layout_model.actions' to each zone based on various criteria.
     """
+    action_classes = _get_default_action_classes()
+
     for clazz in action_classes:
         action: Action = clazz()
 
-        satisfied = True  # must have all devices
-        for device_type in action.getRequiredDevices():
-            if len(zone.getDevicesByType(device_type)) == 0:
-                satisfied = False
-                break
+        for zone in zone_mappings.values():
+            satisfied = True  # must have all devices
+            for device_type in action.get_required_devices():
+                if len(zone.getDevicesByType(device_type)) == 0:
+                    satisfied = False
+                    break
 
-        if not satisfied:
-            continue
+            if not satisfied:
+                continue
 
-        if zone.isInternal() and not action.isApplicableToInternalZone():
-            continue
+            if zone.isInternal() and not action.is_applicable_to_internal_zone():
+                continue
 
-        if zone.isExternal() and not action.isApplicableToExternalZone():
-            continue
+            if zone.isExternal() and not action.is_applicable_to_external_zone():
+                continue
 
-        zone = zone.add_action(action)
+            if action.must_be_unique_instance():
+                zone = zone.add_action(clazz())
+            else:
+                zone = zone.add_action(action)
 
-    return zone
+            zone_mappings[zone.getId()] = zone
+
+    return zone_mappings
 
 
 def _get_meta_value(metadata: Dict[str, Any], key, default_value=None) -> str:
@@ -256,6 +261,55 @@ def _create_motion_sensor(zm: ZoneManager, item) -> MotionSensor:
     return sensor
 
 
+def _create_humidity_sensor(zm: ZoneManager, item) -> HumiditySensor:
+    """
+    Creates a MotionSensor and register for change event.
+    :param item: SwitchItem
+    """
+    sensor = HumiditySensor(item)
+
+    # noinspection PyUnusedLocal
+    def handler(event: ValueChangeEvent):
+        dispatch_event(zm, ZoneEvent.HUMIDITY_CHANGED, item)
+
+    item.listen_event(handler, ValueChangeEvent)
+
+    return sensor
+
+
+def _create_network_presence_device(zm: ZoneManager, item) -> NetworkPresence:
+    """
+    Creates a MotionSensor and register for change event.
+    :param item: SwitchItem
+    """
+    sensor = NetworkPresence(item)
+
+    # noinspection PyUnusedLocal
+    def handler(event: ValueChangeEvent):
+        if pe.is_in_on_state(item):
+            zm.on_network_device_connected(pe.get_event_dispatcher(), item)
+
+    item.listen_event(handler, ValueChangeEvent)
+
+    return sensor
+
+
+def _create_temperature_sensor(zm: ZoneManager, item) -> TemperatureSensor:
+    """
+    Creates a MotionSensor and register for change event.
+    :param item: SwitchItem
+    """
+    sensor = TemperatureSensor(item)
+
+    # noinspection PyUnusedLocal
+    def handler(event: ValueChangeEvent):
+        dispatch_event(zm, ZoneEvent.TEMPERATURE_CHANGED, item)
+
+    item.listen_event(handler, ValueChangeEvent)
+
+    return sensor
+
+
 # noinspection PyUnusedLocal
 def _create_plug(zm: ZoneManager, item) -> Plug:
     """
@@ -276,10 +330,21 @@ def _create_gas_sensor(cls):
     """
     :return: a function that create the specific gas sensor type.
     """
-
     # noinspection PyUnusedLocal
     def inner_fcn(zm: ZoneManager, item) -> GasSensor:
+        # noinspection PyUnusedLocal
+        def state_change_handler(event: ValueChangeEvent):
+            dispatch_event(zm, ZoneEvent.GAS_TRIGGER_STATE_CHANGED, item)
+
+        # noinspection PyUnusedLocal
+        def value_change_handler(event: ValueChangeEvent):
+            dispatch_event(zm, ZoneEvent.GAS_VALUE_CHANGED, item)
+
+        item.listen_event(value_change_handler, ValueChangeEvent)
+
         state_item = Items.get_item(item.name + 'State')
+        state_item.listen_event(state_change_handler, ValueChangeEvent)
+
         return cls(item, state_item)
 
     return inner_fcn
@@ -420,6 +485,8 @@ def _get_default_action_classes() -> List[Type]:
                     if isinstance(obj, Action):
                         classes.append(clazz)
                 except AttributeError:
+                    pass
+                except TypeError:
                     pass
 
     return classes

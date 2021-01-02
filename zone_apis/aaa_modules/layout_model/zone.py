@@ -259,12 +259,12 @@ class Zone:
         :return: A NEW object.
         :rtype: Zone 
         """
-        if len(action.getRequiredEvents()) == 0:
+        if len(action.get_required_events()) == 0:
             raise ValueError('Action must define at least one triggering event')
 
         new_actions = dict(self.actions)
 
-        for zone_event in action.getRequiredEvents():
+        for zone_event in action.get_required_events():
             if zone_event in new_actions:
                 new_actions[zone_event].append(action)
             else:
@@ -449,7 +449,7 @@ class Zone:
         """
         for light in self.getDevicesByType(Light):
             if light.isOn():
-                light.trigger_action_from_zone(events)
+                light.turnOff(events)
 
     def onTimerExpired(self, events, item):
         """

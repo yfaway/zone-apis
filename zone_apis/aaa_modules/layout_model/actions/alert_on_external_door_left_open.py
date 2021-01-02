@@ -1,11 +1,9 @@
 from threading import Timer
 
 from aaa_modules.alert import Alert
-from aaa_modules.alert_manager import AlertManager
 from aaa_modules.layout_model.zone import ZoneEvent
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.contact import Door
-from aaa_modules import platform_encapsulator as pe
 
 
 @action(events=[ZoneEvent.CONTACT_OPEN, ZoneEvent.CONTACT_CLOSED],
@@ -61,7 +59,7 @@ class AlertOnExternalDoorLeftOpen:
                     else:  # alert door now closed if a warning was previous sent
                         msg = f'The {zone.getName()} door is now closed.'
                         alert = Alert.create_warning_alert(msg)
-                        AlertManager().process_alert(alert, zone_manager)
+                        zone_manager.get_alert_manager().process_alert(alert, zone_manager)
 
                     del self.timers[door]
 

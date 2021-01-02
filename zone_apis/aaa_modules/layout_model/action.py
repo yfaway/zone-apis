@@ -1,4 +1,12 @@
 class Action(object):
+    def __init__(self):
+        self._triggering_events = None
+        self._devices = None
+        self._internal = None
+        self._external = None
+        self._levels = None
+        self._unique_instance = False
+
     """
     The base class for all zone actions. An action is invoked when an event is
     triggered (e.g. when a motion sensor is turned on).
@@ -6,51 +14,58 @@ class Action(object):
     An action may rely on the states of one or more sensors in the zone.
     """
 
-    def getRequiredDevices(self):
+    def get_required_devices(self):
         """
         :return: list of devices that would generate the events
         :rtype: list(Device)
         """
-        return self.devices
+        return self._devices
 
-    def getRequiredEvents(self):
+    def get_required_events(self):
         """
         :return: list of triggering events this action process.
         :rtype: list(ZoneEvent)
         """
-        return self.triggeringEvents
+        return self._triggering_events
 
-    def isApplicableToInternalZone(self):
+    def is_applicable_to_internal_zone(self):
         """
         :return: true if the action can be invoked on an internal zone.
         :rtype: bool
         """
-        return self.internal
+        return self._internal
 
-    def isApplicableToExternalZone(self):
+    def is_applicable_to_external_zone(self):
         """
         :return: true if the action can be invoked on an external zone.
         :rtype: bool
         """
-        return self.external
+        return self._external
 
-    def getApplicableLevels(self):
+    def get_applicable_levels(self):
         """
         :return: list of applicable zone levels
         :rtype: list(int) 
         """
-        return self.levels
+        return self._levels
 
-    def getFirstDevice(self, eventInfo):
+    def get_first_device(self, event_info):
         """
         Returns the first applicable device that might have generated the
         event.
         """
-        if len(self.getRequiredDevices()) == 0:
+        if len(self.get_required_devices()) == 0:
             return None
         else:
-            devices = eventInfo.getZone().getDevicesByType(self.getRequiredDevices()[0])
+            devices = event_info.getZone().getDevicesByType(self.get_required_devices()[0])
             return devices[0]
+
+    def must_be_unique_instance(self):
+        """
+        Returns true if the action must be an unique instance for each zone. This must be the case
+        when the action is stateful.
+        """
+        return self._unique_instance
 
     # noinspection PyUnusedLocal
     def onAction(self, event_info):
@@ -63,8 +78,7 @@ class Action(object):
         return True
 
 
-def action(devices=None, events=None, internal=True, external=False,
-           levels=None):
+def action(devices=None, events=None, internal=True, external=False, levels=None, unique_instance=False):
     """
     A decorator that accepts an action class and do the followings:
       - Create a subclass that extends the decorated class and Action.
@@ -78,7 +92,9 @@ def action(devices=None, events=None, internal=True, external=False,
     :param boolean internal: if set, this action is only applicable for internal zone
     :param boolean external: if set, this action is only applicable for external zone
     :param list(int) levels: the zone levels that this action is applicable to.
-        the empty list default value indicates applicale to all zone levels.
+        the empty list default value indicates that the action is applicable to all zone levels.
+    :param boolean unique_instance: if set, do not share the same action instance across zones.
+        This is the case when the action is stateful.
     """
 
     if levels is None:
@@ -92,11 +108,12 @@ def action(devices=None, events=None, internal=True, external=False,
         def init(self, *args, **kwargs):
             clazz.__init__(self, *args, **kwargs)
 
-            self.triggeringEvents = events
-            self.devices = devices
-            self.internal = internal
-            self.external = external
-            self.levels = levels
+            self._triggering_events = events
+            self._devices = devices
+            self._internal = internal
+            self._external = external
+            self._levels = levels
+            self._unique_instance = unique_instance
 
         subclass = type(clazz.__name__, (clazz, Action), dict(__init__=init))
         subclass.onAction = validate(clazz.onAction)
@@ -119,20 +136,20 @@ def validate(function):
         event_info = args[1]
         zone = event_info.getZone()
 
-        if len(obj.getRequiredEvents()) > 0 \
-                and not any(e == event_info.getEventType() for e in obj.getRequiredEvents()):
+        if len(obj.get_required_events()) > 0 \
+                and not any(e == event_info.getEventType() for e in obj.get_required_events()):
 
             return False
-        elif len(obj.getRequiredDevices()) > 0 \
-                and not any(len(zone.getDevicesByType(cls)) > 0 for cls in obj.getRequiredDevices()):
+        elif len(obj.get_required_devices()) > 0 \
+                and not any(len(zone.getDevicesByType(cls)) > 0 for cls in obj.get_required_devices()):
 
             return False
-        elif zone.isInternal() and not obj.isApplicableToInternalZone():
+        elif zone.isInternal() and not obj.is_applicable_to_internal_zone():
             return False
-        elif zone.isExternal() and not obj.isApplicableToExternalZone():
+        elif zone.isExternal() and not obj.is_applicable_to_external_zone():
             return False
-        elif len(obj.getApplicableLevels()) > 0 \
-                and not any(zone.getLevel() == level for level in obj.getApplicableLevels()):
+        elif len(obj.get_applicable_levels()) > 0 \
+                and not any(zone.getLevel() == level for level in obj.get_applicable_levels()):
 
             return False
         else:
