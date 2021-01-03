@@ -442,7 +442,13 @@ def _create_switches(zm: ImmutableZoneManager, item: SwitchItem) -> Union[None, 
     if device is not None:
         # noinspection PyUnusedLocal
         def handler(event: ValueChangeEvent):
-            if pe.is_in_on_state(item):
+            is_on = False
+            if isinstance(item, SwitchItem):
+                is_on = pe.is_in_on_state(item)
+            else:  # dimmer
+                is_on = pe.get_number_value(item) > 0
+
+            if is_on:
                 if not zm.on_switch_turned_on(pe.get_event_dispatcher(), item):
                     pe.log_debug(f'Switch on event for {item.name} is not processed.')
             else:

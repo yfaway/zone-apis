@@ -43,7 +43,7 @@ class Switch(Device):
         def turn_off_switch():
             zone = self.getZoneManager().get_containing_zone(self)
 
-            (occupied, device) = zone.isOccupied([Fan, Light], 60)
+            (occupied, device) = zone.isOccupied([Switch], 60)
             if not occupied:
                 events.send_command(self.getItemName(), "OFF")
                 pe.log_debug("{}: turning off {}.".format(
