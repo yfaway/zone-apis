@@ -17,7 +17,7 @@ class AlertManager:
     critical level, a TTS message will also be sent to all audio sinks.
     """
 
-    def __init__(self, properties_file='/etc/openhab2/transform/owner-email-addresses.txt.map'):
+    def __init__(self, properties_file='/etc/openhab2/transform/owner-email-addresses.map'):
         self._properties_file = properties_file
 
         # If set, the TTS message won't be sent to the chrome casts.
