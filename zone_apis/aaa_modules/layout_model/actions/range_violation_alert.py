@@ -1,5 +1,4 @@
 from aaa_modules.alert import Alert
-from aaa_modules.alert_manager import AlertManager
 from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
 
 
@@ -43,9 +42,9 @@ class RangeViolationAlert:
         self.next_max_notification_threshold = None
         self.next_min_notification_threshold = None
 
-        self.resetStates();
+        self.reset_states()
 
-    def updateState(self, value, zone, zone_manager: ImmutableZoneManager):
+    def update_state(self, value, zone, zone_manager: ImmutableZoneManager):
         """
         Update this object with the latest value.
         If the value is outside the range, an warning alert will be sent.
@@ -53,7 +52,7 @@ class RangeViolationAlert:
         """
         if self.min_value <= value <= self.max_value:
             if self.sent_alert:  # send an info alert that the value is back to normal
-                self.resetStates()
+                self.reset_states()
 
                 msg = f'The {zone.getName()} {self.label} at {value}{self.unit} is back to the normal range ' \
                       f'({self.min_value}% - {self.max_value}%).'
@@ -85,7 +84,7 @@ class RangeViolationAlert:
 
                 self.sent_alert = True
 
-    def resetStates(self):
+    def reset_states(self):
         """
         Resets the internal states including the next min/max notification
         thresholds.
