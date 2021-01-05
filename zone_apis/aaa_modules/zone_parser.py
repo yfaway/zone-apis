@@ -30,6 +30,7 @@ from aaa_modules.layout_model.devices.plug import Plug
 from aaa_modules.layout_model.devices.switch import Fan, Light
 from aaa_modules.layout_model.devices.temperature_sensor import TemperatureSensor
 from aaa_modules.layout_model.devices.tv import Tv
+from aaa_modules.layout_model.devices.wled import Wled
 from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
 from aaa_modules.layout_model.zone import Zone, Level, ZoneEvent
 from aaa_modules.layout_model.zone_manager import ZoneManager
@@ -52,6 +53,7 @@ def parse() -> ImmutableZoneManager:
         '[^g].*MotionSensor$': _create_motion_sensor,
         '[^g].*LightSwitch.*': _create_switches,
         '.*FanSwitch.*': _create_switches,
+        '.*Wled_MasterControls.*': _create_switches,
         '[^g].*_Illuminance.*': lambda zone_manager, an_item: IlluminanceSensor(an_item),
         '[^g].*Humidity$': _create_humidity_sensor,
         '[^g].*_NetworkPresence.*': lambda zone_manager, an_item: NetworkPresence(an_item),
@@ -424,7 +426,7 @@ def _create_switches(zm: ImmutableZoneManager, item: Union[NumberItem, SwitchIte
         item.name, f"noPrematureTurnOffTimeRange, {duration_in_minutes_key}, {dimmable_key}, {disable_triggering_key}")
     metadata = item_def.metadata
 
-    if 'LightSwitch' == device_name or 'FanSwitch' == device_name:
+    if 'LightSwitch' == device_name or 'FanSwitch' == device_name or 'Wled_MasterControls' in device_name:
         duration_in_minutes = int(_get_meta_value(metadata, duration_in_minutes_key, -1))
         if duration_in_minutes == -1:
             raise ValueError(f"Missing durationInMinutes value for {item_name}'")
@@ -454,6 +456,12 @@ def _create_switches(zm: ImmutableZoneManager, item: Union[NumberItem, SwitchIte
 
     elif 'FanSwitch' == device_name:
         device = Fan(item, duration_in_minutes)
+    elif 'Wled_MasterControls' in device_name:
+        effect_item = Items.get_item(item.name.replace('MasterControls', 'FX'))
+        primary_color_item = Items.get_item(item.name.replace('MasterControls', 'Primary'))
+        secondary_color_item = Items.get_item(item.name.replace('MasterControls', 'Secondary'))
+
+        return Wled(item, effect_item, primary_color_item, secondary_color_item, duration_in_minutes)
 
     if device is not None:
         # noinspection PyUnusedLocal
