@@ -272,20 +272,20 @@ def is_in_unit_tests():
 
 def play_local_audio_file(sink_name: str, file_location: str):
     """ Plays a local audio file on the given audio sink. """
-    HABApp.openhab.interface.send_command(ACTION_AUDIO_SINK_ITEM_NAME, sink_name)
-    HABApp.openhab.interface.send_command(ACTION_AUDIO_LOCAL_FILE_LOCATION_ITEM_NAME, file_location)
+    StringItem.get_item(ACTION_AUDIO_SINK_ITEM_NAME).oh_post_update(sink_name)
+    StringItem.get_item(ACTION_AUDIO_LOCAL_FILE_LOCATION_ITEM_NAME).oh_post_update(file_location)
 
 
 def play_stream_url(sink_name: str, url: str):
     """ Plays a stream URL on the given audio sink. """
-    HABApp.openhab.interface.send_command(ACTION_AUDIO_SINK_ITEM_NAME, sink_name)
-    HABApp.openhab.interface.send_command(ACTION_AUDIO_STREAM_URL_ITEM_NAME, url)
+    StringItem.get_item(ACTION_AUDIO_SINK_ITEM_NAME).oh_post_update(sink_name)
+    StringItem.get_item(ACTION_AUDIO_STREAM_URL_ITEM_NAME).oh_post_update(url)
 
 
 def play_text_to_speech_message(sink_name: str, tts: str):
     """ Plays a text to speech message on the given audio sink. """
-    HABApp.openhab.interface.send_command(ACTION_AUDIO_SINK_ITEM_NAME, sink_name)
-    HABApp.openhab.interface.send_command(ACTION_TEXT_TO_SPEECH_MESSAGE_ITEM_NAME, tts)
+    StringItem.get_item(ACTION_AUDIO_SINK_ITEM_NAME).oh_post_update(sink_name)
+    StringItem.get_item(ACTION_TEXT_TO_SPEECH_MESSAGE_ITEM_NAME).oh_post_update(tts)
 
 
 def send_email(email_addresses: List[str], subject: str, body: str = '', attachment_urls: List[str] = None):
@@ -294,8 +294,11 @@ def send_email(email_addresses: List[str], subject: str, body: str = '', attachm
     if attachment_urls is None:
         attachment_urls = []
 
-    HABApp.openhab.interface.send_command('EmailSubject', f'HABApp: {subject}')
-    HABApp.openhab.interface.send_command('EmailBody', body)
-    HABApp.openhab.interface.send_command('EmailAttachmentUrls', ', '.join(attachment_urls))
-    HABApp.openhab.interface.send_command('EmailAddresses', ', '.join(email_addresses))
+    if body is None:
+        body = ''
+
+    StringItem.get_item('EmailSubject').oh_post_update(subject)
+    StringItem.get_item('EmailBody').oh_post_update(body)
+    StringItem.get_item('EmailAttachmentUrls').oh_post_update(', '.join(attachment_urls))
+    StringItem.get_item('EmailAddresses').oh_post_update(', '.join(email_addresses))
 

@@ -33,17 +33,15 @@ class Wled(Light):
         """
         @override to turn on the effect timer
         """
-        super(Wled, self).on_switch_turned_on(events, item_name)
-
-        self._start_effect_timer(events)
+        if super(Wled, self).on_switch_turned_on(events, item_name):
+            self._start_effect_timer(events)
 
     def on_switch_turned_off(self, events, item_name):
         """
         @override to turn off the effect timer
         """
-        super(Wled, self).on_switch_turned_off(events, item_name)
-
-        self._cancel_effect_timer()
+        if super(Wled, self).on_switch_turned_off(events, item_name):
+            self._cancel_effect_timer()
 
     def _start_effect_timer(self, events):
         """
@@ -56,32 +54,32 @@ class Wled(Light):
             # Saturation between 50 and 100%, and full Brightness.
             primary_color = "{},{},100".format(
                 random.choice(range(0, 360)), random.choice(range(50, 100)))
-            events.sendCommand(self.primary_color_item.getName(), primary_color)
+            events.send_command(pe.get_item_name(self.primary_color_item), primary_color)
 
             secondary_color = "{},{},100".format(
                 random.choice(range(0, 360)), random.choice(range(50, 100)))
-            events.sendCommand(self.secondary_color_item.getName(), secondary_color)
+            events.send_command(pe.get_item_name(self.secondary_color_item), secondary_color)
 
             # now randomize the effect
             # noinspection PyTypeChecker
-            effect_id = random.choice(get_effects().keys())
-            events.sendCommand(self.effect_item.getName(), str(effect_id))
+            effect_id = random.choice(list(get_effects().keys()))
+            events.send_command(pe.get_item_name(self.effect_item), str(effect_id))
 
             # start the next timer
             next_duration_in_minute = random.choice(range(2, 7))
-            self.timer = Timer(next_duration_in_minute * 60, change_effect)
-            self.timer.start()
+            self.effect_timer = Timer(next_duration_in_minute * 60, change_effect)
+            self.effect_timer.start()
 
         self._cancel_timer()  # cancel the previous timer, if any.
 
-        self.timer = Timer(3, change_effect)  # start timer in 3 secs
-        self.timer.start()
+        self.effect_timer = Timer(3, change_effect)  # start timer in 3 secs
+        self.effect_timer.start()
 
     def _cancel_effect_timer(self):
         """
         Cancel the random effect switch timer.
         """
-        if self.effect_timer is not None and self.effect_timer.isAlive():
+        if self.effect_timer is not None and self.effect_timer.is_alive():
             self.effect_timer.cancel()
             self.effect_timer = None
 

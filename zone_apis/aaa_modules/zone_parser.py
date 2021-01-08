@@ -9,7 +9,7 @@ from HABApp.core import Items
 from HABApp.core.events import ValueChangeEvent
 from HABApp.core.items import BaseValueItem
 from HABApp.core.items.base_item import BaseItem
-from HABApp.openhab.items import SwitchItem, StringItem, NumberItem
+from HABApp.openhab.items import ColorItem, DimmerItem, SwitchItem, StringItem, NumberItem
 
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.alert_manager import AlertManager
@@ -402,7 +402,7 @@ def _create_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> ChromeCas
     return ChromeCastAudioSink(sink_name, player_item, volume_item, title_item, idling_item)
 
 
-def _create_switches(zm: ImmutableZoneManager, item: Union[NumberItem, SwitchItem]) -> Union[None, Dimmer, Light, Fan]:
+def _create_switches(zm: ImmutableZoneManager, item: Union[ColorItem, NumberItem, SwitchItem]) -> Union[None, Dimmer, Light, Fan, Wled]:
     """
     Parses and creates Dimmer, Fan or Light device.
     :param item: SwitchItem
@@ -461,21 +461,29 @@ def _create_switches(zm: ImmutableZoneManager, item: Union[NumberItem, SwitchIte
         primary_color_item = Items.get_item(item.name.replace('MasterControls', 'Primary'))
         secondary_color_item = Items.get_item(item.name.replace('MasterControls', 'Secondary'))
 
-        return Wled(item, effect_item, primary_color_item, secondary_color_item, duration_in_minutes)
+        device = Wled(item, effect_item, primary_color_item, secondary_color_item, duration_in_minutes)
 
     if device is not None:
-        # noinspection PyUnusedLocal
         def handler(event: ValueChangeEvent):
             is_on = False
+            is_off = False
+
             if isinstance(item, SwitchItem):
                 is_on = pe.is_in_on_state(item)
-            else:  # dimmer
-                is_on = pe.get_number_value(item) > 0
+                is_off = not is_on
+            elif isinstance(item, DimmerItem):
+                is_off = pe.get_number_value(item) == 0
+                is_on = not is_off and event.old_value == 0
+            elif isinstance(item, ColorItem):
+                was_on = (event.old_value[2] > 0)  # index 2 for brightness
+                was_off = int(event.old_value[2]) == 0  
+                is_on = was_off and event.value[2] > 0
+                is_off = was_on and int(event.value[2]) == 0
 
             if is_on:
                 if not zm.on_switch_turned_on(pe.get_event_dispatcher(), item):
                     pe.log_debug(f'Switch on event for {item.name} is not processed.')
-            else:
+            elif is_off:
                 if not zm.on_switch_turned_off(pe.get_event_dispatcher(), item):
                     pe.log_debug(f'Switch off event for {item.name} is not processed.')
 
