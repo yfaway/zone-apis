@@ -30,7 +30,7 @@ class AlertManager:
         # Tracks the timestamp of the last alert in a module.
         self._moduleTimestamps = {}
 
-    def process_alert(self, alert: Alert, zone_manager = None):
+    def process_alert(self, alert: Alert, zone_manager=None):
         """
         Processes the provided alert.
         If the alert's level is WARNING or CRITICAL, the TTS subject will be played

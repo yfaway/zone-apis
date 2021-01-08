@@ -21,7 +21,8 @@ else:
 
     from HABApp.core import Items
     from HABApp.core.items import Item
-    from HABApp.openhab.items import ContactItem, DimmerItem, NumberItem, StringItem, SwitchItem, PlayerItem
+    from HABApp.openhab.items import ContactItem, DimmerItem, NumberItem, StringItem, SwitchItem, PlayerItem, \
+        OpenhabItem
     from HABApp.openhab.definitions import OnOffValue
     from HABApp.core.events import ValueChangeEvent
 
@@ -36,6 +37,8 @@ ACTION_AUDIO_STREAM_URL_ITEM_NAME = 'AudioStreamUrl'
 The previous 4 items are used to play TTS message and audio file/URL. 
 The corresponding script to process these actions are in JSR223 side, within OpenHab.
 """
+
+ZONE_MANAGER_ITEM_NAME = "zone-manager"
 
 _in_unit_tests = False
 
@@ -56,6 +59,35 @@ def register_test_item(item: Item) -> None:
 def unregister_test_item(item) -> None:
     """ Unregister the given item with the runtime. """
     HABApp.core.Items.pop_item(item.name)
+
+
+def add_zone_manager_to_context(zm):
+    """
+    Adds the zone manager instance to the context.
+
+    :param ImmutableZoneManager zm:
+    """
+    if is_in_hab_app():
+        if Items.item_exists(ZONE_MANAGER_ITEM_NAME):
+            HABApp.core.Items.pop_item(ZONE_MANAGER_ITEM_NAME)
+
+        item = OpenhabItem(ZONE_MANAGER_ITEM_NAME, zm)
+        HABApp.core.Items.add_item(item)
+    else:
+        raise ValueError("Unsupported type op: add_zone_manager_to_context")
+
+
+def get_zone_manager_from_context():
+    """
+    Gets the zone manager from the context.
+
+    :rtype ImmutableZoneManager:
+    """
+    if is_in_hab_app():
+        item = OpenhabItem.get_item(ZONE_MANAGER_ITEM_NAME)
+        return item.get_value()
+    else:
+        raise ValueError("Unsupported type op: add_zone_manager_to_context")
 
 
 def is_in_on_state(item: SwitchItem):
@@ -301,4 +333,3 @@ def send_email(email_addresses: List[str], subject: str, body: str = '', attachm
     StringItem.get_item('EmailBody').oh_post_update(body)
     StringItem.get_item('EmailAttachmentUrls').oh_post_update(', '.join(attachment_urls))
     StringItem.get_item('EmailAddresses').oh_post_update(', '.join(email_addresses))
-

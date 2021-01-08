@@ -56,6 +56,12 @@ loggers:
       - HABApp_default
     propagate: False
 
+  HABApp.Worker:
+    level: ERROR
+    handlers:
+      - HABApp_default
+    propagate: False
+
   HABApp.EventBus:
     level: INFO
     handlers:
