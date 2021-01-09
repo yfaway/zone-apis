@@ -17,14 +17,14 @@ class ArmAfterFrontDoorClosed:
     Once armed, an alert will be sent out.
     """
 
-    def __init__(self, max_elapsed_time_in_seconds: float = 12 * 60):
+    def __init__(self, max_elapsed_time_in_seconds: float = 15 * 60):
         """
         Ctor
 
-        :param int max_elapsed_time_in_seconds: the elapsed time in second since
-            a door has been closed at which point the timer will determine if
-            there was any previous activity in the house. If not, the security
-            system is armed.
+        :param int max_elapsed_time_in_seconds: the elapsed time in second since a door has been
+            closed at which point the timer will determine if there was any previous activity in
+            the house. If not, the security system is armed. Note that a motion sensor might not
+            switched to OFF until a few minutes later; do take this into consideration.
         :raise ValueError: if any parameter is invalid
         """
 
@@ -54,10 +54,6 @@ class ArmAfterFrontDoorClosed:
                 if self.timer is not None:
                     self.timer.cancel()
 
-                # motion sensor switches off after around 3', need to take that into consideration.
-                motion_delay_in_sec = 3 * 60
-                delay_time_in_sec = self.max_elapsed_time_in_seconds + motion_delay_in_sec
-
                 def arm_and_send_alert():
                     occupied = False
                     active_device = None
@@ -66,7 +62,7 @@ class ArmAfterFrontDoorClosed:
                         if z.isExternal():
                             continue
 
-                        (occupied, active_device) = z.isOccupied([Plug], delay_time_in_sec)
+                        (occupied, active_device) = z.isOccupied([Plug], self.max_elapsed_time_in_seconds)
                         if occupied:
                             break
 
@@ -80,7 +76,7 @@ class ArmAfterFrontDoorClosed:
                         alert = Alert.create_warning_alert(msg)
                         zone_manager.get_alert_manager().process_alert(alert, zone_manager)
 
-                self.timer = Timer(delay_time_in_sec, arm_and_send_alert)
+                self.timer = Timer(self.max_elapsed_time_in_seconds, arm_and_send_alert)
                 self.timer.start()
 
         return True
