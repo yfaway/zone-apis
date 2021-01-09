@@ -1,5 +1,6 @@
 from typing import Type
 
+from aaa_modules import platform_encapsulator as pe
 from aaa_modules.alert_manager import AlertManager
 from aaa_modules.layout_model.zone import Zone, ZoneEvent
 from aaa_modules.layout_model.device import Device
@@ -85,9 +86,22 @@ class ImmutableZoneManager:
         """
         self.update_device_last_activated_time(item)
 
-        return_values = [
-            z.dispatch_event(zone_event, open_hab_events, item, self, enforce_item_in_zone)
-            for z in self.get_zones()]
+        return_values = None
+
+        # Small optimization: dispatch directly to the zone if we can determine the zone id from the
+        # item name.
+        zone_id = Zone.get_zone_id_from_item_name(pe.get_item_name(item))
+        if zone_id is not None:
+            zone = self.get_zone_by_id(zone_id)
+            if zone is not None:
+                value = zone.dispatch_event(zone_event, open_hab_events, item, self, enforce_item_in_zone)
+                return_values = [value]
+
+        if return_values is None:
+            return_values = [
+                z.dispatch_event(zone_event, open_hab_events, item, self, enforce_item_in_zone)
+                for z in self.get_zones()]
+
         return any(return_values)
 
     # noinspection PyUnusedLocal

@@ -26,6 +26,8 @@ class ZoneManager:
 
         self.zones[zone.getId()] = zone
 
+        return self
+
     def remove_zone(self, zone: Zone):
         """
         Removes a zone.
@@ -37,9 +39,12 @@ class ZoneManager:
 
         self.zones.pop(zone.getId())
 
+        return self
+
     def remove_all_zones(self):
         """ Removes all zone. """
         self.zones.clear()
+        return self
 
     def get_zones(self) -> List[Zone]:
         """

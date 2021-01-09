@@ -362,3 +362,11 @@ class ZoneTest(DeviceTest):
         zones = zone1.getNeighborZones(zm, [NeighborType.OPEN_SPACE_MASTER])
         self.assertEqual(1, len(zones))
         self.assertEqual(zone3, zones[0])
+
+    def testZoneIdFromItemName_validPattern_returnsId(self):
+        self.assertEqual('FF_Foyer', Zone.get_zone_id_from_item_name('FF_Foyer_Door'))
+        self.assertEqual('SF_Bedroom1', Zone.get_zone_id_from_item_name('SF_Bedroom1_Light_Main'))
+
+    def testZoneIdFromItemName_invalidPattern_returnsNone(self):
+        self.assertEqual(None, Zone.get_zone_id_from_item_name('FFFoyer_Door'))
+        self.assertEqual(None, Zone.get_zone_id_from_item_name('FFFoyerDoor'))

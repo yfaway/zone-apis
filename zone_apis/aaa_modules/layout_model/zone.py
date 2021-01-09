@@ -1,5 +1,6 @@
+import re
 from enum import Enum, unique
-from typing import List
+from typing import List, Union
 
 from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 from aaa_modules.layout_model.event_info import EventInfo
@@ -114,6 +115,20 @@ class Zone:
         """
         params = {'name': name, 'level': level, 'external': True}
         return Zone(**params)
+
+    @classmethod
+    def get_zone_id_from_item_name(cls, item_name: str) -> Union[str, None]:
+        """ Extract and return the zone id from the the item name. """
+        pattern = '([^_]+)_([^_]+)_(.+)'
+
+        match = re.search(pattern, item_name)
+        if not match:
+            return None
+
+        level_string = match.group(1)
+        location = match.group(2)
+
+        return level_string + '_' + location
 
     def __init__(self, name, devices: List[Device] = None, level=Level.UNDEFINED,
                  neighbors: List[Neighbor] = None, actions=None, external=False,
