@@ -4,12 +4,14 @@ import re
 class Action(object):
     def __init__(self):
         self._triggering_events = None
+        self._external_events = None
         self._devices = None
         self._internal = None
         self._external = None
         self._levels = None
         self._unique_instance = False
         self._zone_name_pattern = None
+        self._filtering_disabled = False
 
     """
     The base class for all zone actions. An action is invoked when an event is
@@ -27,10 +29,17 @@ class Action(object):
 
     def get_required_events(self):
         """
-        :return: list of triggering events this action process.
+        :return: list of triggering events this action processes. External events aren't filtered
+            through the normal mechanism as they come from different zones.
         :rtype: list(ZoneEvent)
         """
         return self._triggering_events
+
+    def get_external_events(self):
+        """
+        :return: list of external events that this action processes.
+        """
+        return self._external_events
 
     def is_applicable_to_internal_zone(self):
         """
@@ -78,6 +87,14 @@ class Action(object):
         """
         return self._unique_instance
 
+    def is_filtering_disabled(self):
+        """ Returns true if no filtering shall be performed before the action is invoked. """
+        return self._filtering_disabled
+
+    def disable_filtering(self):
+        self._filtering_disabled = True
+        return self
+
     # noinspection PyUnusedLocal
     def onAction(self, event_info):
         """
@@ -90,7 +107,7 @@ class Action(object):
 
 
 def action(devices=None, events=None, internal=True, external=False, levels=None,
-           unique_instance=False, zone_name_pattern: str = None):
+           unique_instance=False, zone_name_pattern: str = None, external_events=None):
     """
     A decorator that accepts an action class and do the followings:
       - Create a subclass that extends the decorated class and Action.
@@ -109,12 +126,17 @@ def action(devices=None, events=None, internal=True, external=False, levels=None
         This is the case when the action is stateful.
     :param str zone_name_pattern: if set, the zone name regular expression that is applicable to
         this action.
+    :param list(ZoneEvent) external_events: the list of events from other zones that this action
+        processes. These events won't be filtered using the same mechanism as the internal
+        events as they come from other zones.
     """
 
     if levels is None:
         levels = []
     if events is None:
         events = []
+    if external_events is None:
+        external_events = []
     if devices is None:
         devices = []
 
@@ -129,6 +151,8 @@ def action(devices=None, events=None, internal=True, external=False, levels=None
             self._levels = levels
             self._unique_instance = unique_instance
             self._zone_name_pattern = zone_name_pattern
+            self._external_events = external_events
+            self._filtering_disabled = False
 
         subclass = type(clazz.__name__, (clazz, Action), dict(__init__=init))
         subclass.onAction = validate(clazz.onAction)
@@ -151,26 +175,33 @@ def validate(function):
         event_info = args[1]
         zone = event_info.getZone()
 
-        if len(obj.get_required_events()) > 0 \
-                and not any(e == event_info.getEventType() for e in obj.get_required_events()):
+        if obj.is_filtering_disabled():
+            return function(*args, **kwargs)
 
-            return False
-        elif len(obj.get_required_devices()) > 0 \
-                and not any(len(zone.getDevicesByType(cls)) > 0 for cls in obj.get_required_devices()):
+        if zone.has_action(obj):
+            if len(obj.get_required_events()) > 0 \
+                    and not any(e == event_info.getEventType() for e in obj.get_required_events()):
 
-            return False
-        elif zone.isInternal() and not obj.is_applicable_to_internal_zone():
-            return False
-        elif zone.isExternal() and not obj.is_applicable_to_external_zone():
-            return False
-        elif len(obj.get_applicable_levels()) > 0 \
-                and not any(zone.getLevel() == level for level in obj.get_applicable_levels()):
+                return False
+            elif len(obj.get_required_devices()) > 0 \
+                    and not any(len(zone.getDevicesByType(cls)) > 0 for cls in obj.get_required_devices()):
 
-            return False
-        elif obj.get_applicable_zone_name_pattern() is not None:
-            pattern = obj.get_applicable_zone_name_pattern()
-            match = re.search(pattern, zone.getName())
-            if not match:
+                return False
+            elif zone.isInternal() and not obj.is_applicable_to_internal_zone():
+                return False
+            elif zone.isExternal() and not obj.is_applicable_to_external_zone():
+                return False
+            elif len(obj.get_applicable_levels()) > 0 \
+                    and not any(zone.getLevel() == level for level in obj.get_applicable_levels()):
+
+                return False
+            elif obj.get_applicable_zone_name_pattern() is not None:
+                pattern = obj.get_applicable_zone_name_pattern()
+                match = re.search(pattern, zone.getName())
+                if not match:
+                    return False
+        else:  # event from other zones
+            if event_info.getEventType() not in obj.get_external_events():
                 return False
 
         return function(*args, **kwargs)

@@ -41,9 +41,14 @@ class TurnOnSwitchTest(DeviceTest):
         self.motionSensor1 = MotionSensor(self.motionSensorItem1)
         self.motionSensor2 = MotionSensor(self.motionSensorItem2)
 
-        self.zone1 = Zone('great room', [self.light1, self.illuminanceSensor, self.motionSensor1])
-        self.zone2 = Zone('kitchen', [self.light2, self.illuminanceSensor, self.motionSensor2])
-        self.zone3 = Zone('foyer', [self.light3, self.illuminanceSensor])
+        self.action = TurnOnSwitch()
+
+        self.zone1 = Zone('great room', [self.light1, self.illuminanceSensor, self.motionSensor1]) \
+            .add_action(self.action)
+        self.zone2 = Zone('kitchen', [self.light2, self.illuminanceSensor, self.motionSensor2]) \
+            .add_action(self.action)
+        self.zone3 = Zone('foyer', [self.light3, self.illuminanceSensor]) \
+            .add_action(self.action)
 
     def tearDown(self):
         # self.zm.stop_auto_report_watch_dog()
@@ -188,7 +193,7 @@ class TurnOnSwitchTest(DeviceTest):
                                self.zone1, create_zone_manager([self.zone1, self.zone2, self.zone3]),
                                pe.get_event_dispatcher())
 
-        return TurnOnSwitch().onAction(event_info)
+        return self.action.onAction(event_info)
 
     # Helper method to set up the relationship between the provided zone and zone1.
     def setUpNeighborRelationship(self, zone, neighbor_type, neighbor_light_on):

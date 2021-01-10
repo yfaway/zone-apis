@@ -2,6 +2,7 @@ import re
 from enum import Enum, unique
 from typing import List, Union
 
+from aaa_modules.layout_model.action import Action
 from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 from aaa_modules.layout_model.event_info import EventInfo
 from aaa_modules.layout_model.device import Device
@@ -270,7 +271,7 @@ class Zone:
         Creates a new zone that is an exact copy of this one, but has the
         additional action mapping.
 
-        :param Action action:
+        :param Any action:
         :return: A NEW object.
         :rtype: Zone 
         """
@@ -297,6 +298,18 @@ class Zone:
             return self.actions[zone_event]
         else:
             return []
+
+    def has_action(self, action: Action):
+        """
+        Determine if the zone contains the specified action.
+
+        :rtype: Boolean
+        """
+        for action_list in self.actions.values():
+            if action in action_list:
+                return True
+
+        return False
 
     def getId(self):
         """ :rtype: str """

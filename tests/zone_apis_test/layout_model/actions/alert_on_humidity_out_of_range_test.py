@@ -17,7 +17,9 @@ class AlertOnHumidityOutOfRangeTest(DeviceTest):
         super(AlertOnHumidityOutOfRangeTest, self).setUp()
 
         self.action = AlertOnHumidityOutOfRange(35, 50, 3)
-        self.zone1 = Zone('great room', [], Level.FIRST_FLOOR).addDevice(HumiditySensor(items[0]))
+        self.zone1 = Zone('great room', [], Level.FIRST_FLOOR) \
+            .addDevice(HumiditySensor(items[0])) \
+            .add_action(self.action)
 
         self.zm = create_zone_manager([self.zone1])
 

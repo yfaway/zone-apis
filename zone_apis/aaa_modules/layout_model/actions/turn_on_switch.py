@@ -139,6 +139,7 @@ class TurnOnSwitch:
             off_event_info = EventInfo(ZoneEvent.SWITCH_TURNED_ON,
                                        event_info.getItem(), event_info.getZone(),
                                        event_info.getZoneManager(), event_info.getEventDispatcher())
-            TurnOffAdjacentZones().onAction(off_event_info)
+            action = TurnOffAdjacentZones().disable_filtering()
+            action.onAction(off_event_info)
 
         return is_processed

@@ -62,7 +62,7 @@ class TurnOffDevicesOnAlarmModeChangeTest(DeviceTest):
 
         self.partition.arm_away(pe.get_event_dispatcher())
 
-        zone = Zone('porch', [self.partition, self.light, self.audioSink])
+        zone = Zone('porch', [self.partition, self.light, self.audioSink]).add_action(self.action)
         zm = create_zone_manager([zone])
         event_info = EventInfo(zone_event, self.get_items()[0], zone, zm, pe.get_event_dispatcher())
 

@@ -16,8 +16,10 @@ class AlertOnHighGasLevelTest(DeviceTest):
         super(AlertOnHighGasLevelTest, self).setUp()
 
         self.action = AlertOnHighGasLevel()
-        self.zone1 = Zone('great room', [], Level.FIRST_FLOOR).addDevice(
-            SmokeSensor(items[1], items[0]))  # index reverse order intentionally
+        self.zone1 = Zone('great room', [], Level.FIRST_FLOOR) \
+            .add_action(self.action) \
+            .addDevice(SmokeSensor(items[1], items[0]))   # index reverse order intentionally
+
         self.zm = create_zone_manager([self.zone1])
 
     def testOnAction_zoneDoesNotContainSensor_returnsFalse(self):

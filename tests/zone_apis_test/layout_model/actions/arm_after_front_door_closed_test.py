@@ -26,9 +26,12 @@ class ArmAfterFrontDoorClosedTest(DeviceTest):
         self.externalMotionSensor = MotionSensor(items[4])
         self.internalMotionSensor = MotionSensor(items[5])
 
+        self.door = Door(items[0])
+        self.action = ArmAfterFrontDoorClosed(0.1)
         self.zone1 = Zone.create_external_zone('porch') \
-            .addDevice(Door(items[0])) \
-            .addDevice(self.externalMotionSensor)
+            .addDevice(self.door) \
+            .addDevice(self.externalMotionSensor) \
+            .add_action(self.action)
 
         self.zone2 = Zone('foyer', [self.internalMotionSensor, self.alarmPartition])
 
@@ -40,7 +43,7 @@ class ArmAfterFrontDoorClosedTest(DeviceTest):
 
         event_info = EventInfo(ZoneEvent.CONTACT_CLOSED, self.get_items()[0],
                                self.zone1, self.mockZoneManager, pe.get_event_dispatcher())
-        value = ArmAfterFrontDoorClosed(0.1).onAction(event_info)
+        value = self.action.onAction(event_info)
         self.assertTrue(value)
 
         time.sleep(0.1)
@@ -57,7 +60,7 @@ class ArmAfterFrontDoorClosedTest(DeviceTest):
         event_info = EventInfo(ZoneEvent.CONTACT_CLOSED, self.get_items()[0],
                                self.zone1, self.mockZoneManager, pe.get_event_dispatcher())
 
-        value = ArmAfterFrontDoorClosed(0.1).onAction(event_info)
+        value = self.action.onAction(event_info)
         self.assertTrue(value)
 
         time.sleep(0.2)
@@ -67,10 +70,16 @@ class ArmAfterFrontDoorClosedTest(DeviceTest):
         pe.set_switch_state(self.get_items()[0], False)  # close door
         self.alarmPartition.disarm(pe.get_event_dispatcher())
 
+        self.action = ArmAfterFrontDoorClosed(0.2)
+        self.zone1 = Zone.create_external_zone('porch') \
+            .addDevice(self.door) \
+            .addDevice(self.externalMotionSensor) \
+            .add_action(self.action)
+        self.mockZoneManager = create_zone_manager([self.zone1, self.zone2])
+
         event_info = EventInfo(ZoneEvent.CONTACT_CLOSED, self.get_items()[0],
                                self.zone1, self.mockZoneManager, pe.get_event_dispatcher())
-        action = ArmAfterFrontDoorClosed(0.2)
-        value = action.onAction(event_info)
+        value = self.action.onAction(event_info)
         self.assertTrue(value)
 
         # simulate a motion event
@@ -79,4 +88,4 @@ class ArmAfterFrontDoorClosedTest(DeviceTest):
 
         time.sleep(0.1)
         self.assertFalse(self.alarmPartition.is_armed_away())
-        self.assertFalse(action.timer.is_alive())
+        self.assertFalse(self.action.timer.is_alive())

@@ -30,10 +30,12 @@ class TurnOffAdjacentZonesTest(DeviceTest):
                                  ILLUMINANCE_THRESHOLD_IN_LUX, False, "0-23:59")  # always stay on
         self.show_fan = Fan(self.fan_item, 5)
 
-        self.washroom = Zone('washroom', [self.washroom_light])
-        self.shower = Zone('shower', [self.show_fan])
-        self.lobby = Zone('lobby', [self.lobby_light])
-        self.foyer = Zone('foyer', [self.foyer_light])
+        self.action = TurnOffAdjacentZones()
+
+        self.washroom = Zone('washroom', [self.washroom_light]).add_action(self.action)
+        self.shower = Zone('shower', [self.show_fan]).add_action(self.action)
+        self.lobby = Zone('lobby', [self.lobby_light]).add_action(self.action)
+        self.foyer = Zone('foyer', [self.foyer_light]).add_action(self.action)
 
         self.lobby = self.lobby.add_neighbor(
             Neighbor(self.foyer.getId(), NeighborType.OPEN_SPACE))
@@ -82,4 +84,4 @@ class TurnOffAdjacentZonesTest(DeviceTest):
         event_info = EventInfo(ZoneEvent.SWITCH_TURNED_ON, self.washroom_light_item, zone,
                                self.zone_manager, pe.get_event_dispatcher())
 
-        return TurnOffAdjacentZones().onAction(event_info)
+        return self.action.onAction(event_info)

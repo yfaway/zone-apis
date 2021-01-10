@@ -12,17 +12,16 @@ from aaa_modules.layout_model.devices.activity_times import ActivityTimes
 @action(events=[ZoneEvent.MOTION], devices=[MotionSensor], zone_name_pattern='.*Kitchen.*')
 class PlayMusicAtDinnerTime:
     """
-    Play the provided URL stream when the washroom fan is turned on. Pause
-    when it it turned off.
-    Won't play if it is sleep time. Otherwise, adjust the volume based on the
-    current activity.
+    Chooses a random URL stream when the motion sensor in the kitchen is triggered at dinner time.
+    Turns off after the specified period.
     """
 
+    # noinspection PyDefaultArgument
     def __init__(self,
                  music_urls=[MusicStream.AUDIOPHILE_CLASSICAL.value,
                              MusicStream.CD101_9_NY_SMOOTH_JAZZ.value,
                              MusicStream.WWFM_CLASSICAL.value,
-                             MusicStream.MEDITATION_YIMAGO_RADIO_4 ],
+                             MusicStream.MEDITATION_YIMAGO_RADIO_4.value],
                  duration_in_minutes: float = 120):
         """
         Ctor
@@ -37,7 +36,7 @@ class PlayMusicAtDinnerTime:
 
         self._music_urls = music_urls
         self._duration_in_minutes = duration_in_minutes
-        self._in_dinner_session = False
+        self._in_session = False
         self._timer = None
 
     def onAction(self, event_info):
@@ -56,12 +55,16 @@ class PlayMusicAtDinnerTime:
 
         activity = activities[0]
         if activity.isDinnerTime():
-            if not self._in_dinner_session:
+            if not self._in_session:
                 sink.play_stream(random.choice(self._music_urls), 40)
 
-                self._in_dinner_session = True
+                self._in_session = True
 
-                self._timer = Timer(self._duration_in_minutes * 60, lambda: sink.pause())
+                def stop_music_session():
+                    sink.pause()
+                    self._in_session = False
+
+                self._timer = Timer(self._duration_in_minutes * 60, stop_music_session)
                 self._timer.start()
 
         return True

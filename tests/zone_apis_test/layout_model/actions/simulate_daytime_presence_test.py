@@ -113,7 +113,9 @@ class SimulateDaytimePresenceTest(DeviceTest):
 
         self.partition.arm_away(pe.get_event_dispatcher())
 
-        porch = Zone.create_external_zone('porch').addDevice(self.partition).addDevice(self.motion_sensor)
+        porch = Zone.create_external_zone('porch').addDevice(self.partition)\
+            .addDevice(self.motion_sensor) \
+            .add_action(self.action)
         great_room = Zone("GR", [self.audioSink], Level.FIRST_FLOOR)
 
         for d in excluded_devices:

@@ -170,8 +170,11 @@ def set_number_value(item: NumberItem, value: float):
         item.oh_send_command(str(value))
 
 
-def get_number_value(item: Union[NumberItem, DimmerItem]) -> float:
-    return int(item.get_value(0))
+def get_number_value(item_or_item_name: Union[NumberItem, DimmerItem, str]) -> float:
+    if isinstance(item_or_item_name, str):
+        item_or_item_name = NumberItem.get_item(item_or_item_name)
+
+    return int(item_or_item_name.get_value(0))
 
 
 def set_string_value(item: StringItem, value: str):
@@ -181,8 +184,11 @@ def set_string_value(item: StringItem, value: str):
         item.oh_send_command(value)
 
 
-def get_string_value(item: StringItem) -> str:
-    return item.get_value()
+def get_string_value(item_or_item_name: Union[StringItem, str]) -> str:
+    if isinstance(item_or_item_name, str):
+        item_or_item_name = StringItem.get_item(item_or_item_name)
+
+    return item_or_item_name.get_value()
 
 
 def change_player_state_to_pause(item: PlayerItem):
