@@ -198,6 +198,12 @@ def _add_actions(zone_mappings: Dict) -> Dict:
             if zone.isExternal() and not action.is_applicable_to_external_zone():
                 continue
 
+            zone_name_pattern = action.get_applicable_zone_name_pattern()
+            if zone_name_pattern is not None:
+                match = re.search(zone_name_pattern, zone.getName())
+                if not match:
+                    continue
+
             if action.must_be_unique_instance():
                 zone = zone.add_action(clazz())
             else:
@@ -402,7 +408,9 @@ def _create_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> ChromeCas
     return ChromeCastAudioSink(sink_name, player_item, volume_item, title_item, idling_item)
 
 
-def _create_switches(zm: ImmutableZoneManager, item: Union[ColorItem, NumberItem, SwitchItem]) -> Union[None, Dimmer, Light, Fan, Wled]:
+def _create_switches(zm: ImmutableZoneManager,
+                     item: Union[ColorItem, DimmerItem, NumberItem, SwitchItem]) \
+        -> Union[None, Dimmer, Light, Fan, Wled]:
     """
     Parses and creates Dimmer, Fan or Light device.
     :param item: SwitchItem

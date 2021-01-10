@@ -1,8 +1,11 @@
 import unittest
-from typing import List
+from typing import List, Union, Tuple
+
+from HABApp.core.Items import ItemAlreadyExistsError
 
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.alert_manager import AlertManager
+from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink
 from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
 from aaa_modules.layout_model.zone import Zone
 from aaa_modules.layout_model.zone_manager import ZoneManager
@@ -32,7 +35,10 @@ class DeviceTest(unittest.TestCase):
         pe.set_in_unit_tests(True)
 
         for item in self.items:
-            pe.register_test_item(item)
+            try:
+                pe.register_test_item(item)
+            except ItemAlreadyExistsError:
+                pass
 
     def tearDown(self):
         """ Removes the items from the registry. """
@@ -50,6 +56,19 @@ class DeviceTest(unittest.TestCase):
 
     def get_items(self) -> list:
         return self.items
+
+    # noinspection PyMethodMayBeStatic
+    def create_audio_sink(self) -> Tuple[ChromeCastAudioSink, List]:
+        """ Returns an audio sink and its items. """
+        items = [pe.create_player_item('_testPlayer'),
+                 pe.create_number_item('_testVolume'),
+                 pe.create_string_item('_testTitle'),
+                 pe.create_switch_item('_testIdling'),
+                 ]
+        sink = ChromeCastAudioSink('sinkName', items[0], items[1], items[2], items[3])
+        sink._set_test_mode()
+
+        return sink, items
 
     def getMockedEventDispatcher(self):
         return MockedEventDispatcher(scope.itemRegistry)

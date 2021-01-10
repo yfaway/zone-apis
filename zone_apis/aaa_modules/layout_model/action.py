@@ -1,3 +1,6 @@
+import re
+
+
 class Action(object):
     def __init__(self):
         self._triggering_events = None
@@ -6,6 +9,7 @@ class Action(object):
         self._external = None
         self._levels = None
         self._unique_instance = False
+        self._zone_name_pattern = None
 
     """
     The base class for all zone actions. An action is invoked when an event is
@@ -49,6 +53,13 @@ class Action(object):
         """
         return self._levels
 
+    def get_applicable_zone_name_pattern(self):
+        """
+        :return: the zone name pattern that is applicable for this action.
+        :rtype: str
+        """
+        return self._zone_name_pattern
+
     def get_first_device(self, event_info):
         """
         Returns the first applicable device that might have generated the
@@ -78,7 +89,8 @@ class Action(object):
         return True
 
 
-def action(devices=None, events=None, internal=True, external=False, levels=None, unique_instance=False):
+def action(devices=None, events=None, internal=True, external=False, levels=None,
+           unique_instance=False, zone_name_pattern: str = None):
     """
     A decorator that accepts an action class and do the followings:
       - Create a subclass that extends the decorated class and Action.
@@ -95,6 +107,8 @@ def action(devices=None, events=None, internal=True, external=False, levels=None
         the empty list default value indicates that the action is applicable to all zone levels.
     :param boolean unique_instance: if set, do not share the same action instance across zones.
         This is the case when the action is stateful.
+    :param str zone_name_pattern: if set, the zone name regular expression that is applicable to
+        this action.
     """
 
     if levels is None:
@@ -114,6 +128,7 @@ def action(devices=None, events=None, internal=True, external=False, levels=None
             self._external = external
             self._levels = levels
             self._unique_instance = unique_instance
+            self._zone_name_pattern = zone_name_pattern
 
         subclass = type(clazz.__name__, (clazz, Action), dict(__init__=init))
         subclass.onAction = validate(clazz.onAction)
@@ -152,7 +167,12 @@ def validate(function):
                 and not any(zone.getLevel() == level for level in obj.get_applicable_levels()):
 
             return False
-        else:
-            return function(*args, **kwargs)
+        elif obj.get_applicable_zone_name_pattern() is not None:
+            pattern = obj.get_applicable_zone_name_pattern()
+            match = re.search(pattern, zone.getName())
+            if not match:
+                return False
+
+        return function(*args, **kwargs)
 
     return wrapper

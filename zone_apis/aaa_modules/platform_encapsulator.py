@@ -170,7 +170,7 @@ def set_number_value(item: NumberItem, value: float):
         item.oh_send_command(str(value))
 
 
-def get_number_value(item: NumberItem) -> float:
+def get_number_value(item: Union[NumberItem, DimmerItem]) -> float:
     return int(item.get_value(0))
 
 

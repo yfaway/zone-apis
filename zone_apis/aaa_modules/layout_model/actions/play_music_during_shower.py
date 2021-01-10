@@ -1,9 +1,9 @@
+from aaa_modules import platform_encapsulator as pe
+from aaa_modules.audio_manager import AudioManager, MusicStream
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.switch import Fan
-from aaa_modules.layout_model.neighbor import NeighborType
 from aaa_modules.layout_model.zone import ZoneEvent
 from aaa_modules.layout_model.devices.activity_times import ActivityTimes
-from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink
 
 
 @action(events=[ZoneEvent.SWITCH_TURNED_ON, ZoneEvent.SWITCH_TURNED_OFF], devices=[Fan])
@@ -15,7 +15,7 @@ class PlayMusicDuringShower:
     current activity.
     """
 
-    def __init__(self, music_url='http://hestia2.cdnstream.com:80/1277_192'):
+    def __init__(self, music_url: str = MusicStream.CD101_9_NY_SMOOTH_JAZZ.value):
         """
         Ctor
 
@@ -32,19 +32,10 @@ class PlayMusicDuringShower:
         zone = event_info.getZone()
         zone_manager = event_info.getZoneManager()
 
-        # Get an audio sink from the current zone or a neighbor zone
-        sinks = zone.getDevicesByType(ChromeCastAudioSink)
-        if len(sinks) == 0:
-            neighbor_zones = zone.getNeighborZones(zone_manager,
-                                                   [NeighborType.OPEN_SPACE, NeighborType.OPEN_SPACE_MASTER,
-                                                    NeighborType.OPEN_SPACE_SLAVE])
-            for z in neighbor_zones:
-                sinks = z.getDevicesByType(ChromeCastAudioSink)
-                if len(sinks) > 0:
-                    break
-
-            if len(sinks) == 0:
-                return False
+        sink = AudioManager.get_nearby_audio_sink(zone, zone_manager)
+        if sink is None:
+            pe.log_info(f"{self.__class__.__name__}: missing ActivityTimes; can't determine if this is dinner time.")
+            return False
 
         activity = None
         if zone_manager is not None:
@@ -57,8 +48,8 @@ class PlayMusicDuringShower:
 
         if ZoneEvent.SWITCH_TURNED_ON == event_info.getEventType():
             volume = 25 if (activity is not None and activity.isQuietTime()) else 35
-            sinks[0].play_stream(self.music_url, volume)
+            sink.play_stream(self.music_url, volume)
         elif ZoneEvent.SWITCH_TURNED_OFF == event_info.getEventType():
-            sinks[0].pause()
+            sink.pause()
 
         return True

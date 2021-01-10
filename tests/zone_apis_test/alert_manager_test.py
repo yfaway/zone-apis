@@ -1,8 +1,8 @@
 from typing import List
 
 from aaa_modules.alert import Alert
-from aaa_modules.alert_manager import AlertManager, _get_owner_email_addresses, _get_admin_email_addresses
-from aaa_modules import platform_encapsulator as pe
+# noinspection PyProtectedMember
+from aaa_modules.alert_manager import AlertManager, _get_owner_email_addresses
 from aaa_modules.layout_model.devices.activity_times import ActivityTimes
 from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink
 from aaa_modules.layout_model.zone import Zone
@@ -16,23 +16,16 @@ class AlertManagerTest(DeviceTest):
     """ Unit tests for alert_manager. """
 
     def setUp(self):
-        items = [pe.create_player_item('TestPlayer'),
-                 pe.create_number_item('TestVolume'),
-                 pe.create_string_item('TestTitle'),
-                 pe.create_switch_item('TestIdling'),
-                 ]
+        self._cast, items = self.create_audio_sink()
         self.set_items(items)
         super(AlertManagerTest, self).setUp()
-
-        self._cast = ChromeCastAudioSink("sink name", items[0], items[1], items[2], items[3])
-        self._cast._set_test_mode()
 
         time_map = {
             'wakeup': '6 - 9',
             'lunch': '12:00 - 13:30',
             'quiet': '14:00 - 16:00, 20:00 - 22:59',
             'dinner': '17:50 - 20:00',
-            'sleep': '23:00 - 7:00'
+            # intentionally no sleep time; otherwise some tests will fail at certain time.
         }
         self._activity_time = ActivityTimes(time_map)
 
