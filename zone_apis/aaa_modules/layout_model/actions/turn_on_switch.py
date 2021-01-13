@@ -15,7 +15,7 @@ from aaa_modules.layout_model.zone_manager import ZoneManager
 DEBUG = False
 
 
-@action(events=[ZoneEvent.MOTION], devices=[Switch], internal=True, external=True)
+@action(events=[ZoneEvent.MOTION], devices=[Switch], internal=True, external=True, priority=1)
 class TurnOnSwitch:
     """
     Turns on a switch (fan, dimmer or regular light), after being triggered by
@@ -48,6 +48,7 @@ class TurnOnSwitch:
     def __init__(self):
         pass
 
+    # noinspection PyMethodMayBeStatic
     def onAction(self, event_info):
         events = event_info.getEventDispatcher()
         zone = event_info.getZone()
@@ -139,7 +140,7 @@ class TurnOnSwitch:
             off_event_info = EventInfo(ZoneEvent.SWITCH_TURNED_ON,
                                        event_info.getItem(), event_info.getZone(),
                                        event_info.getZoneManager(), event_info.getEventDispatcher())
-            action = TurnOffAdjacentZones().disable_filtering()
-            action.onAction(off_event_info)
+            turn_off_action = TurnOffAdjacentZones().disable_filtering()
+            turn_off_action.onAction(off_event_info)
 
         return is_processed

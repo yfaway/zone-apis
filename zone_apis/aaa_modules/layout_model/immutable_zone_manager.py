@@ -74,33 +74,34 @@ class ImmutableZoneManager:
         """
         return self.get_devices_by_type_fcn(cls)
 
-    def dispatch_event(self, zone_event: ZoneEvent, open_hab_events, item, enforce_item_in_zone=True):
+    def dispatch_event(self, zone_event: ZoneEvent, open_hab_events, item):
         """
         Dispatches the event to the zones.
 
         :param item:
         :param ZoneEvent zone_event:
         :param events open_hab_events:
-        :param bool enforce_item_in_zone: if set to true, the actions won't be
-            triggered if the zone doesn't contain the item.
         """
         self.update_device_last_activated_time(item)
 
-        return_values = None
+        return_values = []
 
-        # Small optimization: dispatch directly to the zone if we can determine the zone id from the
-        # item name.
+        # Small optimization: dispatch directly to the applicable zone first if we can determine
+        # the zone id from the item name.
         zone_id = Zone.get_zone_id_from_item_name(pe.get_item_name(item))
+        owning_zone = None
         if zone_id is not None:
-            zone = self.get_zone_by_id(zone_id)
-            if zone is not None:
-                value = zone.dispatch_event(zone_event, open_hab_events, item, self, enforce_item_in_zone)
-                return_values = [value]
+            owning_zone = self.get_zone_by_id(zone_id)
+            if owning_zone is not None:
+                value = owning_zone.dispatch_event(zone_event, open_hab_events, item, self)
+                return_values.append(value)
 
-        if return_values is None:
-            return_values = [
-                z.dispatch_event(zone_event, open_hab_events, item, self, enforce_item_in_zone)
-                for z in self.get_zones()]
+        # Then continue to dispatch to other zones even if a priority zone has been dispatched to.
+        # This allows action to process events from other zones.
+        for z in self.get_zones():
+            if z is not owning_zone:
+                value = z.dispatch_event(zone_event, open_hab_events, item, self, owning_zone)
+                return_values.append(value)
 
         return any(return_values)
 

@@ -22,7 +22,7 @@ class PlayMusicAtDinnerTime:
                              MusicStream.CD101_9_NY_SMOOTH_JAZZ.value,
                              MusicStream.WWFM_CLASSICAL.value,
                              MusicStream.MEDITATION_YIMAGO_RADIO_4.value],
-                 duration_in_minutes: float = 120):
+                 duration_in_minutes: float = 180):
         """
         Ctor
 

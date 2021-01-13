@@ -270,6 +270,7 @@ class Zone:
         """
         Creates a new zone that is an exact copy of this one, but has the
         additional action mapping.
+        The actions are sorted by its priority in ascending order.
 
         :param Any action:
         :return: A NEW object.
@@ -283,6 +284,7 @@ class Zone:
         for zone_event in action.get_required_events():
             if zone_event in new_actions:
                 new_actions[zone_event].append(action)
+                new_actions[zone_event].sort(key=lambda a: a.get_priority())
             else:
                 new_actions[zone_event] = [action]
 
@@ -544,24 +546,24 @@ class Zone:
         return is_processed
 
     def dispatch_event(self, zone_event, open_hab_events, item,
-                       immutable_zone_manager, enforce_item_in_zone):
+                       immutable_zone_manager, owning_zone=None):
         """
         :param item: the item that received the event
         :param ZoneEvent zone_event:
         :param events open_hab_events:
         :param ImmutableZoneManager immutable_zone_manager:
-        :param bool enforce_item_in_zone: if set to true, the actions won't be
-            triggered if the zone doesn't contain the item.
+        :param Any owning_zone: the zone that contains the item; None if the current zone contains
+            the item.
         :rtype: boolean
         """
-        if enforce_item_in_zone and not self.containsOpenHabItem(item):
-            return False
+        #if enforce_item_in_zone and not self.containsOpenHabItem(item):
+        #    return False
 
         return self._invoke_actions(zone_event, open_hab_events, item,
-                                    immutable_zone_manager)
+                                    immutable_zone_manager, owning_zone)
 
     def _invoke_actions(self, zone_event_type, event_dispatcher, item,
-                        immutable_zone_manager):
+                        immutable_zone_manager, owning_zone):
         """
         Helper method to invoke actions associated with the event.
         :return: True if event is processed. 

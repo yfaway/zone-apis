@@ -12,21 +12,21 @@ class TurnOffDevicesOnAlarmModeChangeTest(DeviceTest):
     """ Unit tests for turn-off-devices-on-alarm-mode-change.py. """
 
     def setUp(self):
+        self.audioSink, sink_items = self.create_audio_sink()
+
         items = [pe.create_switch_item('_testMotion'),
                  pe.create_switch_item('_testAlarmStatus'),
                  pe.create_number_item('_testArmMode'),
-                 pe.create_switch_item('_testLight'),
-                 pe.create_player_item('_testPlayer'),
-                 pe.create_number_item('_testVolume'),
-                 pe.create_string_item('_testTitle'),
-                 pe.create_switch_item('_testIdling'),
-                 ]
+                 pe.create_switch_item('_testLight')]
+
+        for item in sink_items:
+            items.append(item)
+
         self.set_items(items)
         super(TurnOffDevicesOnAlarmModeChangeTest, self).setUp()
 
         self.partition = AlarmPartition(items[1], items[2])
         self.light = Light(items[3], 4)
-        self.audioSink = ChromeCastAudioSink('sinkName', items[4], items[5], items[6], items[7])
 
         self.action = TurnOffDevicesOnAlarmModeChange()
 
@@ -64,6 +64,6 @@ class TurnOffDevicesOnAlarmModeChangeTest(DeviceTest):
 
         zone = Zone('porch', [self.partition, self.light, self.audioSink]).add_action(self.action)
         zm = create_zone_manager([zone])
-        event_info = EventInfo(zone_event, self.get_items()[0], zone, zm, pe.get_event_dispatcher())
+        event_info = EventInfo(zone_event, self.get_items()[1], zone, zm, pe.get_event_dispatcher())
 
         return [zone, zm, event_info]

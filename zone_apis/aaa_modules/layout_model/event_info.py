@@ -4,7 +4,7 @@ class EventInfo(object):
     motion triggered.
     """
 
-    def __init__(self, event_type, item, zone, zone_manager, events):
+    def __init__(self, event_type, item, zone, zone_manager, events, owning_zone=None):
         """
         Creates a new EventInfo object.
 
@@ -32,6 +32,7 @@ class EventInfo(object):
         self.zone = zone
         self.zoneManager = zone_manager
         self.events = events
+        self._owning_zone = owning_zone
 
     def getEventType(self):
         """ :rtype: ZoneEvent"""
@@ -52,3 +53,7 @@ class EventInfo(object):
     def getEventDispatcher(self):
         """ :rtype: Event"""
         return self.events
+
+    def get_owning_zone(self):
+        """ Returns the zone that contains the item; returns None if it is the same at the dispatched zone."""
+        return self._owning_zone

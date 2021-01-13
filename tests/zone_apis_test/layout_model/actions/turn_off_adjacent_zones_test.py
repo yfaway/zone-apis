@@ -81,7 +81,7 @@ class TurnOffAdjacentZonesTest(DeviceTest):
         :param zone: the zone with the light just turned on.
         :return: Boolean
         """
-        event_info = EventInfo(ZoneEvent.SWITCH_TURNED_ON, self.washroom_light_item, zone,
+        event_info = EventInfo(ZoneEvent.SWITCH_TURNED_ON, zone.getDevices()[0].getItem(), zone,
                                self.zone_manager, pe.get_event_dispatcher())
 
         return self.action.onAction(event_info)

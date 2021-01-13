@@ -34,7 +34,7 @@ class PlayMusicDuringShower:
 
         sink = AudioManager.get_nearby_audio_sink(zone, zone_manager)
         if sink is None:
-            pe.log_info(f"{self.__class__.__name__}: missing ActivityTimes; can't determine if this is dinner time.")
+            pe.log_info(f"{self.__class__.__name__}: missing audio device; can't play music.")
             return False
 
         activity = None

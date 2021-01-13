@@ -12,6 +12,7 @@ class Action(object):
         self._unique_instance = False
         self._zone_name_pattern = None
         self._filtering_disabled = False
+        self._priority = 10
 
     """
     The base class for all zone actions. An action is invoked when an event is
@@ -91,6 +92,10 @@ class Action(object):
         """ Returns true if no filtering shall be performed before the action is invoked. """
         return self._filtering_disabled
 
+    def get_priority(self) -> int:
+        """ Returns the specified priority order. Actions with lower order value is executed first. """
+        return self._priority
+
     def disable_filtering(self):
         self._filtering_disabled = True
         return self
@@ -107,7 +112,8 @@ class Action(object):
 
 
 def action(devices=None, events=None, internal=True, external=False, levels=None,
-           unique_instance=False, zone_name_pattern: str = None, external_events=None):
+           unique_instance=False, zone_name_pattern: str = None, external_events=None,
+           priority: int = 10):
     """
     A decorator that accepts an action class and do the followings:
       - Create a subclass that extends the decorated class and Action.
@@ -129,6 +135,8 @@ def action(devices=None, events=None, internal=True, external=False, levels=None
     :param list(ZoneEvent) external_events: the list of events from other zones that this action
         processes. These events won't be filtered using the same mechanism as the internal
         events as they come from other zones.
+    :param int priority: the action priority with respect to other actions within the same zone.
+        Actions with lower priority values are executed first.
     """
 
     if levels is None:
@@ -153,6 +161,7 @@ def action(devices=None, events=None, internal=True, external=False, levels=None
             self._zone_name_pattern = zone_name_pattern
             self._external_events = external_events
             self._filtering_disabled = False
+            self._priority = priority
 
         subclass = type(clazz.__name__, (clazz, Action), dict(__init__=init))
         subclass.onAction = validate(clazz.onAction)
@@ -178,7 +187,7 @@ def validate(function):
         if obj.is_filtering_disabled():
             return function(*args, **kwargs)
 
-        if zone.has_action(obj):
+        if zone.containsOpenHabItem(event_info.getItem()):
             if len(obj.get_required_events()) > 0 \
                     and not any(e == event_info.getEventType() for e in obj.get_required_events()):
 

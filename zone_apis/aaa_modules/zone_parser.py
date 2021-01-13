@@ -500,13 +500,13 @@ def _create_switches(zm: ImmutableZoneManager,
     return device
 
 
-def dispatch_event(zm: ImmutableZoneManager, zone_event: ZoneEvent, item: BaseValueItem, enforce_item_in_zone=True):
+def dispatch_event(zm: ImmutableZoneManager, zone_event: ZoneEvent, item: BaseValueItem):
     """
     Dispatches an event to the ZoneManager. If the event is not processed,
     create a debug log.
     """
     # pe.log_info(f"Dispatching event {zone_event.name} for {item.name}")
-    if not zm.dispatch_event(zone_event, pe.get_event_dispatcher(), item, enforce_item_in_zone):
+    if not zm.dispatch_event(zone_event, pe.get_event_dispatcher(), item):
         pe.log_debug(f'Event {zone_event} for item {item.name} is not processed.')
 
 

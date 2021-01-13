@@ -26,15 +26,15 @@ class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
         items.append(pe.create_switch_item('MotionSensor'))
 
         self.motion_item = items[-1]
-        self.internal_door = items[-2]
-        self.external_door = items[-3]
+        self.internal_door_item = items[-2]
+        self.external_door_item = items[-3]
 
         self.set_items(items)
         super(AnnounceMorningWeatherAndPlayMusicTest, self).setUp()
 
         self.motion = MotionSensor(self.motion_item)
-        self.internal_door = Door(self.internal_door)
-        self.external_door = Door(self.external_door)
+        self.internal_door = Door(self.internal_door_item)
+        self.external_door = Door(self.external_door_item)
 
         time_map = {
             'wakeup': '0:00 - 23:59',
@@ -88,8 +88,8 @@ class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
         self.assertTrue(value)
         self.assertEqual('playStream', self.sink._get_last_test_command())
 
-        event_info = EventInfo(ZoneEvent.CONTACT_CLOSED, self.external_door, zone2,
-                               create_zone_manager([zone1, zone2]), pe.get_event_dispatcher())
+        event_info = EventInfo(ZoneEvent.CONTACT_CLOSED, self.external_door_item, zone1,
+                               create_zone_manager([zone1, zone2]), pe.get_event_dispatcher(), zone2)
         value = self.action.onAction(event_info)
         self.assertTrue(value)
         self.assertEqual('pause', self.sink._get_last_test_command())
@@ -106,8 +106,8 @@ class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
         self.assertTrue(value)
         self.assertEqual('playStream', self.sink._get_last_test_command())
 
-        event_info = EventInfo(ZoneEvent.CONTACT_CLOSED, self.internal_door, zone2,
-                               create_zone_manager([zone1, zone2]), pe.get_event_dispatcher())
+        event_info = EventInfo(ZoneEvent.CONTACT_CLOSED, self.internal_door_item, zone1,
+                               create_zone_manager([zone1, zone2]), pe.get_event_dispatcher(), zone2)
         value = self.action.onAction(event_info)
         self.assertFalse(value)
         self.assertEqual('playStream', self.sink._get_last_test_command())

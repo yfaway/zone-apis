@@ -62,10 +62,10 @@ class AnnounceMorningWeatherAndPlayMusic:
 
         if event_info.getEventType() == ZoneEvent.CONTACT_CLOSED:
             if self._in_session:
-                for z in zone_manager.get_zones():
-                    if z.isExternal() and z.hasDevice(event_info.getItem()):
-                        stop_music_session()
-                        return True
+                owning_zone = event_info.get_owning_zone()
+                if owning_zone.isExternal():
+                    stop_music_session()
+                    return True
 
             return False
         else:
