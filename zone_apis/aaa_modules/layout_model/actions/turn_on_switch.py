@@ -6,7 +6,7 @@ from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.event_info import EventInfo
 from aaa_modules.layout_model.zone import ZoneEvent
 from aaa_modules.layout_model.neighbor import NeighborType
-from aaa_modules.layout_model.devices.switch import Light, Switch
+from aaa_modules.layout_model.devices.switch import Light, Switch, Fan
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
 
 from aaa_modules.layout_model.actions.turn_off_adjacent_zones import TurnOffAdjacentZones
@@ -60,7 +60,8 @@ class TurnOnSwitch:
         zone_illuminance = zone.getIlluminanceLevel()
 
         switch = None
-        for switch in zone.getDevicesByType(Switch):
+        zone_switches = zone.getDevicesByType(Switch)
+        for switch in zone_switches:
             if switch.isOn():
                 switch.turnOn(events)  # renew the timer if a switch is already on
                 is_processed = True
@@ -131,6 +132,12 @@ class TurnOnSwitch:
             else:
                 switch.turnOn(events)
                 is_processed = True
+
+        # Special case when the zone has only fans; must not turn off adjacent lights.
+        if can_turn_off_adjacent_zones:
+            fans = zone.getDevicesByType(Fan)
+            if len(zone_switches) == len(fans):
+                can_turn_off_adjacent_zones = False
 
         # Now shut off the light in any shared space zones
         if can_turn_off_adjacent_zones:

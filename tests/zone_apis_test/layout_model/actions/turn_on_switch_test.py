@@ -6,7 +6,7 @@ from aaa_modules.layout_model.zone import Zone, ZoneEvent
 from aaa_modules.layout_model.neighbor import Neighbor, NeighborType
 from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
-from aaa_modules.layout_model.devices.switch import Light
+from aaa_modules.layout_model.devices.switch import Light, Fan, Switch
 
 from zone_apis_test.layout_model.device_test import DeviceTest, create_zone_manager
 
@@ -23,13 +23,14 @@ class TurnOnSwitchTest(DeviceTest):
                  pe.create_switch_item('TestMotionSensor1'),
                  pe.create_switch_item('TestMotionSensor2'),
                  pe.create_switch_item('TestLightName3'),
+                 pe.create_switch_item('TestFan'),
                  ]
         self.set_items(items)
         super(TurnOnSwitchTest, self).setUp()
 
         [self.lightItem1, self.lightItem2,
          self.illuminanceSensorItem, self.motionSensorItem1,
-         self.motionSensorItem2, self.lightItem3] = items
+         self.motionSensorItem2, self.lightItem3, self.fanItem] = items
 
         self.illuminanceSensor = IlluminanceSensor(self.illuminanceSensorItem)
         self.light1 = Light(self.lightItem1, 30,
@@ -38,6 +39,7 @@ class TurnOnSwitchTest(DeviceTest):
                             ILLUMINANCE_THRESHOLD_IN_LUX)
         self.light3 = Light(self.lightItem3, 30,
                             ILLUMINANCE_THRESHOLD_IN_LUX)
+        self.fan = Fan(self.fanItem, 30)
         self.motionSensor1 = MotionSensor(self.motionSensorItem1)
         self.motionSensor2 = MotionSensor(self.motionSensorItem2)
 
@@ -49,9 +51,11 @@ class TurnOnSwitchTest(DeviceTest):
             .add_action(self.action)
         self.zone3 = Zone('foyer', [self.light3, self.illuminanceSensor]) \
             .add_action(self.action)
+        self.zoneWithFan = Zone('office', [self.fan, self.motionSensor2]).add_action(self.action)
 
     def tearDown(self):
         # self.zm.stop_auto_report_watch_dog()
+        self.fan._cancel_timer()
         self.light1._cancel_timer()
         self.light2._cancel_timer()
         self.light3._cancel_timer()
@@ -188,9 +192,22 @@ class TurnOnSwitchTest(DeviceTest):
         self.assertFalse(self.zone2.isLightOn())
         self.assertTrue(self.zone3.isLightOn())
 
-    def turnOn(self):
-        event_info = EventInfo(ZoneEvent.MOTION, self.lightItem1,
-                               self.zone1, create_zone_manager([self.zone1, self.zone2, self.zone3]),
+    def testOnAction_fanIsTurnedOn_returnsTrueAndDoNotTurnOffNeighborLight(self):
+        self.zoneWithFan = self.zoneWithFan.add_neighbor(Neighbor(self.zone1.getId(), NeighborType.OPEN_SPACE))
+        pe.set_switch_state(self.lightItem1, True)
+        self.assertTrue(self.zone1.isLightOn())
+
+        value = self.turnOn(self.zoneWithFan)
+        self.assertTrue(value)
+        self.assertTrue(self.zone1.isLightOn())
+
+    def turnOn(self, receiving_zone=None):
+        if receiving_zone is None:
+            receiving_zone = self.zone1
+
+        event_info = EventInfo(ZoneEvent.MOTION, receiving_zone.getDevicesByType(Switch)[0].getItem(),
+                               receiving_zone,
+                               create_zone_manager([self.zone1, self.zone2, self.zone3, self.zoneWithFan]),
                                pe.get_event_dispatcher())
 
         return self.action.onAction(event_info)
