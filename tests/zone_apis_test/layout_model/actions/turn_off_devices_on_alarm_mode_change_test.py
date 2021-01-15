@@ -17,7 +17,9 @@ class TurnOffDevicesOnAlarmModeChangeTest(DeviceTest):
         items = [pe.create_switch_item('_testMotion'),
                  pe.create_switch_item('_testAlarmStatus'),
                  pe.create_number_item('_testArmMode'),
-                 pe.create_switch_item('_testLight')]
+                 pe.create_switch_item('_testLight1'),
+                 pe.create_switch_item('_testLight2'),
+                 ]
 
         for item in sink_items:
             items.append(item)
@@ -26,32 +28,42 @@ class TurnOffDevicesOnAlarmModeChangeTest(DeviceTest):
         super(TurnOffDevicesOnAlarmModeChangeTest, self).setUp()
 
         self.partition = AlarmPartition(items[1], items[2])
-        self.light = Light(items[3], 4)
+        self.light1 = Light(items[3], 4)
+        self.light2 = Light(items[4], 4)
 
         self.action = TurnOffDevicesOnAlarmModeChange()
 
         self.audioSink._set_test_mode()
         self.audioSink.play_stream("http://stream")
-        self.light.turnOn(pe.get_event_dispatcher())
+        self.light1.turnOn(pe.get_event_dispatcher())
+        self.light2.turnOn(pe.get_event_dispatcher())
         self.partition.disarm(pe.get_event_dispatcher())
 
     def testOnAction_armedAwayEvent_turnOffDevicesAndReturnsTrue(self):
         (zone, zm, event_info) = self.createTestData(ZoneEvent.PARTITION_ARMED_AWAY)
         self.assertTrue(zone.isLightOn())
 
-        self.invokeActionAndAssertDevicesTurnedOff(zone, event_info)
+        self.invokeActionAndAssertDevicesTurnedOff(zone, event_info, zm)
 
     def testOnAction_disarmEvent_turnOffDevicesAndReturnsTrue(self):
         (zone, zm, event_info) = self.createTestData(ZoneEvent.PARTITION_DISARMED_FROM_AWAY)
         self.assertTrue(zone.isLightOn())
 
-        self.invokeActionAndAssertDevicesTurnedOff(zone, event_info)
+        self.invokeActionAndAssertDevicesTurnedOff(zone, event_info, zm)
 
-    def invokeActionAndAssertDevicesTurnedOff(self, zone, event_info):
+    def invokeActionAndAssertDevicesTurnedOff(self, zone, event_info, zm):
         value = self.action.onAction(event_info)
         self.assertTrue(value)
 
-        self.assertFalse(zone.isLightOn())
+        for z in zm.get_zones():
+            if z is not zone:
+                self.assertFalse(z.isLightOn())
+
+        if event_info.getEventType() == ZoneEvent.PARTITION_DISARMED_FROM_AWAY:
+            self.assertTrue(zone.isLightOn())
+        else:
+            self.assertFalse(zone.isLightOn())
+
         self.assertEqual("pause", self.audioSink._get_last_test_command())
 
     def createTestData(self, zone_event):
@@ -62,8 +74,9 @@ class TurnOffDevicesOnAlarmModeChangeTest(DeviceTest):
 
         self.partition.arm_away(pe.get_event_dispatcher())
 
-        zone = Zone('porch', [self.partition, self.light, self.audioSink]).add_action(self.action)
-        zm = create_zone_manager([zone])
-        event_info = EventInfo(zone_event, self.get_items()[1], zone, zm, pe.get_event_dispatcher())
+        porch = Zone('porch', [self.partition, self.light1, self.audioSink]).add_action(self.action)
+        great_room = Zone('great room', [self.light2])
+        zm = create_zone_manager([porch, great_room])
+        event_info = EventInfo(zone_event, self.get_items()[1], porch, zm, pe.get_event_dispatcher())
 
-        return [zone, zm, event_info]
+        return [porch, zm, event_info]

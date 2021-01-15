@@ -21,8 +21,13 @@ class TurnOffDevicesOnAlarmModeChange:
         events = event_info.getEventDispatcher()
         zone_manager = event_info.getZoneManager()
 
-        for z in zone_manager.get_zones():
-            z.turnOffLights(events)
+        if event_info.getEventType() == ZoneEvent.PARTITION_DISARMED_FROM_AWAY:
+            for z in zone_manager.get_zones():
+                if z is not event_info.getZone():
+                    z.turnOffLights(events)
+        else:
+            for z in zone_manager.get_zones():
+                z.turnOffLights(events)
 
         audio_sinks = zone_manager.get_devices_by_type(ChromeCastAudioSink)
         for s in audio_sinks:
