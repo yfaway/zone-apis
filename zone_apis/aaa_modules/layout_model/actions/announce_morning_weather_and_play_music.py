@@ -77,11 +77,12 @@ class AnnounceMorningWeatherAndPlayMusic:
                     not self._in_session and \
                     self._start_count < self._max_start_count:
 
+                self._in_session = True
+
                 weather_msg = self.get_morning_announcement()
                 self._sink.play_message(weather_msg)
                 self._sink.play_stream(random.choice(self._music_urls), 40)
 
-                self._in_session = True
                 self._start_count += 1
 
                 def reset_state():
