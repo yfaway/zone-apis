@@ -2,13 +2,12 @@ import random
 from threading import Timer
 
 from aaa_modules import platform_encapsulator as pe
-from aaa_modules.audio_manager import MusicStreams
+from aaa_modules import security_manager as sm
+from aaa_modules.audio_manager import MusicStreams, get_main_audio_sink
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
-from aaa_modules.layout_model.zone import Level, ZoneEvent
+from aaa_modules.layout_model.zone import ZoneEvent
 from aaa_modules.layout_model.devices.activity_times import ActivityTimes
-from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition
-from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink
 
 
 @action(events=[ZoneEvent.MOTION], devices=[MotionSensor], internal=False, external=True)
@@ -42,22 +41,10 @@ class SimulateDaytimePresence:
     def onAction(self, event_info):
         zone_manager = event_info.getZoneManager()
 
-        security_partitions = zone_manager.get_devices_by_type(AlarmPartition)
-        if len(security_partitions) == 0:
+        if not sm.is_armed_away(zone_manager):
             return False
 
-        if not security_partitions[0].is_armed_away():
-            return False
-
-        # Get an audio sink from the first floor.
-        audio_sink = None
-        zones = [z for z in zone_manager.get_zones() if z.getLevel() == Level.FIRST_FLOOR]
-        for z in zones:
-            sinks = z.getDevicesByType(ChromeCastAudioSink)
-            if len(sinks) > 0:
-                audio_sink = sinks[0]
-                break
-
+        audio_sink = get_main_audio_sink(zone_manager)
         if audio_sink is None:
             pe.log_info(f"{self.__module__} - No audio sink available")
             return False

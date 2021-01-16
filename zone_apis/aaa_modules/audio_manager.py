@@ -4,7 +4,7 @@ from typing import Union, List
 from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink
 from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
 from aaa_modules.layout_model.neighbor import NeighborType
-from aaa_modules.layout_model.zone import Zone
+from aaa_modules.layout_model.zone import Zone, Level
 
 
 @unique
@@ -42,30 +42,44 @@ class MusicStreams(Enum):
     # SANTA_RADIO = "http://149.255.59.164:8041/stream"
     # XMAS_MUSIC = "http://91.121.134.23:8380/stream"
 
-class AudioManager:
-    @classmethod
-    def get_nearby_audio_sink(cls, zone: Zone, zm: ImmutableZoneManager) -> Union[ChromeCastAudioSink, None]:
-        """
-        Returns the first found audio sink in the current zone or in nearby open space neighbors.
-        """
-        sinks = zone.getDevicesByType(ChromeCastAudioSink)
-        if len(sinks) == 0:
-            neighbor_zones = zone.getNeighborZones(
-                zm, [NeighborType.OPEN_SPACE, NeighborType.OPEN_SPACE_MASTER,
-                     NeighborType.OPEN_SPACE_SLAVE])
 
-            for z in neighbor_zones:
-                sinks = z.getDevicesByType(ChromeCastAudioSink)
-                if len(sinks) > 0:
-                    break
+def get_main_audio_sink(zm: ImmutableZoneManager) -> Union[ChromeCastAudioSink, None]:
+    """ Returns the first sink on the the following floor order: 1st, 2nd, 3rd and basement. """
+    levels = [Level.FIRST_FLOOR, Level.SECOND_FLOOR, Level.THIRD_FLOOR, Level.BASEMENT]
 
-        return sinks[0] if len(sinks) > 0 else None
+    for level in levels:
+        zones = [z for z in zm.get_zones() if z.getLevel() == level]
 
-    @classmethod
-    def get_music_streams_by_genres(cls, genres: List[Genre]) -> List[str]:
-        urls = []
-        for stream in list(MusicStreams):
-            if stream.value.genre in genres:
-                urls.append(stream.value.url)
+        for z in zones:
+            sinks = z.getDevicesByType(ChromeCastAudioSink)
+            if len(sinks) > 0:
+                return sinks[0]
 
-        return urls
+    return None
+
+
+def get_nearby_audio_sink(zone: Zone, zm: ImmutableZoneManager) -> Union[ChromeCastAudioSink, None]:
+    """
+    Returns the first found audio sink in the current zone or in nearby open space neighbors.
+    """
+    sinks = zone.getDevicesByType(ChromeCastAudioSink)
+    if len(sinks) == 0:
+        neighbor_zones = zone.getNeighborZones(
+            zm, [NeighborType.OPEN_SPACE, NeighborType.OPEN_SPACE_MASTER,
+                 NeighborType.OPEN_SPACE_SLAVE])
+
+        for z in neighbor_zones:
+            sinks = z.getDevicesByType(ChromeCastAudioSink)
+            if len(sinks) > 0:
+                break
+
+    return sinks[0] if len(sinks) > 0 else None
+
+
+def get_music_streams_by_genres(genres: List[Genre]) -> List[str]:
+    urls = []
+    for stream in list(MusicStreams):
+        if stream.value.genre in genres:
+            urls.append(stream.value.url)
+
+    return urls

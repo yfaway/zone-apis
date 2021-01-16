@@ -2,7 +2,7 @@ import random
 from threading import Timer
 
 from aaa_modules import platform_encapsulator as pe
-from aaa_modules.audio_manager import AudioManager, MusicStream, Genre
+from aaa_modules.audio_manager import Genre, get_music_streams_by_genres, get_nearby_audio_sink
 from aaa_modules.environment_canada import EnvCanada
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
@@ -21,7 +21,7 @@ class AnnounceMorningWeatherAndPlayMusic:
 
     # noinspection PyDefaultArgument
     def __init__(self,
-                 music_urls=AudioManager.get_music_streams_by_genres(
+                 music_urls=get_music_streams_by_genres(
                      [Genre.CLASSICAL, Genre.INSTRUMENT, Genre.JAZZ]),
                  duration_in_minutes: float = 120,
                  max_start_count: int = 2):
@@ -67,9 +67,9 @@ class AnnounceMorningWeatherAndPlayMusic:
 
             return False
         else:
-            self._sink = AudioManager.get_nearby_audio_sink(zone, zone_manager)
+            self._sink = get_nearby_audio_sink(zone, zone_manager)
             if self._sink is None:
-                pe.log_info(f"{self.__class__.__name__}: missing audio device; can't play music.")
+                pe.log_warning(f"{self.__class__.__name__}: missing audio device; can't play music.")
                 return False
 
             activity = activities[0]

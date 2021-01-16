@@ -1,5 +1,5 @@
 from aaa_modules import platform_encapsulator as pe
-from aaa_modules.audio_manager import AudioManager, MusicStreams
+from aaa_modules.audio_manager import MusicStreams, get_nearby_audio_sink
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.switch import Fan
 from aaa_modules.layout_model.zone import ZoneEvent
@@ -32,7 +32,7 @@ class PlayMusicDuringShower:
         zone = event_info.getZone()
         zone_manager = event_info.getZoneManager()
 
-        sink = AudioManager.get_nearby_audio_sink(zone, zone_manager)
+        sink = get_nearby_audio_sink(zone, zone_manager)
         if sink is None:
             pe.log_info(f"{self.__class__.__name__}: missing audio device; can't play music.")
             return False

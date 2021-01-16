@@ -58,12 +58,12 @@ class DeviceTest(unittest.TestCase):
         return self.items
 
     # noinspection PyMethodMayBeStatic
-    def create_audio_sink(self) -> Tuple[ChromeCastAudioSink, List]:
+    def create_audio_sink(self, suffix='1') -> Tuple[ChromeCastAudioSink, List]:
         """ Returns an audio sink and its items. """
-        items = [pe.create_player_item('_testPlayer'),
-                 pe.create_number_item('_testVolume'),
-                 pe.create_string_item('_testTitle'),
-                 pe.create_switch_item('_testIdling'),
+        items = [pe.create_player_item(f'_testPlayer_{suffix}'),
+                 pe.create_number_item(f'_testVolume_{suffix}'),
+                 pe.create_string_item(f'_testTitle_{suffix}'),
+                 pe.create_switch_item(f'_testIdling_{suffix}'),
                  ]
         sink = ChromeCastAudioSink('sinkName', items[0], items[1], items[2], items[3])
         sink._set_test_mode()
