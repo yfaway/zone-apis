@@ -2,7 +2,7 @@ import random
 from threading import Timer
 
 from aaa_modules import platform_encapsulator as pe
-from aaa_modules.audio_manager import AudioManager, MusicStream
+from aaa_modules.audio_manager import AudioManager, MusicStream, Genre
 from aaa_modules.environment_canada import EnvCanada
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
@@ -21,10 +21,8 @@ class AnnounceMorningWeatherAndPlayMusic:
 
     # noinspection PyDefaultArgument
     def __init__(self,
-                 music_urls=[MusicStream.AUDIOPHILE_CLASSICAL.value,
-                             MusicStream.CD101_9_NY_SMOOTH_JAZZ.value,
-                             MusicStream.WWFM_CLASSICAL.value,
-                             MusicStream.MEDITATION_YIMAGO_RADIO_4.value],
+                 music_urls=AudioManager.get_music_streams_by_genres(
+                     [Genre.CLASSICAL, Genre.INSTRUMENT, Genre.JAZZ]),
                  duration_in_minutes: float = 120,
                  max_start_count: int = 2):
         """

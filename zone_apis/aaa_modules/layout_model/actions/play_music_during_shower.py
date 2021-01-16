@@ -1,5 +1,5 @@
 from aaa_modules import platform_encapsulator as pe
-from aaa_modules.audio_manager import AudioManager, MusicStream
+from aaa_modules.audio_manager import AudioManager, MusicStreams
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.switch import Fan
 from aaa_modules.layout_model.zone import ZoneEvent
@@ -15,7 +15,7 @@ class PlayMusicDuringShower:
     current activity.
     """
 
-    def __init__(self, music_url: str = MusicStream.CD101_9_NY_SMOOTH_JAZZ.value):
+    def __init__(self, music_url: str = MusicStreams.CD101_9_NY_SMOOTH_JAZZ.value.url):
         """
         Ctor
 

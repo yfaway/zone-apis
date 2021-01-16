@@ -2,6 +2,7 @@ import random
 from threading import Timer
 
 from aaa_modules import platform_encapsulator as pe
+from aaa_modules.audio_manager import MusicStreams
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
 from aaa_modules.layout_model.zone import Level, ZoneEvent
@@ -18,7 +19,7 @@ class SimulateDaytimePresence:
     @todo: use local URL to avoid reliance on the Internet connection.
     """
 
-    def __init__(self, music_url='http://hestia2.cdnstream.com:80/1277_192', music_volume=90,
+    def __init__(self, music_url=MusicStreams.CLASSIC_ROCK_FLORIDA.value.url, music_volume=90,
                  play_duration_in_seconds: float = None):
         """
         Ctor

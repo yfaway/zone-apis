@@ -1,5 +1,5 @@
 from enum import Enum, unique
-from typing import Union
+from typing import Union, List
 
 from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink
 from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
@@ -8,23 +8,39 @@ from aaa_modules.layout_model.zone import Zone
 
 
 @unique
-class MusicStream(Enum):
+class Genre(Enum):
+    CLASSICAL = 1,
+    INSTRUMENT = 2,
+    JAZZ = 3,
+    ROCK = 4,
+
+
+class MusicStream:
+    def __init__(self, genre: Genre, url: str):
+        self.genre = genre
+        self.url = url
+
+
+@unique
+class MusicStreams(Enum):
     """ An enum of the MP3 music streams."""
 
-    WWFM_CLASSICAL = "https://wwfm.streamguys1.com/live-mp3"
-    VENICE_CLASSICAL = "http://174.36.206.197:8000/stream"
-    PORTLAND_ALL_CLASSICAL = "http://player.allclassical.org/streamplaylist/ac96k.pls"
-    AUDIOPHILE_CLASSICAL = "http://8.38.78.173:8093/stream"
-    FM113_SMOOTH_JAZZ = "http://113fm-edge2.cdnstream.com:80/1725_128"
-    CD101_9_NY_SMOOTH_JAZZ = "http://hestia2.cdnstream.com:80/1277_192"
-    JAZZ_CAFE = "http://radio.wanderingsheep.tv:8000/jazzcafe"
-    MEDITATION_YIMAGO_RADIO_4 = "http://199.195.194.94:8109/stream"
-    SANTA_RADIO = "http://149.255.59.164:8041/stream"
-    XMAS_MUSIC = "http://91.121.134.23:8380/stream"
-    CBC_RADIO_2 = "http://cbcr2tor.akacast.akamaistream.net/7/364/451661/v1/rc.akacast.akamaistream.net/cbc_r2_tor"
-    CLASSIC_ROCK_FLORIDA = "http://198.58.98.83:8258/stream"
-    RADIO_PARADISE_ROCK = 'http://stream-dc2.radioparadise.com:80/mp3-192'
+    WWFM_CLASSICAL = MusicStream(Genre.CLASSICAL, "https://wwfm.streamguys1.com/live-mp3")
+    VENICE_CLASSICAL = MusicStream(Genre.CLASSICAL, "http://174.36.206.197:8000/stream")
+    PORTLAND_ALL_CLASSICAL = MusicStream(Genre.CLASSICAL, "http://player.allclassical.org/streamplaylist/ac96k.pls")
 
+    MUSIC_LAKE_INSTRUMENTAL = MusicStream(Genre.INSTRUMENT, "http://104.251.118.50:8626/listen.pls?sid=1&t=.pls")
+
+    FM113_SMOOTH_JAZZ = MusicStream(Genre.JAZZ, "http://113fm-edge2.cdnstream.com:80/1725_128")
+    CD101_9_NY_SMOOTH_JAZZ = MusicStream(Genre.JAZZ, "http://hestia2.cdnstream.com:80/1277_192")
+    JAZZ_CAFE = MusicStream(Genre.JAZZ, "http://radio.wanderingsheep.tv:8000/jazzcafe")
+
+    CLASSIC_ROCK_FLORIDA = MusicStream(Genre.ROCK, "http://198.58.98.83:8258/stream")
+    RADIO_PARADISE_ROCK = MusicStream(Genre.ROCK, "http://stream-dc2.radioparadise.com:80/mp3-192")
+
+    # MEDITATION_YIMAGO_RADIO_4 = MusicStream(Genre., "http://199.195.194.94:8109/stream")
+    # SANTA_RADIO = "http://149.255.59.164:8041/stream"
+    # XMAS_MUSIC = "http://91.121.134.23:8380/stream"
 
 class AudioManager:
     @classmethod
@@ -44,3 +60,12 @@ class AudioManager:
                     break
 
         return sinks[0] if len(sinks) > 0 else None
+
+    @classmethod
+    def get_music_streams_by_genres(cls, genres: List[Genre]) -> List[str]:
+        urls = []
+        for stream in list(MusicStreams):
+            if stream.value.genre in genres:
+                urls.append(stream.value.url)
+
+        return urls
