@@ -6,6 +6,8 @@ https://www.weather.gc.ca/forecast/
 
 import re
 import time
+from typing import Union, Tuple
+
 import requests
 
 
@@ -101,6 +103,8 @@ class EnvCanada(object):
     Mapping from lowercase city name to the env canada identifier.
     """
 
+    CITY_ALERT_MAPPING = {'ottawa': 'on41'}
+
     @staticmethod
     def retrieve_hourly_forecast(city_or_url, hour_count=12):
         """
@@ -163,3 +167,40 @@ class EnvCanada(object):
             forecasts.append(Forecast(hour, temperature, condition, precipitation_probability, wind))
 
         return forecasts
+
+    @staticmethod
+    def retrieve_alert(city_or_url: str) -> Union[Tuple[str, str, str], Tuple[None, str, str]]:
+        """
+        Retrieves the weather alert for the given region.
+        :return: a tuple containing the alert string (or None if there is no alert), the URL
+            that was used to retrieve the data, and the raw data returned by the server.
+        """
+        if city_or_url[0:6].lower() != 'https:':
+            normalized_city = city_or_url.lower()
+            if normalized_city not in EnvCanada.CITY_FORECAST_MAPPING:
+                raise ValueError(
+                    "Can't map city name to URL for {}".format(city_or_url))
+
+            city_code = EnvCanada.CITY_ALERT_MAPPING[normalized_city]
+            url = f'https://www.weather.gc.ca/warnings/report_e.html?{city_code}'
+        else:
+            url = city_or_url
+
+        raw_data: str = requests.get(url).text
+        data = raw_data
+
+        start_keyword = "<div class=\"col-xs-12\">"
+        start_idx = data.index(start_keyword)
+        end_idx = data.index("<section class=\"followus hidden-print\">")
+
+        data = data[start_idx + len(start_keyword): end_idx]
+        data = data.replace("<br/>", "\n")
+        data = data.replace("<br />", "\n")
+        data = data.replace("<p>", "\n\n")
+        data = re.sub("(?s)<[^>]*>(\\s*<[^>]*>)*", " ", data)
+        data = data.strip()
+
+        if 'No Alerts in effect.' in data:
+            return None, url, raw_data
+        else:
+            return data, url, raw_data

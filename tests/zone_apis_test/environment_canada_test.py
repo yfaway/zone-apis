@@ -1,6 +1,6 @@
 import unittest
 
-from aaa_modules.environment_canada import Forecast, EnvCanada
+from aaa_modules.environment_canada import EnvCanada
 
 
 class EnvCanadaTest(unittest.TestCase):
@@ -42,3 +42,12 @@ class EnvCanadaTest(unittest.TestCase):
             self.assertTrue(forecast.getForecastTime() >= 0)
             self.assertTrue(len(forecast.getCondition()) > 0)
             self.assertTrue(len(forecast.getPrecipationProbability()) > 0)
+
+    def testRetrieveAlert_validCity_returnsForecast(self):
+        alert, url, raw_data = EnvCanada.retrieve_alert('ottawa')
+        self.assertTrue(len(url) > 0)
+
+        if 'No Alerts in effect.' in raw_data:
+            self.assertTrue(alert is None)
+        else:
+            self.assertTrue(len(alert) > 0)
