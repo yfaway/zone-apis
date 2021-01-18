@@ -15,7 +15,7 @@ class PlayMindfulnessBell(HABApp.Rule):
     def __init__(self):
         super().__init__()
 
-        self.run_every(None, timedelta(minutes=25), self.play_bell)
+        self.run_every(timedelta(minutes=1), timedelta(minutes=25), self.play_bell)
 
     # noinspection PyMethodMayBeStatic
     def play_bell(self):
@@ -25,7 +25,7 @@ class PlayMindfulnessBell(HABApp.Rule):
         if sm.is_armed_away(zm):
             return
 
-        activities = zm.getDevicesByType(ActivityTimes)
+        activities = zm.get_devices_by_type(ActivityTimes)
         if len(activities) == 0:
             pe.log_warning(f"{self.__class__.__name__}: missing activities time; can't play meditation bell.")
             return
