@@ -18,9 +18,9 @@ class MotionSensor(Device):
         """
         Returns true if the motion sensor's state is on; false otherwise.
         """
-        return pe.is_in_on_state(self.getItem())
+        return pe.is_in_on_state(self.get_item())
 
-    def isOccupied(self, seconds_from_last_event=5 * 60):
+    def is_occupied(self, seconds_from_last_event=5 * 60):
         """
         Returns true if a motion event was triggered within the provided # of
         seconds. Returns false otherwise.
@@ -31,7 +31,7 @@ class MotionSensor(Device):
         if self.is_on():
             return True
 
-        return self.wasRecentlyActivated(seconds_from_last_event)
+        return self.was_recently_activated(seconds_from_last_event)
 
     # noinspection PyUnusedLocal
     def on_triggered(self, event) -> None:

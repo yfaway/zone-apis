@@ -29,8 +29,8 @@ class ArmAfterFrontDoorClosedTest(DeviceTest):
         self.door = Door(items[0])
         self.action = ArmAfterFrontDoorClosed(0.1)
         self.zone1 = Zone.create_external_zone('porch') \
-            .addDevice(self.door) \
-            .addDevice(self.externalMotionSensor) \
+            .add_device(self.door) \
+            .add_device(self.externalMotionSensor) \
             .add_action(self.action)
 
         self.zone2 = Zone('foyer', [self.internalMotionSensor, self.alarmPartition])
@@ -43,7 +43,7 @@ class ArmAfterFrontDoorClosedTest(DeviceTest):
 
         event_info = EventInfo(ZoneEvent.CONTACT_CLOSED, self.get_items()[0],
                                self.zone1, self.mockZoneManager, pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertTrue(value)
 
         time.sleep(0.1)
@@ -60,7 +60,7 @@ class ArmAfterFrontDoorClosedTest(DeviceTest):
         event_info = EventInfo(ZoneEvent.CONTACT_CLOSED, self.get_items()[0],
                                self.zone1, self.mockZoneManager, pe.get_event_dispatcher())
 
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertTrue(value)
 
         time.sleep(0.2)
@@ -72,14 +72,14 @@ class ArmAfterFrontDoorClosedTest(DeviceTest):
 
         self.action = ArmAfterFrontDoorClosed(0.2)
         self.zone1 = Zone.create_external_zone('porch') \
-            .addDevice(self.door) \
-            .addDevice(self.externalMotionSensor) \
+            .add_device(self.door) \
+            .add_device(self.externalMotionSensor) \
             .add_action(self.action)
         self.mockZoneManager = create_zone_manager([self.zone1, self.zone2])
 
         event_info = EventInfo(ZoneEvent.CONTACT_CLOSED, self.get_items()[0],
                                self.zone1, self.mockZoneManager, pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertTrue(value)
 
         # simulate a motion event

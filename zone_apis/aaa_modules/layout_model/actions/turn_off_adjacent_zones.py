@@ -15,19 +15,19 @@ class TurnOffAdjacentZones:
     def __init__(self):
         pass
 
-    def onAction(self, event_info):
-        events = event_info.getEventDispatcher()
-        zone = event_info.getZone()
-        zone_manager = event_info.getZoneManager()
+    def on_action(self, event_info):
+        events = event_info.get_event_dispatcher()
+        zone = event_info.get_zone()
+        zone_manager = event_info.get_zone_manager()
 
         if zone_manager is None:
             raise ValueError('zone_manager must be specified')
 
-        adjacent_zones = zone.getNeighborZones(zone_manager,
-                                               [NeighborType.OPEN_SPACE, NeighborType.OPEN_SPACE_SLAVE])
+        adjacent_zones = zone.get_neighbor_zones(zone_manager,
+                                                 [NeighborType.OPEN_SPACE, NeighborType.OPEN_SPACE_SLAVE])
         for z in adjacent_zones:
-            for light in z.getDevicesByType(Light):
-                if light.isOn() and light.canBeTurnedOffByAdjacentZone():
-                    light.turnOff(events)
+            for light in z.get_devices_by_type(Light):
+                if light.is_on() and light.can_be_turned_off_by_adjacent_zone():
+                    light.turn_off(events)
 
         return True

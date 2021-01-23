@@ -35,34 +35,34 @@ class TurnOffDevicesOnAlarmModeChangeTest(DeviceTest):
 
         self.audioSink._set_test_mode()
         self.audioSink.play_stream("http://stream")
-        self.light1.turnOn(pe.get_event_dispatcher())
-        self.light2.turnOn(pe.get_event_dispatcher())
+        self.light1.turn_on(pe.get_event_dispatcher())
+        self.light2.turn_on(pe.get_event_dispatcher())
         self.partition.disarm(pe.get_event_dispatcher())
 
     def testOnAction_armedAwayEvent_turnOffDevicesAndReturnsTrue(self):
         (zone, zm, event_info) = self.createTestData(ZoneEvent.PARTITION_ARMED_AWAY)
-        self.assertTrue(zone.isLightOn())
+        self.assertTrue(zone.is_light_on())
 
         self.invokeActionAndAssertDevicesTurnedOff(zone, event_info, zm)
 
     def testOnAction_disarmEvent_turnOffDevicesAndReturnsTrue(self):
         (zone, zm, event_info) = self.createTestData(ZoneEvent.PARTITION_DISARMED_FROM_AWAY)
-        self.assertTrue(zone.isLightOn())
+        self.assertTrue(zone.is_light_on())
 
         self.invokeActionAndAssertDevicesTurnedOff(zone, event_info, zm)
 
     def invokeActionAndAssertDevicesTurnedOff(self, zone, event_info, zm):
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertTrue(value)
 
         for z in zm.get_zones():
             if z is not zone:
-                self.assertFalse(z.isLightOn())
+                self.assertFalse(z.is_light_on())
 
-        if event_info.getEventType() == ZoneEvent.PARTITION_DISARMED_FROM_AWAY:
-            self.assertTrue(zone.isLightOn())
+        if event_info.get_event_type() == ZoneEvent.PARTITION_DISARMED_FROM_AWAY:
+            self.assertTrue(zone.is_light_on())
         else:
-            self.assertFalse(zone.isLightOn())
+            self.assertFalse(zone.is_light_on())
 
         self.assertEqual("pause", self.audioSink._get_last_test_command())
 

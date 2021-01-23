@@ -40,32 +40,32 @@ class SimulateDaytimePresenceTest(DeviceTest):
         (porch, greatRoom, zm, _) = self.create_test_data()
         event_info = EventInfo(ZoneEvent.CONTACT_OPEN, self.get_items()[0],
                                porch, zm, pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_motionEventOnInternalZone_returnsFalse(self):
         event_info = EventInfo(ZoneEvent.MOTION, self.get_items()[0], Zone('porch'),
                                None, pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_noAlarmPartition_returnsFalse(self):
         (porch, greatRoom, zm, event_info) = self.create_test_data([self.partition])
 
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_noAudioSink_returnsFalse(self):
         (porch, greatRoom, zm, event_info) = self.create_test_data([self.audioSink])
 
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_notInArmAwayMode_returnsFalse(self):
         (porch, greatRoom, zm, event_info) = self.create_test_data()
         self.partition.disarm(pe.get_event_dispatcher())
 
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_sleepTime_returnsFalse(self):
@@ -73,13 +73,13 @@ class SimulateDaytimePresenceTest(DeviceTest):
         (porch, greatRoom, zm, event_info) = self.create_test_data(
             [], [ActivityTimes(time_map)])
 
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_allConditionSatisfied_playsMusicAndReturnsTrue(self):
         (porch, greatRoom, zm, event_info) = self.create_test_data()
 
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertEqual("playStream", self.audioSink._get_last_test_command())
 
@@ -89,14 +89,14 @@ class SimulateDaytimePresenceTest(DeviceTest):
     def testOnAction_multipleTriggering_renewPauseTimerAndReturnsTrue(self):
         (porch, greatRoom, zm, event_info) = self.create_test_data()
 
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertEqual("playStream", self.audioSink._get_last_test_command())
 
         time.sleep(0.15)
         self.assertEqual("pause", self.audioSink._get_last_test_command())
 
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertEqual("playStream", self.audioSink._get_last_test_command())
 
@@ -113,20 +113,20 @@ class SimulateDaytimePresenceTest(DeviceTest):
 
         self.partition.arm_away(pe.get_event_dispatcher())
 
-        porch = Zone.create_external_zone('porch').addDevice(self.partition)\
-            .addDevice(self.motion_sensor) \
+        porch = Zone.create_external_zone('porch').add_device(self.partition)\
+            .add_device(self.motion_sensor) \
             .add_action(self.action)
         great_room = Zone("GR", [self.audioSink], Level.FIRST_FLOOR)
 
         for d in excluded_devices:
-            if porch.hasDevice(d):
-                porch = porch.removeDevice(d)
+            if porch.has_device(d):
+                porch = porch.remove_device(d)
 
-            if great_room.hasDevice(d):
-                great_room = great_room.removeDevice(d)
+            if great_room.has_device(d):
+                great_room = great_room.remove_device(d)
 
         for d in extra_included_devices:
-            great_room = great_room.addDevice(d)
+            great_room = great_room.add_device(d)
 
         zm = create_zone_manager([porch, great_room])
 

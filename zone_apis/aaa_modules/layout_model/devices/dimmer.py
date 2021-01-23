@@ -23,12 +23,12 @@ class Dimmer(Light):
         if dim_level < 0 or dim_level > 100:
             raise ValueError('dimLevel must be between 0 and 100 inclusive')
 
-        time_utilities.stringToTimeRangeLists(time_ranges)  # validate
+        time_utilities.string_to_time_range_lists(time_ranges)  # validate
 
         self.dim_level = dim_level
         self.time_ranges = time_ranges
 
-    def turnOn(self, events):
+    def turn_on(self, events):
         """
         Turn on this light if it is not on yet.
         If the light is dimmable, and if the current time falls into the
@@ -37,22 +37,22 @@ class Dimmer(Light):
 
         @override
         """
-        if not pe.is_in_on_state(self.getItem()):
-            if time_utilities.isInTimeRange(self.time_ranges):
-                events.send_command(self.getItemName(),
+        if not pe.is_in_on_state(self.get_item()):
+            if time_utilities.is_in_time_range(self.time_ranges):
+                events.send_command(self.get_item_name(),
                                     str(self.dim_level))
             else:
-                events.send_command(self.getItemName(), "100")
+                events.send_command(self.get_item_name(), "100")
 
         self._handle_common_on_action(events)
 
-    def isOn(self):
+    def is_on(self):
         """
         Returns true if the dimmer is turned on; false otherwise.
 
         @override
         """
-        return pe.get_dimmer_percentage(self.getItem()) > 0
+        return pe.get_dimmer_percentage(self.get_item()) > 0
 
     def __str__(self):
         """

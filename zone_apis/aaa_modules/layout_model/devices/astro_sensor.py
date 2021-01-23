@@ -24,5 +24,5 @@ class AstroSensor(Device):
 
         :rtype: bool
         """
-        value = pe.get_string_value(self.getItem())
+        value = pe.get_string_value(self.get_item())
         return any(s == value for s in self.LIGHT_ON_TIMES)

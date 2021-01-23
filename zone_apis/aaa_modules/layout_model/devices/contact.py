@@ -21,7 +21,7 @@ class Contact(Device):
         """
         Returns true if the contact is open; false otherwise.
         """
-        return pe.is_in_open_state(self.getItem()) or pe.is_in_on_state(self.getItem())
+        return pe.is_in_open_state(self.get_item()) or pe.is_in_on_state(self.get_item())
 
     def is_closed(self):
         """

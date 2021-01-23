@@ -9,7 +9,7 @@ from aaa_modules.layout_model.device import Device
 class ImmutableZoneManager:
     """
     Similar to ZoneManager, but this class contains read-only methods. 
-    Instances of this class is passed to the method Action#onAction.
+    Instances of this class is passed to the method Action#on_action.
     """
 
     def __init__(self, get_zones_fcn, get_zone_by_id_fcn, get_devices_by_type_fcn, alert_manager: AlertManager = None):
@@ -42,7 +42,7 @@ class ImmutableZoneManager:
             raise ValueError('device must not be None')
 
         for zone in self.get_zones():
-            if zone.hasDevice(device):
+            if zone.has_device(device):
                 return zone
 
         return None
@@ -59,7 +59,7 @@ class ImmutableZoneManager:
         """
         Returns the zone associated with the given zoneId.
 
-        :param string zone_id: the value returned by Zone::getId()
+        :param string zone_id: the value returned by Zone::get_id()
         :return: the associated zone or None if the zoneId is not found
         :rtype: Zone
         """
@@ -150,7 +150,7 @@ class ImmutableZoneManager:
         :return: True if at least one zone processed the event; False otherwise
         :rtype: bool
         """
-        return_values = [z.onTimerExpired(events, item) for z in self.get_zones()]
+        return_values = [z.on_timer_expired(events, item) for z in self.get_zones()]
         return any(return_values)
 
     def update_device_last_activated_time(self, item):
@@ -159,7 +159,7 @@ class ImmutableZoneManager:
         update it last activated time to the current epoch second.
         """
         for zone in self.get_zones():
-            devices = [d for d in zone.getDevices() if d.containsItem(item)]
+            devices = [d for d in zone.get_devices() if d.contains_item(item)]
             for d in devices:
                 # noinspection PyProtectedMember
                 d._update_last_activated_timestamp()

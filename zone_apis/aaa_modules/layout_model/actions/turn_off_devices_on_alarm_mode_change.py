@@ -17,17 +17,17 @@ class TurnOffDevicesOnAlarmModeChange:
     def __init__(self):
         pass
 
-    def onAction(self, event_info):
-        events = event_info.getEventDispatcher()
-        zone_manager = event_info.getZoneManager()
+    def on_action(self, event_info):
+        events = event_info.get_event_dispatcher()
+        zone_manager = event_info.get_zone_manager()
 
-        if event_info.getEventType() == ZoneEvent.PARTITION_DISARMED_FROM_AWAY:
+        if event_info.get_event_type() == ZoneEvent.PARTITION_DISARMED_FROM_AWAY:
             for z in zone_manager.get_zones():
-                if z is not event_info.getZone():
-                    z.turnOffLights(events)
+                if z is not event_info.get_zone():
+                    z.turn_off_lights(events)
         else:
             for z in zone_manager.get_zones():
-                z.turnOffLights(events)
+                z.turn_off_lights(events)
 
         audio_sinks = zone_manager.get_devices_by_type(ChromeCastAudioSink)
         for s in audio_sinks:

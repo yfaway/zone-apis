@@ -18,14 +18,14 @@ class AlertOnHighGasLevelTest(DeviceTest):
         self.action = AlertOnHighGasLevel()
         self.zone1 = Zone('great room', [], Level.FIRST_FLOOR) \
             .add_action(self.action) \
-            .addDevice(SmokeSensor(items[1], items[0]))   # index reverse order intentionally
+            .add_device(SmokeSensor(items[1], items[0]))   # index reverse order intentionally
 
         self.zm = create_zone_manager([self.zone1])
 
     def testOnAction_zoneDoesNotContainSensor_returnsFalse(self):
         event_info = EventInfo(ZoneEvent.GAS_TRIGGER_STATE_CHANGED, self.get_items()[0], Zone('innerZone'),
                                None, pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_crossThreshold_returnsTrueAndSendAlert(self):
@@ -44,6 +44,6 @@ class AlertOnHighGasLevelTest(DeviceTest):
     def sendEventAndAssertAlertContainMessage(self, message):
         event_info = EventInfo(ZoneEvent.GAS_TRIGGER_STATE_CHANGED, self.get_items()[0], self.zone1,
                                self.zm, pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertTrue(message in self.zm.get_alert_manager()._lastEmailedSubject)

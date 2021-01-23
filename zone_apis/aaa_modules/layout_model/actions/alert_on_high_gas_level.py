@@ -23,22 +23,22 @@ class AlertOnHighGasLevel:
         self._interval_between_alerts_in_minutes = interval_between_alerts_in_minutes
         self._notified = False
 
-    def onAction(self, event_info):
-        zone = event_info.getZone()
-        zone_manager = event_info.getZoneManager()
+    def on_action(self, event_info):
+        zone = event_info.get_zone()
+        zone_manager = event_info.get_zone_manager()
 
-        gas_sensor = zone.getDeviceByEvent(event_info)
+        gas_sensor = zone.get_device_by_event(event_info)
         gas_type = gas_sensor.__class__.__name__
 
         if gas_sensor.is_triggered():
             self._notified = True
-            alert_message = f'The {zone.getName()} {gas_type} at {gas_sensor.get_value()} is above normal level.'
+            alert_message = f'The {zone.get_name()} {gas_type} at {gas_sensor.get_value()} is above normal level.'
             alert = Alert.create_critical_alert(alert_message, None, [],
                                                 gas_type, self._interval_between_alerts_in_minutes)
             zone_manager.get_alert_manager().process_alert(alert, zone_manager)
 
         elif self._notified:
-            alert_message = f'The {zone.getName()} {gas_type} is back to normal.'
+            alert_message = f'The {zone.get_name()} {gas_type} is back to normal.'
             alert = Alert.create_info_alert(alert_message)
             zone_manager.get_alert_manager().process_alert(alert, zone_manager)
 

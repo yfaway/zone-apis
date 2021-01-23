@@ -31,17 +31,17 @@ class AlertOnExternalDoorLeftOpen:
         self.timers = {}
         self.maxElapsedTimeInSeconds = max_elapsed_time_in_seconds
 
-    def onAction(self, event_info):
-        zone = event_info.getZone()
-        zone_manager = event_info.getZoneManager()
+    def on_action(self, event_info):
+        zone = event_info.get_zone()
+        zone_manager = event_info.get_zone_manager()
 
         def send_alert():
             alert_message = 'The {} door has been opened for {} minutes.'.format(
-                zone.getName(), self.maxElapsedTimeInSeconds / 60)
+                zone.get_name(), self.maxElapsedTimeInSeconds / 60)
 
             zone_manager.get_alert_manager().process_alert(Alert.create_warning_alert(alert_message), zone_manager)
 
-        for door in zone.getDevicesByType(Door):
+        for door in zone.get_devices_by_type(Door):
             timer = self.timers[door] if door in self.timers else None
 
             if door.is_open():
@@ -57,7 +57,7 @@ class AlertOnExternalDoorLeftOpen:
                     if timer.is_alive():
                         timer.cancel()
                     else:  # alert door now closed if a warning was previous sent
-                        msg = f'The {zone.getName()} door is now closed.'
+                        msg = f'The {zone.get_name()} door is now closed.'
                         alert = Alert.create_warning_alert(msg)
                         zone_manager.get_alert_manager().process_alert(alert, zone_manager)
 

@@ -44,10 +44,10 @@ class AnnounceMorningWeatherAndPlayMusic:
         self._timer = None
         self._sink = None
 
-    def onAction(self, event_info):
+    def on_action(self, event_info):
 
-        zone = event_info.getZone()
-        zone_manager = event_info.getZoneManager()
+        zone = event_info.get_zone()
+        zone_manager = event_info.get_zone_manager()
 
         activities = zone_manager.get_devices_by_type(ActivityTimes)
         if len(activities) == 0:
@@ -58,10 +58,10 @@ class AnnounceMorningWeatherAndPlayMusic:
             self._sink.pause()
             self._in_session = False
 
-        if event_info.getEventType() == ZoneEvent.CONTACT_CLOSED:
+        if event_info.get_event_type() == ZoneEvent.CONTACT_CLOSED:
             if self._in_session:
                 owning_zone = event_info.get_owning_zone()
-                if owning_zone.isExternal():
+                if owning_zone.is_external():
                     stop_music_session()
                     return True
 
@@ -73,7 +73,7 @@ class AnnounceMorningWeatherAndPlayMusic:
                 return False
 
             activity = activities[0]
-            if activity.isWakeupTime() and \
+            if activity.is_wakeup_time() and \
                     not self._in_session and \
                     self._start_count < self._max_start_count:
 
@@ -111,15 +111,15 @@ class AnnounceMorningWeatherAndPlayMusic:
 
         forecasts = EnvCanada.retrieve_hourly_forecast('Ottawa', 12)
         rain_periods = [f for f in forecasts if
-                        'High' == f.getPrecipationProbability() or
-                        'Medium' == f.getPrecipationProbability()]
+                        'High' == f.get_precipation_probability() or
+                        'Medium' == f.get_precipation_probability()]
         if len(rain_periods) > 0:
             if len(rain_periods) == 1:
                 message += u" There will be precipitation at {}.".format(
-                    rain_periods[0].getUserFriendlyForecastTime())
+                    rain_periods[0].get_user_friendly_forecast_time())
             else:
                 message += u" There will be precipitation from {} to {}.".format(
-                    rain_periods[0].getUserFriendlyForecastTime(),
-                    rain_periods[-1].getUserFriendlyForecastTime())
+                    rain_periods[0].get_user_friendly_forecast_time(),
+                    rain_periods[-1].get_user_friendly_forecast_time())
 
         return message

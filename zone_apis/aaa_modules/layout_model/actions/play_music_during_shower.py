@@ -28,9 +28,9 @@ class PlayMusicDuringShower:
 
         self.music_url = music_url
 
-    def onAction(self, event_info):
-        zone = event_info.getZone()
-        zone_manager = event_info.getZoneManager()
+    def on_action(self, event_info):
+        zone = event_info.get_zone()
+        zone_manager = event_info.get_zone_manager()
 
         sink = get_nearby_audio_sink(zone, zone_manager)
         if sink is None:
@@ -43,13 +43,13 @@ class PlayMusicDuringShower:
             if len(activities) > 0:
                 activity = activities[0]
 
-                if activity.isSleepTime():
+                if activity.is_sleep_time():
                     return False
 
-        if ZoneEvent.SWITCH_TURNED_ON == event_info.getEventType():
+        if ZoneEvent.SWITCH_TURNED_ON == event_info.get_event_type():
             volume = 25 if (activity is not None and activity.isQuietTime()) else 35
             sink.play_stream(self.music_url, volume)
-        elif ZoneEvent.SWITCH_TURNED_OFF == event_info.getEventType():
+        elif ZoneEvent.SWITCH_TURNED_OFF == event_info.get_event_type():
             sink.pause()
 
         return True

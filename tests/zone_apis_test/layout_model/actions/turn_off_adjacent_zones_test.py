@@ -38,14 +38,14 @@ class TurnOffAdjacentZonesTest(DeviceTest):
         self.foyer = Zone('foyer', [self.foyer_light]).add_action(self.action)
 
         self.lobby = self.lobby.add_neighbor(
-            Neighbor(self.foyer.getId(), NeighborType.OPEN_SPACE))
+            Neighbor(self.foyer.get_id(), NeighborType.OPEN_SPACE))
         self.foyer = self.foyer.add_neighbor(
-            Neighbor(self.lobby.getId(), NeighborType.OPEN_SPACE))
+            Neighbor(self.lobby.get_id(), NeighborType.OPEN_SPACE))
 
         self.washroom = self.washroom.add_neighbor(
-            Neighbor(self.lobby.getId(), NeighborType.OPEN_SPACE))
+            Neighbor(self.lobby.get_id(), NeighborType.OPEN_SPACE))
         self.washroom = self.washroom.add_neighbor(
-            Neighbor(self.shower.getId(), NeighborType.OPEN_SPACE))
+            Neighbor(self.shower.get_id(), NeighborType.OPEN_SPACE))
 
         self.zone_manager = create_zone_manager(
             [self.washroom, self.shower, self.lobby, self.foyer])
@@ -54,14 +54,14 @@ class TurnOffAdjacentZonesTest(DeviceTest):
         pe.set_switch_state(self.lobby_light_item, True)
 
         self.assertTrue(self.trigger_action_from_zone(self.washroom))
-        self.assertFalse(self.lobby.isLightOn())
+        self.assertFalse(self.lobby.is_light_on())
 
     def testOnAction_openSpaceButDisableTurnOffByNeighbor_mustNotTurnsOffLight(self):
         pe.set_switch_state(self.foyer_light_item, True)
-        self.assertTrue(self.foyer.isLightOn())
+        self.assertTrue(self.foyer.is_light_on())
 
         self.assertTrue(self.trigger_action_from_zone(self.lobby))
-        self.assertTrue(self.foyer.isLightOn())
+        self.assertTrue(self.foyer.is_light_on())
 
     def testOnAction_fanZone_returnsFalse(self):
         pe.set_switch_state(self.fan_item, True)
@@ -72,7 +72,7 @@ class TurnOffAdjacentZonesTest(DeviceTest):
         pe.set_switch_state(self.lobby_light_item, True)
 
         self.assertTrue(self.trigger_action_from_zone(self.washroom))
-        self.assertFalse(self.lobby.isLightOn())
+        self.assertFalse(self.lobby.is_light_on())
         self.assertTrue(pe.is_in_on_state(self.fan_item))
 
     def trigger_action_from_zone(self, zone):
@@ -81,7 +81,7 @@ class TurnOffAdjacentZonesTest(DeviceTest):
         :param zone: the zone with the light just turned on.
         :return: Boolean
         """
-        event_info = EventInfo(ZoneEvent.SWITCH_TURNED_ON, zone.getDevices()[0].getItem(), zone,
+        event_info = EventInfo(ZoneEvent.SWITCH_TURNED_ON, zone.get_devices()[0].get_item(), zone,
                                self.zone_manager, pe.get_event_dispatcher())
 
-        return self.action.onAction(event_info)
+        return self.action.on_action(event_info)

@@ -18,7 +18,7 @@ class AlertOnHumidityOutOfRangeTest(DeviceTest):
 
         self.action = AlertOnHumidityOutOfRange(35, 50, 3)
         self.zone1 = Zone('great room', [], Level.FIRST_FLOOR) \
-            .addDevice(HumiditySensor(items[0])) \
+            .add_device(HumiditySensor(items[0])) \
             .add_action(self.action)
 
         self.zm = create_zone_manager([self.zone1])
@@ -26,14 +26,14 @@ class AlertOnHumidityOutOfRangeTest(DeviceTest):
     def testOnAction_zoneDoesNotContainSensor_returnsFalse(self):
         event_info = EventInfo(ZoneEvent.HUMIDITY_CHANGED, self.get_items()[0], Zone('innerZone'),
                                None, pe.get_event_dispatcher())
-        value = AlertOnHumidityOutOfRange().onAction(event_info)
+        value = AlertOnHumidityOutOfRange().on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_zoneIsExternal_returnsFalse(self):
-        zone = Zone.create_external_zone('porch').addDevice(HumiditySensor(self.get_items()[0]))
+        zone = Zone.create_external_zone('porch').add_device(HumiditySensor(self.get_items()[0]))
         event_info = EventInfo(ZoneEvent.HUMIDITY_CHANGED, self.get_items()[0], zone,
                                None, pe.get_event_dispatcher())
-        value = AlertOnHumidityOutOfRange().onAction(event_info)
+        value = AlertOnHumidityOutOfRange().on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_humidityJustBelowMinThresholdButAboveNoticeThreshold_sendsNoAlert(self):
@@ -98,13 +98,13 @@ class AlertOnHumidityOutOfRangeTest(DeviceTest):
     def sendEventAndAssertNoAlert(self):
         event_info = EventInfo(ZoneEvent.HUMIDITY_CHANGED, self.get_items()[0], self.zone1,
                                self.zm, pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertEqual(None, self.zm.get_alert_manager()._lastEmailedSubject)
 
     def sendEventAndAssertAlertContainMessage(self, message):
         event_info = EventInfo(ZoneEvent.HUMIDITY_CHANGED, self.get_items()[0], self.zone1,
                                self.zm, pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertTrue(message in self.zm.get_alert_manager()._lastEmailedSubject)

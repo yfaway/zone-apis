@@ -23,13 +23,13 @@ class NetworkPresence(Device):
         otherwise.
         """
 
-        return pe.is_in_on_state(self.getItem())
+        return pe.is_in_on_state(self.get_item())
 
-    def isOccupied(self, seconds_from_last_event=5 * 60):
+    def is_occupied(self, seconds_from_last_event=5 * 60):
         """
         Returns True if the device is on.
         @override
 
         :rtype: bool
         """
-        return self.is_presence() or self.wasRecentlyActivated(seconds_from_last_event)
+        return self.is_presence() or self.was_recently_activated(seconds_from_last_event)

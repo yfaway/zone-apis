@@ -71,7 +71,7 @@ def parse() -> ImmutableZoneManager:
 
     zone_mappings = {}
     for zone in _parse_zones():
-        zone_mappings[zone.getId()] = zone
+        zone_mappings[zone.get_id()] = zone
 
     items: List[BaseItem] = Items.get_all_items()
     for item in items:
@@ -91,21 +91,21 @@ def parse() -> ImmutableZoneManager:
                     pe.log_warning("Invalid zone id '{}'".format(zone_id))
                     continue
 
-                device = device.set_channel(pe.get_channel(device.getItem()))
+                device = device.set_channel(pe.get_channel(device.get_item()))
                 device = device.set_zone_manager(immutable_zm)
 
-                zone = zone_mappings[zone_id].addDevice(device)
+                zone = zone_mappings[zone_id].add_device(device)
                 zone_mappings[zone_id] = zone
 
     # Add the AstroSensor to any zone that has a Light device.
     astro_sensor = AstroSensor(Items.get_item('VT_Time_Of_Day')).set_zone_manager(immutable_zm)
     for zone in zone_mappings.values():
-        if len(zone.getDevicesByType(Light)) > 0 or len(zone.getDevicesByType(Dimmer)) > 0:
-            zone = zone.addDevice(astro_sensor)
-            zone_mappings[zone.getId()] = zone
+        if len(zone.get_devices_by_type(Light)) > 0 or len(zone.get_devices_by_type(Dimmer)) > 0:
+            zone = zone.add_device(astro_sensor)
+            zone_mappings[zone.get_id()] = zone
 
     # Add specific devices to the Virtual Zone
-    zone = next((z for z in zone_mappings.values() if z.getName() == 'Virtual'), None)
+    zone = next((z for z in zone_mappings.values() if z.get_name() == 'Virtual'), None)
     if zone is not None:
         time_map = {
             'wakeup': '6 - 9',
@@ -114,8 +114,8 @@ def parse() -> ImmutableZoneManager:
             'dinner': '17:50 - 20:00',
             'sleep': '23:00 - 7:00'
         }
-        zone = zone.addDevice(ActivityTimes(time_map))
-        zone_mappings[zone.getId()] = zone
+        zone = zone.add_device(ActivityTimes(time_map))
+        zone_mappings[zone.get_id()] = zone
 
     zone_mappings = _add_actions(zone_mappings)
 
@@ -185,22 +185,22 @@ def _add_actions(zone_mappings: Dict) -> Dict:
         for zone in zone_mappings.values():
             satisfied = True  # must have all devices
             for device_type in action.get_required_devices():
-                if len(zone.getDevicesByType(device_type)) == 0:
+                if len(zone.get_devices_by_type(device_type)) == 0:
                     satisfied = False
                     break
 
             if not satisfied:
                 continue
 
-            if zone.isInternal() and not action.is_applicable_to_internal_zone():
+            if zone.is_internal() and not action.is_applicable_to_internal_zone():
                 continue
 
-            if zone.isExternal() and not action.is_applicable_to_external_zone():
+            if zone.is_external() and not action.is_applicable_to_external_zone():
                 continue
 
             zone_name_pattern = action.get_applicable_zone_name_pattern()
             if zone_name_pattern is not None:
-                match = re.search(zone_name_pattern, zone.getName())
+                match = re.search(zone_name_pattern, zone.get_name())
                 if not match:
                     continue
 
@@ -209,7 +209,7 @@ def _add_actions(zone_mappings: Dict) -> Dict:
             else:
                 zone = zone.add_action(action)
 
-            zone_mappings[zone.getId()] = zone
+            zone_mappings[zone.get_id()] = zone
 
     return zone_mappings
 

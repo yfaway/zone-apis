@@ -18,16 +18,16 @@ class AlertRainOrSnowDuringTheDay(HABApp.Rule):
     def alert(self):
         forecasts = EnvCanada.retrieve_hourly_forecast('Ottawa', 12)
         rain_periods = [f for f in forecasts if
-                        'High' == f.getPrecipationProbability() or
-                        'Medium' == f.getPrecipationProbability()]
+                        'High' == f.get_precipation_probability() or
+                        'Medium' == f.get_precipation_probability()]
         if len(rain_periods) > 0:
             if len(rain_periods) == 1:
                 subject = u"Possible precipitation at {}".format(
-                    rain_periods[0].getUserFriendlyForecastTime())
+                    rain_periods[0].get_user_friendly_forecast_time())
             else:
                 subject = u"Possible precipitation from {} to {}".format(
-                    rain_periods[0].getUserFriendlyForecastTime(),
-                    rain_periods[-1].getUserFriendlyForecastTime())
+                    rain_periods[0].get_user_friendly_forecast_time(),
+                    rain_periods[-1].get_user_friendly_forecast_time())
 
             body = u'Forecasts:\n'
             body += u"{:5} {:7} {:25} {:6} {:6}\n".format('Hour: ', 'Celsius',

@@ -29,40 +29,40 @@ class ActivityTimesTest(DeviceTest):
 
     def testIsWakeupTime_lunchTime_returnsTrue(self):
         dt = datetime.datetime(2020, 2, 8, 7, 10)
-        self.assertTrue(self.activity.isWakeupTime(time.mktime(dt.timetuple())))
+        self.assertTrue(self.activity.is_wakeup_time(time.mktime(dt.timetuple())))
 
     def testIsWakeupTime_notLunchTime_returnsFalse(self):
         dt = datetime.datetime(2020, 2, 8, 10, 00)
-        self.assertFalse(self.activity.isWakeupTime(time.mktime(dt.timetuple())))
+        self.assertFalse(self.activity.is_wakeup_time(time.mktime(dt.timetuple())))
 
     def testIsLunchTime_lunchTime_returnsTrue(self):
         dt = datetime.datetime(2020, 2, 8, 12, 10)
-        self.assertTrue(self.activity.isLunchTime(time.mktime(dt.timetuple())))
+        self.assertTrue(self.activity.is_lunch_time(time.mktime(dt.timetuple())))
 
     def testIsLunchTime_notLunchTime_returnsFalse(self):
         dt = datetime.datetime(2020, 2, 8, 1, 00)
-        self.assertFalse(self.activity.isLunchTime(time.mktime(dt.timetuple())))
+        self.assertFalse(self.activity.is_lunch_time(time.mktime(dt.timetuple())))
 
     def testIsQuietTime_rightTime_returnsTrue(self):
         dt = datetime.datetime(2020, 2, 8, 15, 00)
-        self.assertTrue(self.activity.isQuietTime(time.mktime(dt.timetuple())))
+        self.assertTrue(self.activity.is_quiet_time(time.mktime(dt.timetuple())))
 
     def testIsQuietTime_wrongTime_returnsFalse(self):
         dt = datetime.datetime(2020, 2, 8, 10, 00)
-        self.assertFalse(self.activity.isQuietTime(time.mktime(dt.timetuple())))
+        self.assertFalse(self.activity.is_quiet_time(time.mktime(dt.timetuple())))
 
     def testIsDinnerTime_rightTime_returnsTrue(self):
         dt = datetime.datetime(2020, 2, 8, 19, 00)
-        self.assertTrue(self.activity.isDinnerTime(time.mktime(dt.timetuple())))
+        self.assertTrue(self.activity.is_dinner_time(time.mktime(dt.timetuple())))
 
     def testIsDinnerTime_wrongTime_returnsFalse(self):
         dt = datetime.datetime(2020, 2, 8, 10, 00)
-        self.assertFalse(self.activity.isDinnerTime(time.mktime(dt.timetuple())))
+        self.assertFalse(self.activity.is_dinner_time(time.mktime(dt.timetuple())))
 
     def testIsSleepTime_rightTime_returnsTrue(self):
         dt = datetime.datetime(2020, 2, 8, 2, 00)
-        self.assertTrue(self.activity.isSleepTime(time.mktime(dt.timetuple())))
+        self.assertTrue(self.activity.is_sleep_time(time.mktime(dt.timetuple())))
 
     def testIsSleepTime_wrongTime_returnsFalse(self):
         dt = datetime.datetime(2020, 2, 8, 10, 00)
-        self.assertFalse(self.activity.isSleepTime(time.mktime(dt.timetuple())))
+        self.assertFalse(self.activity.is_sleep_time(time.mktime(dt.timetuple())))

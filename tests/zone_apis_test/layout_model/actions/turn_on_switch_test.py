@@ -74,7 +74,7 @@ class TurnOnSwitchTest(DeviceTest):
 
     def testOnAction_renewTimerIfLightIsAlreadyOnEvenIfIlluminanceIsAboveThreshold_returnsTrue(self):
         pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX + 1)
-        self.light1.turnOn(pe.get_event_dispatcher())
+        self.light1.turn_on(pe.get_event_dispatcher())
 
         self.assertTrue(self.turnOn())
 
@@ -87,7 +87,7 @@ class TurnOnSwitchTest(DeviceTest):
         self.assertFalse(self.turnOn())
 
     def testOnAction_switchWasJustTurnedOff_returnsFalse(self):
-        self.light1.on_switch_turned_off(pe.get_event_dispatcher(), self.light1.getItemName())
+        self.light1.on_switch_turned_off(pe.get_event_dispatcher(), self.light1.get_item_name())
 
         pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
@@ -111,7 +111,7 @@ class TurnOnSwitchTest(DeviceTest):
         self.motionSensor1.get_channel = lambda: 'a channel'
         self.motionSensor2.get_channel = lambda: 'a channel'
 
-        self.light2.on_switch_turned_off(pe.get_event_dispatcher(), self.light2.getItemName())
+        self.light2.on_switch_turned_off(pe.get_event_dispatcher(), self.light2.get_item_name())
 
         pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
@@ -129,48 +129,48 @@ class TurnOnSwitchTest(DeviceTest):
 
     def testOnAction_openSpaceNeighborIsOn_returnsTrueAndTurnOffNeighbor(self):
         self.setUpNeighborRelationship(self.zone2, NeighborType.OPEN_SPACE, True)
-        self.assertTrue(self.zone2.isLightOn())
+        self.assertTrue(self.zone2.is_light_on())
 
         self.assertTrue(self.turnOn())
-        self.assertFalse(self.zone2.isLightOn())
+        self.assertFalse(self.zone2.is_light_on())
 
     def testOnAction_openSpaceNeighborIsOff_returnsTrue(self):
         self.setUpNeighborRelationship(self.zone2, NeighborType.OPEN_SPACE, False)
-        self.assertFalse(self.zone2.isLightOn())
+        self.assertFalse(self.zone2.is_light_on())
 
         self.assertTrue(self.turnOn())
-        self.assertTrue(self.zone1.isLightOn())
-        self.assertFalse(self.zone2.isLightOn())
+        self.assertTrue(self.zone1.is_light_on())
+        self.assertFalse(self.zone2.is_light_on())
 
     def testOnAction_openSpaceSlaveNeighborIsOn_returnsTrueAndTurnOffNeighbor(self):
         self.setUpNeighborRelationship(self.zone2, NeighborType.OPEN_SPACE_SLAVE, True)
-        self.assertTrue(self.zone2.isLightOn())
+        self.assertTrue(self.zone2.is_light_on())
 
         self.assertTrue(self.turnOn())
-        self.assertFalse(self.zone2.isLightOn())
+        self.assertFalse(self.zone2.is_light_on())
 
     def testOnAction_openSpaceSlaveNeighborIsOff_returnsTrue(self):
         self.setUpNeighborRelationship(self.zone2, NeighborType.OPEN_SPACE_SLAVE, False)
-        self.assertFalse(self.zone2.isLightOn())
+        self.assertFalse(self.zone2.is_light_on())
 
         self.assertTrue(self.turnOn())
-        self.assertTrue(self.zone1.isLightOn())
-        self.assertFalse(self.zone2.isLightOn())
+        self.assertTrue(self.zone1.is_light_on())
+        self.assertFalse(self.zone2.is_light_on())
 
     def testOnAction_renewTimerWhenBothMasterAndSlaveAreOn_returnsTrueAndNotTurningOffNeighbor(self):
         self.setUpNeighborRelationship(self.zone2, NeighborType.OPEN_SPACE_SLAVE, True)
         pe.set_switch_state(self.lightItem1, True)
 
         self.assertTrue(self.turnOn())
-        self.assertTrue(self.zone2.isLightOn())
+        self.assertTrue(self.zone2.is_light_on())
 
     def testOnAction_masterIsOn_returnsTrueAndNotTurningOffOpenSpaceNeighbor(self):
         pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
         # zone3 (foyer) is an open space neighbor with zone2
-        self.zone2 = self.zone2.add_neighbor(Neighbor(self.zone3.getId(), NeighborType.OPEN_SPACE))
+        self.zone2 = self.zone2.add_neighbor(Neighbor(self.zone3.get_id(), NeighborType.OPEN_SPACE))
         # zone2 (kitchen) is an open space slave with zone1 (great room)
-        self.zone2 = self.zone2.add_neighbor(Neighbor(self.zone1.getId(), NeighborType.OPEN_SPACE_MASTER))
+        self.zone2 = self.zone2.add_neighbor(Neighbor(self.zone1.get_id(), NeighborType.OPEN_SPACE_MASTER))
 
         # Turn on the light in the great room and the foyer. 
         # We want to make sure that when the motion sensor in the kitchen is
@@ -187,35 +187,35 @@ class TurnOnSwitchTest(DeviceTest):
                                self.zone2, create_zone_manager([self.zone1, self.zone2, self.zone3]),
                                pe.get_event_dispatcher())
 
-        return_val = TurnOnSwitch().onAction(event_info)
+        return_val = TurnOnSwitch().on_action(event_info)
         self.assertFalse(return_val)
-        self.assertFalse(self.zone2.isLightOn())
-        self.assertTrue(self.zone3.isLightOn())
+        self.assertFalse(self.zone2.is_light_on())
+        self.assertTrue(self.zone3.is_light_on())
 
     def testOnAction_fanIsTurnedOn_returnsTrueAndDoNotTurnOffNeighborLight(self):
-        self.zoneWithFan = self.zoneWithFan.add_neighbor(Neighbor(self.zone1.getId(), NeighborType.OPEN_SPACE))
+        self.zoneWithFan = self.zoneWithFan.add_neighbor(Neighbor(self.zone1.get_id(), NeighborType.OPEN_SPACE))
         pe.set_switch_state(self.lightItem1, True)
-        self.assertTrue(self.zone1.isLightOn())
+        self.assertTrue(self.zone1.is_light_on())
 
         value = self.turnOn(self.zoneWithFan)
         self.assertTrue(value)
-        self.assertTrue(self.zone1.isLightOn())
+        self.assertTrue(self.zone1.is_light_on())
 
     def turnOn(self, receiving_zone=None):
         if receiving_zone is None:
             receiving_zone = self.zone1
 
-        event_info = EventInfo(ZoneEvent.MOTION, receiving_zone.getDevicesByType(Switch)[0].getItem(),
+        event_info = EventInfo(ZoneEvent.MOTION, receiving_zone.get_devices_by_type(Switch)[0].get_item(),
                                receiving_zone,
                                create_zone_manager([self.zone1, self.zone2, self.zone3, self.zoneWithFan]),
                                pe.get_event_dispatcher())
 
-        return self.action.onAction(event_info)
+        return self.action.on_action(event_info)
 
     # Helper method to set up the relationship between the provided zone and zone1.
     def setUpNeighborRelationship(self, zone, neighbor_type, neighbor_light_on):
         pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
-        self.zone1 = self.zone1.add_neighbor(Neighbor(zone.getId(), neighbor_type))
+        self.zone1 = self.zone1.add_neighbor(Neighbor(zone.get_id(), neighbor_type))
 
         if neighbor_light_on:
             pe.set_switch_state(self.lightItem2, True)

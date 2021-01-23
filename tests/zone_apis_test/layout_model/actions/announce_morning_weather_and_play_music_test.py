@@ -50,78 +50,78 @@ class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
         super(AnnounceMorningWeatherAndPlayMusicTest, self).tearDown()
 
     def testOnAction_noAudioSink_returnsFalse(self):
-        zone1 = Zone('Kitchen').addDevice(self.motion).add_action(self.action)
+        zone1 = Zone('Kitchen').add_device(self.motion).add_action(self.action)
         event_info = EventInfo(ZoneEvent.MOTION, self.motion_item, zone1,
                                create_zone_manager([zone1]), pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_audioSinkInZoneButNoActivityTimes_returnsFalse(self):
-        zone1 = Zone('Kitchen').addDevice(self.sink).addDevice(self.motion).add_action(self.action)
+        zone1 = Zone('Kitchen').add_device(self.sink).add_device(self.motion).add_action(self.action)
 
         event_info = EventInfo(ZoneEvent.MOTION, self.motion_item, zone1,
                                create_zone_manager([zone1]), pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_audioSinkInZone_announceAndPlaysStreamAndReturnsTrue(self):
-        zone1 = Zone('Kitchen').addDevice(self.sink).addDevice(self.motion) \
-            .addDevice(self.activity_times) \
+        zone1 = Zone('Kitchen').add_device(self.sink).add_device(self.motion) \
+            .add_device(self.activity_times) \
             .add_action(self.action)
 
         event_info = EventInfo(ZoneEvent.MOTION, self.motion_item, zone1,
                                create_zone_manager([zone1]), pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertEqual('playStream', self.sink._get_last_test_command())
         self.assertTrue('Good morning' in self.sink.get_last_tts_message())
 
     def testOnAction_audioSinkInZone_stopAfterDoorClosed(self):
-        zone1 = Zone('Kitchen').addDevice(self.sink).addDevice(self.motion) \
-            .addDevice(self.activity_times) \
+        zone1 = Zone('Kitchen').add_device(self.sink).add_device(self.motion) \
+            .add_device(self.activity_times) \
             .add_action(self.action)
-        zone2 = Zone.create_external_zone('garage').addDevice(self.external_door)
+        zone2 = Zone.create_external_zone('garage').add_device(self.external_door)
 
         event_info = EventInfo(ZoneEvent.MOTION, self.motion_item, zone1,
                                create_zone_manager([zone1, zone2]), pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertEqual('playStream', self.sink._get_last_test_command())
 
         event_info = EventInfo(ZoneEvent.CONTACT_CLOSED, self.external_door_item, zone1,
                                create_zone_manager([zone1, zone2]), pe.get_event_dispatcher(), zone2)
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertEqual('pause', self.sink._get_last_test_command())
 
     def testOnAction_musicPlayingInternalDoorClosed_wontStopMusic(self):
-        zone1 = Zone('Kitchen').addDevice(self.sink).addDevice(self.motion) \
-            .addDevice(self.activity_times) \
+        zone1 = Zone('Kitchen').add_device(self.sink).add_device(self.motion) \
+            .add_device(self.activity_times) \
             .add_action(self.action)
-        zone2 = Zone.create_first_floor_zone('bedroom').addDevice(self.internal_door)
+        zone2 = Zone.create_first_floor_zone('bedroom').add_device(self.internal_door)
 
         event_info = EventInfo(ZoneEvent.MOTION, self.motion_item, zone1,
                                create_zone_manager([zone1, zone2]), pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertEqual('playStream', self.sink._get_last_test_command())
 
         event_info = EventInfo(ZoneEvent.CONTACT_CLOSED, self.internal_door_item, zone1,
                                create_zone_manager([zone1, zone2]), pe.get_event_dispatcher(), zone2)
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertFalse(value)
         self.assertEqual('playStream', self.sink._get_last_test_command())
 
     def testOnAction_audioSinkInZone_automaticallyPauseAtDesignatedPeriod(self):
         self.action = AnnounceMorningWeatherAndPlayMusic(duration_in_minutes=0.00025)
-        zone1 = Zone('Kitchen').addDevice(self.sink).addDevice(self.motion) \
-            .addDevice(self.activity_times) \
+        zone1 = Zone('Kitchen').add_device(self.sink).add_device(self.motion) \
+            .add_device(self.activity_times) \
             .add_action(self.action)
 
         event_info = EventInfo(ZoneEvent.MOTION, self.motion_item, zone1,
                                create_zone_manager([zone1]), pe.get_event_dispatcher())
 
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertEqual('playStream', self.sink._get_last_test_command())
 

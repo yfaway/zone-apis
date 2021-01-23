@@ -38,8 +38,8 @@ class SimulateDaytimePresence:
         self.play_duration_in_seconds = play_duration_in_seconds
         self.timer = None
 
-    def onAction(self, event_info):
-        zone_manager = event_info.getZoneManager()
+    def on_action(self, event_info):
+        zone_manager = event_info.get_zone_manager()
 
         if not sm.is_armed_away(zone_manager):
             return False
@@ -51,7 +51,7 @@ class SimulateDaytimePresence:
 
         activities = zone_manager.get_devices_by_type(ActivityTimes)
         if len(activities) > 0:
-            if activities[0].isSleepTime():
+            if activities[0].is_sleep_time():
                 return False
 
         audio_sink.play_stream(self.music_url, self.music_volume)

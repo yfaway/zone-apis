@@ -66,10 +66,10 @@ class ZoneManagerTest(DeviceTest):
         zone2 = Zone('2f')
         self.zm.add_zone(zone2)
 
-        self.assertEqual(zone1.getName(),
-                         self.zm.get_zone_by_id(zone1.getId()).getName())
-        self.assertEqual(zone2.getName(),
-                         self.zm.get_zone_by_id(zone2.getId()).getName())
+        self.assertEqual(zone1.get_name(),
+                         self.zm.get_zone_by_id(zone1.get_id()).get_name())
+        self.assertEqual(zone2.get_name(),
+                         self.zm.get_zone_by_id(zone2.get_id()).get_name())
 
     def testGetZoneById_invalidZoneId_returnNone(self):
         self.assertTrue(self.zm.get_zone_by_id('invalid zone id') is None)
@@ -90,8 +90,8 @@ class ZoneManagerTest(DeviceTest):
         self.assertEqual(0, len(self.zm.get_zones()))
 
     def testContainingZone_validDevice_returnsCorrectZone(self):
-        zone1 = Zone('ff').addDevice(self.light)
-        zone2 = Zone('sf').addDevice(self.fan)
+        zone1 = Zone('ff').add_device(self.light)
+        zone2 = Zone('sf').add_device(self.fan)
 
         self.zm.add_zone(zone1)
         self.zm.add_zone(zone2)
@@ -101,15 +101,15 @@ class ZoneManagerTest(DeviceTest):
                          self.zm.get_immutable_instance().get_containing_zone(self.fan))
 
     def testContainingZone_invalidDevice_returnsNone(self):
-        zone1 = Zone('ff').addDevice(self.light)
+        zone1 = Zone('ff').add_device(self.light)
 
         self.zm.add_zone(zone1)
         self.assertEqual(None,
                          self.zm.get_immutable_instance().get_containing_zone(self.fan))
 
     def testGetDevicesByType_variousScenarios_returnsCorrectList(self):
-        zone1 = Zone('ff').addDevice(self.light)
-        zone2 = Zone('sf').addDevice(self.fan)
+        zone1 = Zone('ff').add_device(self.light)
+        zone2 = Zone('sf').add_device(self.fan)
 
         self.zm.add_zone(zone1)
         self.zm.add_zone(zone2)
@@ -132,7 +132,7 @@ class ZoneManagerTest(DeviceTest):
             ZoneEvent.MOTION, pe.get_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
 
     def testOnMotionSensorTurnedOn_withApplicableZone_returnsTrue(self):
-        self.assertFalse(self.light.isOn())
+        self.assertFalse(self.light.is_on())
         pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
         zone = Zone('ff', [self.light, self.motionSensor, self.illuminanceSensor])
@@ -140,7 +140,7 @@ class ZoneManagerTest(DeviceTest):
         self.zm.add_zone(zone)
 
         self.assertTrue(self.zm.get_immutable_instance().dispatch_event(
-            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor.getItem()))
+            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor.get_item()))
 
     def testOnTimerExpired_noZone_returnsFalse(self):
         self.assertFalse(self.zm.get_immutable_instance().on_timer_expired(
@@ -169,7 +169,7 @@ class ZoneManagerTest(DeviceTest):
         self.zm.add_zone(zone)
 
         self.assertTrue(self.zm.get_immutable_instance().on_switch_turned_on(
-            pe.get_event_dispatcher(), self.light.getItem()))
+            pe.get_event_dispatcher(), self.light.get_item()))
 
     def testOnSwitchTurnedOff_noZone_returnsFalse(self):
         self.assertFalse(self.zm.get_immutable_instance().on_switch_turned_off(
@@ -187,4 +187,4 @@ class ZoneManagerTest(DeviceTest):
         self.zm.add_zone(zone)
 
         self.assertTrue(self.zm.get_immutable_instance().on_switch_turned_off(
-            pe.get_event_dispatcher(), self.light.getItem()))
+            pe.get_event_dispatcher(), self.light.get_item()))

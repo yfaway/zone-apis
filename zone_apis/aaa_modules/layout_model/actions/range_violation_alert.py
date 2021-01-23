@@ -54,7 +54,7 @@ class RangeViolationAlert:
             if self.sent_alert:  # send an info alert that the value is back to normal
                 self.reset_states()
 
-                msg = f'The {zone.getName()} {self.label} at {value}{self.unit} is back to the normal range ' \
+                msg = f'The {zone.get_name()} {self.label} at {value}{self.unit} is back to the normal range ' \
                       f'({self.min_value}% - {self.max_value}%).'
                 alert = Alert.create_info_alert(msg)
 
@@ -66,11 +66,11 @@ class RangeViolationAlert:
         else:
             alert_message = ''
             if value <= self.next_min_notification_threshold:
-                alert_message = f'The {zone.getName()} {self.label} at {value}{self.unit} is below the ' \
+                alert_message = f'The {zone.get_name()} {self.label} at {value}{self.unit} is below the ' \
                                 f'threshold of {self.min_value}%.'
                 self.next_min_notification_threshold -= self.notification_step_value
             elif value >= self.next_max_notification_threshold:
-                alert_message = f'The {zone.getName()} {self.label} at {value}{self.unit} is above the ' \
+                alert_message = f'The {zone.get_name()} {self.label} at {value}{self.unit} is above the ' \
                                 f'threshold of {self.max_value}%.'
                 self.next_max_notification_threshold += self.notification_step_value
 

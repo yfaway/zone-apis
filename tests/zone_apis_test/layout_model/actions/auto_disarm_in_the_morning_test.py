@@ -37,9 +37,9 @@ class AutoDisarmInTheMorningTest(DeviceTest):
     def testOnAction_motionTriggeredInWakeupTimePeriod_disarm(self):
         self.alarmPartition.arm_stay(pe.get_event_dispatcher())
 
-        event_info = EventInfo(ZoneEvent.MOTION, self.motionSensor.getItem(),
+        event_info = EventInfo(ZoneEvent.MOTION, self.motionSensor.get_item(),
                                self.zone1, self.mockZoneManager, pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertTrue(self.alarmPartition.is_unarmed())
 
@@ -55,8 +55,8 @@ class AutoDisarmInTheMorningTest(DeviceTest):
             .add_action(self.action)
         self.mockZoneManager = create_zone_manager([self.zone1])
 
-        event_info = EventInfo(ZoneEvent.MOTION, self.motionSensor.getItem(),
+        event_info = EventInfo(ZoneEvent.MOTION, self.motionSensor.get_item(),
                                self.zone1, self.mockZoneManager, pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertFalse(value)
         self.assertFalse(self.alarmPartition.is_unarmed())

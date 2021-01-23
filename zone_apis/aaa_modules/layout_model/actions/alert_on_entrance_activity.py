@@ -23,22 +23,22 @@ class AlertOnEntranceActivity:
     def __init__(self):
         pass
 
-    def onAction(self, event_info):
-        zone = event_info.getZone()
-        zone_manager = event_info.getZoneManager()
+    def on_action(self, event_info):
+        zone = event_info.get_zone()
+        zone_manager = event_info.get_zone_manager()
 
         current_epoch = time.time()
 
         door_open_period_in_seconds = 10
-        for door in zone.getDevicesByType(Door):
-            if door.wasRecentlyActivated(door_open_period_in_seconds):
+        for door in zone.get_devices_by_type(Door):
+            if door.was_recently_activated(door_open_period_in_seconds):
                 pe.log_info("A door was just open for zone {}; ignore motion event.".format(
-                    zone.getName()))
+                    zone.get_name()))
                 return
 
-        cameras = zone.getDevicesByType(Camera)
+        cameras = zone.get_devices_by_type(Camera)
         if len(cameras) == 0:
-            pe.log_info("No camera found for zone {}".format(zone.getName()))
+            pe.log_info("No camera found for zone {}".format(zone.get_name()))
             return
 
         camera = cameras[0]
@@ -58,7 +58,7 @@ class AlertOnEntranceActivity:
             hour = time_struct[3]
 
             msg = 'Activity detected at the {} area.'.format(
-                zone.getName(), len(attachment_urls))
+                zone.get_name(), len(attachment_urls))
 
             armed_away = False
             security_partitions = zone_manager.get_devices_by_type(AlarmPartition)
@@ -74,5 +74,5 @@ class AlertOnEntranceActivity:
 
             return True
         else:
-            pe.log_info("No images from {} camera.".format(zone.getName()))
+            pe.log_info("No images from {} camera.".format(zone.get_name()))
             return False

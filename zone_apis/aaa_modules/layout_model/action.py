@@ -78,7 +78,7 @@ class Action(object):
         if len(self.get_required_devices()) == 0:
             return None
         else:
-            devices = event_info.getZone().getDevicesByType(self.get_required_devices()[0])
+            devices = event_info.get_zone().get_devices_by_type(self.get_required_devices()[0])
             return devices[0]
 
     def must_be_unique_instance(self):
@@ -101,7 +101,7 @@ class Action(object):
         return self
 
     # noinspection PyUnusedLocal
-    def onAction(self, event_info):
+    def on_action(self, event_info):
         """
         Subclass must override this method with its own handling.
 
@@ -117,8 +117,8 @@ def action(devices=None, events=None, internal=True, external=False, levels=None
     """
     A decorator that accepts an action class and do the followings:
       - Create a subclass that extends the decorated class and Action.
-      - Wrap the Action::onAction to perform various validations before
-        invoking onAction.
+      - Wrap the Action::on_action to perform various validations before
+        invoking on_action.
     
     :param list(Device) devices: the list of devices the zone must have
         in order to invoke the action.
@@ -164,7 +164,7 @@ def action(devices=None, events=None, internal=True, external=False, levels=None
             self._priority = priority
 
         subclass = type(clazz.__name__, (clazz, Action), dict(__init__=init))
-        subclass.onAction = validate(clazz.onAction)
+        subclass.on_action = validate(clazz.on_action)
         return subclass
 
     return action_decorator
@@ -182,35 +182,35 @@ def validate(function):
     def wrapper(*args, **kwargs):
         obj = args[0]
         event_info = args[1]
-        zone = event_info.getZone()
+        zone = event_info.get_zone()
 
         if obj.is_filtering_disabled():
             return function(*args, **kwargs)
 
-        if zone.containsOpenHabItem(event_info.getItem()):
+        if zone.contains_open_hab_item(event_info.get_item()):
             if len(obj.get_required_events()) > 0 \
-                    and not any(e == event_info.getEventType() for e in obj.get_required_events()):
+                    and not any(e == event_info.get_event_type() for e in obj.get_required_events()):
 
                 return False
             elif len(obj.get_required_devices()) > 0 \
-                    and not any(len(zone.getDevicesByType(cls)) > 0 for cls in obj.get_required_devices()):
+                    and not any(len(zone.get_devices_by_type(cls)) > 0 for cls in obj.get_required_devices()):
 
                 return False
-            elif zone.isInternal() and not obj.is_applicable_to_internal_zone():
+            elif zone.is_internal() and not obj.is_applicable_to_internal_zone():
                 return False
-            elif zone.isExternal() and not obj.is_applicable_to_external_zone():
+            elif zone.is_external() and not obj.is_applicable_to_external_zone():
                 return False
             elif len(obj.get_applicable_levels()) > 0 \
-                    and not any(zone.getLevel() == level for level in obj.get_applicable_levels()):
+                    and not any(zone.get_level() == level for level in obj.get_applicable_levels()):
 
                 return False
             elif obj.get_applicable_zone_name_pattern() is not None:
                 pattern = obj.get_applicable_zone_name_pattern()
-                match = re.search(pattern, zone.getName())
+                match = re.search(pattern, zone.get_name())
                 if not match:
                     return False
         else:  # event from other zones
-            if event_info.getEventType() not in obj.get_external_events():
+            if event_info.get_event_type() not in obj.get_external_events():
                 return False
 
         return function(*args, **kwargs)

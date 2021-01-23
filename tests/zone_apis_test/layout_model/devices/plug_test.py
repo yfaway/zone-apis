@@ -25,7 +25,7 @@ class PlugTest(DeviceTest):
         self.assertEqual(100, self.plug.get_wattage())
 
     def testTurnOff_withScopeEvents_returnsTrue(self):
-        pe.set_switch_state(self.plug.getItem(), True)
+        pe.set_switch_state(self.plug.get_item(), True)
         self.assertTrue(self.plug.is_on())
 
         self.plug.turn_off(pe.get_event_dispatcher())

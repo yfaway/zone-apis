@@ -28,9 +28,9 @@ class EnvCanadaTest(unittest.TestCase):
         self.assertTrue(len(forecasts) > 0)
 
         for forecast in forecasts:
-            self.assertTrue(forecast.getForecastTime() >= 0)
-            self.assertTrue(len(forecast.getCondition()) > 0)
-            self.assertTrue(len(forecast.getPrecipationProbability()) > 0)
+            self.assertTrue(forecast.get_forecast_time() >= 0)
+            self.assertTrue(len(forecast.get_condition()) > 0)
+            self.assertTrue(len(forecast.get_precipation_probability()) > 0)
 
     def testRetrieveHourlyForecast_validUrl_returnsForecast(self):
         forecasts = EnvCanada.retrieve_hourly_forecast(
@@ -39,9 +39,9 @@ class EnvCanadaTest(unittest.TestCase):
         self.assertEqual(24, len(forecasts))
 
         for forecast in forecasts:
-            self.assertTrue(forecast.getForecastTime() >= 0)
-            self.assertTrue(len(forecast.getCondition()) > 0)
-            self.assertTrue(len(forecast.getPrecipationProbability()) > 0)
+            self.assertTrue(forecast.get_forecast_time() >= 0)
+            self.assertTrue(len(forecast.get_condition()) > 0)
+            self.assertTrue(len(forecast.get_precipation_probability()) > 0)
 
     def testRetrieveAlert_validCity_returnsForecast(self):
         alert, url, raw_data = EnvCanada.retrieve_alert('ottawa')

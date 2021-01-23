@@ -56,7 +56,7 @@ class Neighbor:
         self.zoneId = zone_id
         self.neighbor_type = neighbor_type  # type: NeighborType
 
-    def getZoneId(self):
+    def get_zone_id(self):
         """
         :rtype: str
         """
@@ -68,11 +68,11 @@ class Neighbor:
         """
         return self.neighbor_type
 
-    def isOpenSpace(self):
+    def is_open_space(self):
         """
         Returns True if the neighbor is not closed space.
 
         :rtype: boolean
         """
-        return self.get_type() in \
-               [NeighborType.OPEN_SPACE, NeighborType.OPEN_SPACE_MASTER, NeighborType.OPEN_SPACE_SLAVE]
+        return self.get_type() in [NeighborType.OPEN_SPACE, NeighborType.OPEN_SPACE_MASTER,
+                                   NeighborType.OPEN_SPACE_SLAVE]

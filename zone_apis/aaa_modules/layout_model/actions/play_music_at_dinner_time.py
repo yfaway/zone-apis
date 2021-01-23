@@ -37,9 +37,9 @@ class PlayMusicAtDinnerTime:
         self._in_session = False
         self._timer = None
 
-    def onAction(self, event_info):
-        zone = event_info.getZone()
-        zone_manager = event_info.getZoneManager()
+    def on_action(self, event_info):
+        zone = event_info.get_zone()
+        zone_manager = event_info.get_zone_manager()
 
         activities = zone_manager.get_devices_by_type(ActivityTimes)
         if len(activities) == 0:
@@ -52,7 +52,7 @@ class PlayMusicAtDinnerTime:
             return False
 
         activity = activities[0]
-        if activity.isDinnerTime():
+        if activity.is_dinner_time():
             if not self._in_session:
                 sink.play_stream(random.choice(self._music_urls), 40)
 

@@ -31,10 +31,10 @@ class PlayMindfulnessBell(HABApp.Rule):
             return
 
         activity = activities[0]
-        if activity.isSleepTime():
+        if activity.is_sleep_time():
             return
 
-        if activity.isQuietTime():
+        if activity.is_quiet_time():
             volume = 40
         else:
             volume = 60

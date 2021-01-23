@@ -27,7 +27,7 @@ class GasSensor(Device):
         :return: the current sensor value.
         :rtype: int
         """
-        return pe.get_number_value(self.getItem())
+        return pe.get_number_value(self.get_item())
 
     def is_triggered(self):
         """
@@ -37,13 +37,13 @@ class GasSensor(Device):
         """
         return pe.is_in_on_state(self._state_item)
 
-    def containsItem(self, item):
+    def contains_item(self, item):
         """ Override. """
-        return super(GasSensor, self).containsItem(item) or self._state_item == item
+        return super(GasSensor, self).contains_item(item) or self._state_item == item
 
-    def resetValueStates(self):
+    def reset_value_states(self):
         """ Override. """
-        pe.set_number_value(self.getItem(), -1)
+        pe.set_number_value(self.get_item(), -1)
         pe.set_switch_state(self._state_item, False)
 
 

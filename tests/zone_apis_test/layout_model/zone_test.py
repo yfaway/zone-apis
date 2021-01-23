@@ -58,77 +58,77 @@ class ZoneTest(DeviceTest):
     def testZoneCtor_validParams_gettersReturnValidValues(self):
         zone_name = 'bed room'
         zone = Zone(zone_name, [self.light], Level.SECOND_FLOOR)
-        self.assertEqual(zone_name, zone.getName())
-        self.assertEqual(Level.SECOND_FLOOR, zone.getLevel())
-        self.assertEqual(Level.SECOND_FLOOR.value + '_' + zone_name, zone.getId())
-        self.assertEqual(1, len(zone.getDevices()))
+        self.assertEqual(zone_name, zone.get_name())
+        self.assertEqual(Level.SECOND_FLOOR, zone.get_level())
+        self.assertEqual(Level.SECOND_FLOOR.value + '_' + zone_name, zone.get_id())
+        self.assertEqual(1, len(zone.get_devices()))
 
     def testCreateExternalZone_validParams_returnsAnExternalZone(self):
         zone_name = 'bed room'
         zone = Zone.create_external_zone(zone_name)
-        self.assertEqual(zone_name, zone.getName())
-        self.assertTrue(zone.isExternal())
+        self.assertEqual(zone_name, zone.get_name())
+        self.assertTrue(zone.is_external())
 
     def testCreateFirstFloorZone_validParams_returnsAFirstFloorZone(self):
         zone_name = 'bed room'
         zone = Zone.create_first_floor_zone(zone_name)
-        self.assertEqual(zone_name, zone.getName())
-        self.assertEqual(Level.FIRST_FLOOR, zone.getLevel())
-        self.assertFalse(zone.isExternal())
+        self.assertEqual(zone_name, zone.get_name())
+        self.assertEqual(Level.FIRST_FLOOR, zone.get_level())
+        self.assertFalse(zone.is_external())
 
     def testCreateSecondFloorZone_validParams_returnsASecondFloorZone(self):
         zone_name = 'bed room'
         zone = Zone.create_second_floor_zone(zone_name)
-        self.assertEqual(zone_name, zone.getName())
-        self.assertEqual(Level.SECOND_FLOOR, zone.getLevel())
-        self.assertFalse(zone.isExternal())
+        self.assertEqual(zone_name, zone.get_name())
+        self.assertEqual(Level.SECOND_FLOOR, zone.get_level())
+        self.assertFalse(zone.is_external())
 
     def testContainsOpenHabItem_negativeValue_returnsFalse(self):
         zone = Zone('name', [self.light], Level.SECOND_FLOOR)
-        self.assertFalse(zone.containsOpenHabItem(self.fanItem))
+        self.assertFalse(zone.contains_open_hab_item(self.fanItem))
 
     def testContainsOpenHabItem_validNameButWrongType_returnsFalse(self):
         zone = Zone('ff', [self.light, self.motionSensor, self.astroSensor])
-        self.assertFalse(zone.containsOpenHabItem(
+        self.assertFalse(zone.contains_open_hab_item(
             self.lightItem, MotionSensor))
 
     def testContainsOpenHabItem_validNameWithNoTypeSpecified_returnsTrue(self):
         zone = Zone('ff', [self.light, self.motionSensor, self.astroSensor])
-        self.assertTrue(zone.containsOpenHabItem(self.lightItem))
+        self.assertTrue(zone.contains_open_hab_item(self.lightItem))
 
     def testContainsOpenHabItem_validNameWithTypeSpecified_returnsTrue(self):
         zone = Zone('ff', [self.light, self.motionSensor, self.astroSensor])
-        self.assertTrue(zone.containsOpenHabItem(self.lightItem, Light))
+        self.assertTrue(zone.contains_open_hab_item(self.lightItem, Light))
 
     def testAddDevice_validDevice_deviceAdded(self):
-        zone = Zone('ff').addDevice(self.light)
-        self.assertEqual(1, len(zone.getDevices()))
+        zone = Zone('ff').add_device(self.light)
+        self.assertEqual(1, len(zone.get_devices()))
 
     def testRemoveDevice_validDevice_deviceRemoved(self):
         zone = Zone('ff', [self.light])
-        self.assertEqual(1, len(zone.getDevices()))
+        self.assertEqual(1, len(zone.get_devices()))
 
-        zone = zone.removeDevice(self.light)
-        self.assertEqual(0, len(zone.getDevices()))
+        zone = zone.remove_device(self.light)
+        self.assertEqual(0, len(zone.get_devices()))
 
     def testGetDevicesByType_validType_returnsExpectedDevices(self):
         zone = Zone('ff', [self.light])
-        self.assertEqual(1, len(zone.getDevicesByType(Light)))
-        self.assertEqual(0, len(zone.getDevicesByType(Dimmer)))
+        self.assertEqual(1, len(zone.get_devices_by_type(Light)))
+        self.assertEqual(0, len(zone.get_devices_by_type(Dimmer)))
 
     def testGetDeviceByEvent_validEvent_returnsExpectedDevice(self):
         zone = Zone('ff', [self.light])
 
         event_info = EventInfo(ZoneEvent.MOTION, self.lightItem, zone,
                                create_zone_manager([zone]), pe.get_event_dispatcher())
-        self.assertEqual(self.light, zone.getDeviceByEvent(event_info))
+        self.assertEqual(self.light, zone.get_device_by_event(event_info))
 
     def testGetDeviceByEvent_invalidEvent_returnsNone(self):
         zone = Zone('ff', [self.light])
 
         event_info = EventInfo(ZoneEvent.MOTION, self.motionSensorItem, zone,
                                create_zone_manager([zone]), pe.get_event_dispatcher())
-        self.assertEqual(None, zone.getDeviceByEvent(event_info))
+        self.assertEqual(None, zone.get_device_by_event(event_info))
 
     def testAddAction_oneValidAction_actionAdded(self):
         zone = Zone('ff').add_action(TurnOnSwitch())
@@ -144,99 +144,99 @@ class ZoneTest(DeviceTest):
 
     def testIsOccupied_everythingOff_returnsFalse(self):
         zone = Zone('ff', [self.light, self.motionSensor])
-        (occupied, device) = zone.isOccupied()
+        (occupied, device) = zone.is_occupied()
         self.assertFalse(occupied)
         self.assertEqual(None, device)
 
     def testIsOccupied_switchIsOn_returnsTrue(self):
         zone = Zone('ff', [self.light, self.motionSensor])
-        self.light.turnOn(pe.get_event_dispatcher())
+        self.light.turn_on(pe.get_event_dispatcher())
 
-        (occupied, device) = zone.isOccupied()
+        (occupied, device) = zone.is_occupied()
         self.assertTrue(occupied)
         self.assertEqual(self.light, device)
 
     def testIsOccupied_switchIsOnAndIgnoreMotionSensor_returnsTrue(self):
         zone = Zone('ff', [self.light, self.motionSensor])
-        self.light.turnOn(pe.get_event_dispatcher())
+        self.light.turn_on(pe.get_event_dispatcher())
 
-        (occupied, device) = zone.isOccupied([MotionSensor])
+        (occupied, device) = zone.is_occupied([MotionSensor])
         self.assertTrue(occupied)
         self.assertEqual(self.light, device)
 
     def testIsOccupied_switchIsOnAndIgnoreLight_returnsFalse(self):
         zone = Zone('ff', [self.light, self.motionSensor])
-        self.light.turnOn(pe.get_event_dispatcher())
+        self.light.turn_on(pe.get_event_dispatcher())
 
-        (occupied, device) = zone.isOccupied([Light])
+        (occupied, device) = zone.is_occupied([Light])
         self.assertFalse(occupied)
         self.assertEqual(None, device)
 
     def testIsOccupied_switchIsOnAndIgnoreLightAndMotionSensor_returnsFalse(self):
         zone = Zone('ff', [self.light, self.motionSensor])
-        self.light.turnOn(pe.get_event_dispatcher())
+        self.light.turn_on(pe.get_event_dispatcher())
 
-        (occupied, device) = zone.isOccupied([Light, MotionSensor])
+        (occupied, device) = zone.is_occupied([Light, MotionSensor])
         self.assertFalse(occupied)
         self.assertEqual(None, device)
 
     def testIsOccupied_motionEventTriggeredButLightIsOff_returnsTrue(self):
-        self.assertFalse(self.light.isOn())
+        self.assertFalse(self.light.is_on())
 
         zone = Zone('ff', [self.light, self.motionSensor, self.illuminanceSensor])
         self.motionSensor._update_last_activated_timestamp()
-        (occupied, device) = zone.isOccupied()
+        (occupied, device) = zone.is_occupied()
         self.assertTrue(occupied)
         self.assertEqual(self.motionSensor, device)
 
     def testGetIlluminanceLevel_noSensor_returnsMinusOne(self):
         zone = Zone('ff', [self.lightWithIlluminance, self.motionSensor])
-        self.assertEqual(-1, zone.getIlluminanceLevel())
+        self.assertEqual(-1, zone.get_illuminance_level())
 
     def testGetIlluminanceLevel_withSensor_returnsPositiveValue(self):
         pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX)
 
         zone = Zone('ff', [self.lightWithIlluminance, self.motionSensor,
                            self.illuminanceSensor])
-        self.assertEqual(ILLUMINANCE_THRESHOLD_IN_LUX, zone.getIlluminanceLevel())
+        self.assertEqual(ILLUMINANCE_THRESHOLD_IN_LUX, zone.get_illuminance_level())
 
     def testIsLightOnTime_noSensor_returnsNone(self):
         zone = Zone('ff', [self.lightWithIlluminance, self.motionSensor])
-        self.assertEqual(None, zone.isLightOnTime())
+        self.assertEqual(None, zone.is_light_on_time())
 
     def testIsLightOnTime_withSensorIndicatesDayTime_returnsFalse(self):
         pe.set_string_value(self.astroSensorItem, 'MORNING')
         zone = Zone('ff', [self.lightWithIlluminance, self.astroSensor])
-        self.assertFalse(zone.isLightOnTime())
+        self.assertFalse(zone.is_light_on_time())
 
     def testIsLightOnTime_withSensorIndicatesEveningTime_returnsTrue(self):
         pe.set_string_value(self.astroSensorItem, AstroSensor.LIGHT_ON_TIMES[0])
         zone = Zone('ff', [self.lightWithIlluminance, self.astroSensor])
-        self.assertTrue(zone.isLightOnTime())
+        self.assertTrue(zone.is_light_on_time())
 
     def testShareSensorWith_noSharedSensors_returnsFalse(self):
         zone1 = Zone('ff', [self.lightWithIlluminance, self.astroSensor])
         zone2 = Zone('foyer', [])
 
-        self.assertFalse(zone1.shareSensorWith(zone2, Light))
+        self.assertFalse(zone1.share_sensor_with(zone2, Light))
 
     def testShareSensorWith_sharedSensorsWithNoChannel_returnsFalse(self):
         zone1 = Zone('ff', [self.lightWithIlluminance, self.astroSensor])
         zone2 = Zone('foyer', [self.lightWithIlluminance])
 
-        self.assertFalse(zone1.shareSensorWith(zone2, Light))
+        self.assertFalse(zone1.share_sensor_with(zone2, Light))
 
     def testShareSensorWith_sharedSensorsWithChannel_returnsTrue(self):
         zone1 = Zone('ff', [self.lightWithIlluminance, self.astroSensor])
         zone2 = Zone('foyer', [self.lightWithIlluminance])
 
         self.lightWithIlluminance.get_channel = lambda: 'a channel'
-        self.assertTrue(zone1.shareSensorWith(zone2, Light))
+        self.assertTrue(zone1.share_sensor_with(zone2, Light))
 
     def testOnTimerExpired_invalidTimerItem_returnsFalse(self):
         zone = Zone('ff', [self.light])
 
-        is_processed = zone.onTimerExpired(
+        is_processed = zone.on_timer_expired(
             pe.get_event_dispatcher(), pe.create_string_item('dummy name'))
         self.assertFalse(is_processed)
 
@@ -253,17 +253,17 @@ class ZoneTest(DeviceTest):
         self.assertTrue(is_processed)
 
     def testOnMotionSensorTurnedOn_validItemNameNoIlluminanceSensorNoAstroSensor_returnsFalse(self):
-        self.assertFalse(self.light.isOn())
+        self.assertFalse(self.light.is_on())
 
         zone = Zone('ff', [self.light, self.motionSensor])
         zone = zone.add_action(TurnOnSwitch())
 
         is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(),
-                                           self.motionSensor.getItem(), create_zone_manager([zone]), True)
+                                           self.motionSensor.get_item(), create_zone_manager([zone]), True)
         self.assertFalse(is_processed)
 
     def testOnMotionSensorTurnedOn_illuminanceAboveThreshold_returnsFalse(self):
-        self.assertFalse(self.light.isOn())
+        self.assertFalse(self.light.is_on())
         pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX + 1)
 
         zone = Zone('ff', [self.lightWithIlluminance, self.motionSensor,
@@ -271,12 +271,12 @@ class ZoneTest(DeviceTest):
         zone = zone.add_action(TurnOnSwitch())
 
         is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(),
-                                           self.motionSensor.getItem(), create_zone_manager([zone]), True)
+                                           self.motionSensor.get_item(), create_zone_manager([zone]), True)
         self.assertFalse(is_processed)
-        self.assertFalse(self.light.isOn())
+        self.assertFalse(self.light.is_on())
 
     def testOnMotionSensorTurnedOn_illuminanceBelowThreshold_turnsOnLight(self):
-        self.assertFalse(self.light.isOn())
+        self.assertFalse(self.light.is_on())
         pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
         zone = Zone('ff', [self.lightWithIlluminance, self.motionSensor,
@@ -284,10 +284,10 @@ class ZoneTest(DeviceTest):
         zone = zone.add_action(TurnOnSwitch())
 
         is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(),
-                                           self.motionSensor.getItem(), create_zone_manager([zone]), True)
+                                           self.motionSensor.get_item(), create_zone_manager([zone]), True)
         self.assertTrue(is_processed)
 
-        self.assertTrue(self.light.isOn())
+        self.assertTrue(self.light.is_on())
 
     def testOnMotionSensorTurnedOn_notLightOnTime_returnsFalse(self):
         pe.set_string_value(self.astroSensorItem, 'MORNING')
@@ -296,11 +296,11 @@ class ZoneTest(DeviceTest):
         zone = zone.add_action(TurnOnSwitch())
 
         is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(),
-                                           self.motionSensor.getItem(), None, True)
+                                           self.motionSensor.get_item(), None, True)
         self.assertFalse(is_processed)
 
     def testOnMotionSensorTurnedOn_notLightOnTimeButIlluminanceBelowThreshold_turnsOnLight(self):
-        self.assertFalse(self.light.isOn())
+        self.assertFalse(self.light.is_on())
         pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
         pe.set_string_value(self.astroSensorItem, 'MORNING')
 
@@ -309,21 +309,21 @@ class ZoneTest(DeviceTest):
         zone = zone.add_action(TurnOnSwitch())
 
         is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(),
-                                           self.motionSensor.getItem(), create_zone_manager([zone]), True)
+                                           self.motionSensor.get_item(), create_zone_manager([zone]), True)
         self.assertTrue(is_processed)
-        self.assertTrue(self.light.isOn())
+        self.assertTrue(self.light.is_on())
 
     def testOnMotionSensorTurnedOn_lightOnTime_turnsOnLight(self):
-        self.assertFalse(self.light.isOn())
+        self.assertFalse(self.light.is_on())
 
         pe.set_string_value(self.astroSensorItem, AstroSensor.LIGHT_ON_TIMES[0])
         zone = Zone('ff', [self.light, self.motionSensor, self.astroSensor])
         zone = zone.add_action(TurnOnSwitch())
 
         is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(),
-                                           self.motionSensor.getItem(), create_zone_manager([zone]), True)
+                                           self.motionSensor.get_item(), create_zone_manager([zone]), True)
         self.assertTrue(is_processed)
-        self.assertTrue(self.light.isOn())
+        self.assertTrue(self.light.is_on())
 
     def testStr_noParam_returnsNonEmptyString(self):
         zone = Zone('ff', [self.light, self.motionSensor, self.astroSensor,
@@ -335,7 +335,7 @@ class ZoneTest(DeviceTest):
     def testGetNeighborZones_noZoneManager_throwsException(self):
         zone1 = Zone('ff')
         with self.assertRaises(ValueError) as cm:
-            zone1.getNeighborZones(None)
+            zone1.get_neighbor_zones(None)
 
         self.assertEqual('zoneManager must not be None', cm.exception.args[0])
 
@@ -344,22 +344,22 @@ class ZoneTest(DeviceTest):
         zone2 = Zone('porch')
         zone3 = Zone('office')
 
-        zone1 = zone1.add_neighbor(Neighbor(zone2.getId(), NeighborType.OPEN_SPACE))
-        zone1 = zone1.add_neighbor(Neighbor(zone3.getId(), NeighborType.OPEN_SPACE_MASTER))
+        zone1 = zone1.add_neighbor(Neighbor(zone2.get_id(), NeighborType.OPEN_SPACE))
+        zone1 = zone1.add_neighbor(Neighbor(zone3.get_id(), NeighborType.OPEN_SPACE_MASTER))
         zm = create_zone_manager([zone1, zone2, zone3])
 
-        self.assertEqual(2, len(zone1.getNeighborZones(zm)))
+        self.assertEqual(2, len(zone1.get_neighbor_zones(zm)))
 
     def testGetNeighborZones_neighborTypeSpecified_returnsCorrectList(self):
         zone1 = Zone('foyer')
         zone2 = Zone('porch')
         zone3 = Zone('office')
 
-        zone1 = zone1.add_neighbor(Neighbor(zone2.getId(), NeighborType.OPEN_SPACE))
-        zone1 = zone1.add_neighbor(Neighbor(zone3.getId(), NeighborType.OPEN_SPACE_MASTER))
+        zone1 = zone1.add_neighbor(Neighbor(zone2.get_id(), NeighborType.OPEN_SPACE))
+        zone1 = zone1.add_neighbor(Neighbor(zone3.get_id(), NeighborType.OPEN_SPACE_MASTER))
         zm = create_zone_manager([zone1, zone2, zone3])
 
-        zones = zone1.getNeighborZones(zm, [NeighborType.OPEN_SPACE_MASTER])
+        zones = zone1.get_neighbor_zones(zm, [NeighborType.OPEN_SPACE_MASTER])
         self.assertEqual(1, len(zones))
         self.assertEqual(zone3, zones[0])
 

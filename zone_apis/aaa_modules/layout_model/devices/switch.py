@@ -41,19 +41,19 @@ class Switch(Device):
         """
 
         def turn_off_switch():
-            zone = self.getZoneManager().get_containing_zone(self)
+            zone = self.get_zone_manager().get_containing_zone(self)
 
-            (occupied, device) = zone.isOccupied([Switch], 60)
+            (occupied, device) = zone.is_occupied([Switch], 60)
             if not occupied:
-                events.send_command(self.getItemName(), "OFF")
+                events.send_command(self.get_item_name(), "OFF")
                 pe.log_debug("{}: turning off {}.".format(
-                    zone.getName(), self.getItemName()))
+                    zone.get_name(), self.get_item_name()))
             else:
                 self.timer = Timer(self.duration_in_minutes * 60, turn_off_switch)
                 self.timer.start()
 
                 pe.log_debug("{}: {} is in use by {}.".format(
-                    zone.getName(), self.getItemName(), device))
+                    zone.get_name(), self.get_item_name(), device))
 
         self._cancel_timer()  # cancel the previous timer, if any.
 
@@ -71,30 +71,30 @@ class Switch(Device):
     def _is_timer_active(self):
         return self.timer is not None and self.timer.is_alive()
 
-    def turnOn(self, events):
+    def turn_on(self, events):
         """
         Turns on this light, if it is not on yet. In either case, the associated
         timer item is also turned on.
         """
-        if self.isOn():  # already on, renew timer
+        if self.is_on():  # already on, renew timer
             self._start_timer(events)
         else:
-            events.send_command(self.getItemName(), "ON")
+            events.send_command(self.get_item_name(), "ON")
 
-    def turnOff(self, events):
+    def turn_off(self, events):
         """
         Turn off this light.
         """
-        if self.isOn():
-            events.send_command(self.getItemName(), "OFF")
+        if self.is_on():
+            events.send_command(self.get_item_name(), "OFF")
 
         self._cancel_timer()
 
-    def isOn(self):
+    def is_on(self):
         """
         Returns true if the switch is turned on; false otherwise.
         """
-        return pe.is_in_on_state(self.getItem())
+        return pe.is_in_on_state(self.get_item())
 
     def on_switch_turned_on(self, events, item_name):
         """
@@ -109,11 +109,11 @@ class Switch(Device):
         :param str item_name: the name of the item triggering the event
         :return True: if itemName refers to this switch; False otherwise
         """
-        isProcessed = (self.getItemName() == item_name)
-        if isProcessed:
+        is_processed = (self.get_item_name() == item_name)
+        if is_processed:
             self._handle_common_on_action(events)
 
-        return isProcessed
+        return is_processed
 
     def on_switch_turned_off(self, events, item_name):
         """
@@ -127,14 +127,14 @@ class Switch(Device):
         :param string item_name: the name of the item triggering the event
         :return: True if itemName refers to this switch; False otherwise
         """
-        is_processed = (self.getItemName() == item_name)
+        is_processed = (self.get_item_name() == item_name)
         if is_processed:
             self.lastOffTimestampInSeconds = time.time()
             self._cancel_timer()
 
         return is_processed
 
-    def getLastOffTimestampInSeconds(self):
+    def get_last_off_timestamp_in_seconds(self):
         """
         Returns the timestamp in epoch seconds the switch was last turned off.
 
@@ -143,7 +143,7 @@ class Switch(Device):
         """
         return self.lastOffTimestampInSeconds
 
-    def canBeTriggeredByMotionSensor(self):
+    def can_be_triggered_by_motion_sensor(self):
         """
         Returns True if this switch can be turned on when a motion sensor is
         triggered.
@@ -161,7 +161,7 @@ class Switch(Device):
 
         self._start_timer(events)  # start or renew timer
 
-    def isLowIlluminance(self, current_illuminance):
+    def is_low_illuminance(self, current_illuminance):
         """ Always return False.  """
         return False
 
@@ -190,7 +190,7 @@ class Light(Switch):
         self.illuminance_level = illuminance_level
         self.no_premature_turn_off_time_range = no_premature_turn_off_time_range
 
-    def getIlluminanceThreshold(self):
+    def get_illuminance_threshold(self):
         """
         Returns the illuminance level in LUX unit. Returns None if not applicable.
 
@@ -198,22 +198,22 @@ class Light(Switch):
         """
         return self.illuminance_level
 
-    def isLowIlluminance(self, current_illuminance):
+    def is_low_illuminance(self, current_illuminance):
         """
         Returns False if this light has no illuminance threshold or if 
         current_illuminance is less than 0. Otherwise returns True if the
         current_illuminance is less than threshold.
         @override
         """
-        if self.getIlluminanceThreshold() is None:
+        if self.get_illuminance_threshold() is None:
             return False
 
         if current_illuminance < 0:  # current illuminance not available
             return False
 
-        return current_illuminance < self.getIlluminanceThreshold()
+        return current_illuminance < self.get_illuminance_threshold()
 
-    def canBeTurnedOffByAdjacentZone(self):
+    def can_be_turned_off_by_adjacent_zone(self):
         """
         Returns True if this light can be turned off when the light of an
         adjacent zone is turned on.
@@ -225,19 +225,19 @@ class Light(Switch):
         if self.no_premature_turn_off_time_range is None:
             return True
 
-        if time_utilities.isInTimeRange(self.no_premature_turn_off_time_range):
+        if time_utilities.is_in_time_range(self.no_premature_turn_off_time_range):
             return False
 
         return True
 
-    def isOccupied(self, seconds_from_last_event=5 * 60):
+    def is_occupied(self, seconds_from_last_event=5 * 60):
         """
         Returns True if the device is on.
         @override
 
         :rtype: bool
         """
-        return self.isOn()
+        return self.is_on()
 
     def __str__(self):
         """

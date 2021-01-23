@@ -30,7 +30,7 @@ class Plug(Device):
         :return: True if the partition is in alarm; False otherwise
         :rtype: bool
         """
-        return pe.is_in_on_state(self.getItem())
+        return pe.is_in_on_state(self.get_item())
 
     def has_power_reading(self):
         """
@@ -49,7 +49,7 @@ class Plug(Device):
 
         return pe.get_number_value(self.power_reading_item)
 
-    def isOccupied(self, seconds_from_last_event=5 * 60):
+    def is_occupied(self, seconds_from_last_event=5 * 60):
         """
         Returns True if the power reading is above the threshold.
         @override
@@ -64,11 +64,11 @@ class Plug(Device):
         Turns on this plug, if it is not on yet.
         """
         if not self.is_on():
-            events.send_command(self.getItemName(), "ON")
+            events.send_command(self.get_item_name(), "ON")
 
     def turn_off(self, events):
         """
         Turn off this plug.
         """
         if self.is_on():
-            events.send_command(self.getItemName(), "OFF")
+            events.send_command(self.get_item_name(), "OFF")

@@ -21,8 +21,8 @@ class HumiditySensor(Device):
         :return: the current humidity level in percentage
         :rtype: int
         """
-        return pe.get_number_value(self.getItem())
+        return pe.get_number_value(self.get_item())
 
-    def resetValueStates(self):
+    def reset_value_states(self):
         """ Override. """
-        pe.set_number_value(self.getItem(), -1)
+        pe.set_number_value(self.get_item(), -1)

@@ -38,9 +38,9 @@ class AlertOnTemperatureOutOfRange:
         self.rangeAlert = RangeViolationAlert(min_temperature, max_temperature,
                                               notification_step_value, "temperature", "C", "TEMPERATURE", 30, False)
 
-    def onAction(self, event_info):
-        zone = event_info.getZone()
-        zone_manager = event_info.getZoneManager()
+    def on_action(self, event_info):
+        zone = event_info.get_zone()
+        zone_manager = event_info.get_zone_manager()
 
         percentage = self.get_first_device(event_info).get_temperature()
         self.rangeAlert.update_state(percentage, zone, zone_manager)

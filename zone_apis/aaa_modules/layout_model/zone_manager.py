@@ -24,7 +24,7 @@ class ZoneManager:
         if zone is None:
             raise ValueError('zone must not be None')
 
-        self.zones[zone.getId()] = zone
+        self.zones[zone.get_id()] = zone
 
         return self
 
@@ -37,7 +37,7 @@ class ZoneManager:
         if zone is None:
             raise ValueError('zone must not be None')
 
-        self.zones.pop(zone.getId())
+        self.zones.pop(zone.get_id())
 
         return self
 
@@ -53,7 +53,7 @@ class ZoneManager:
         :rtype: list(Zone)
         """
         zones = [z for z in self.zones.values()]
-        zones.sort(key=lambda z: z.getDisplayOrder())
+        zones.sort(key=lambda z: z.get_display_order())
 
         return zones
 
@@ -61,7 +61,7 @@ class ZoneManager:
         """
         Returns the zone associated with the given zoneId.
 
-        :param string zone_id: the value returned by Zone::getId()
+        :param string zone_id: the value returned by Zone::get_id()
         :return: the associated zone or None if the zoneId is not found
         :rtype: Zone
         """
@@ -80,7 +80,7 @@ class ZoneManager:
 
         devices = []
         for zone in self.zones.values():
-            devices = devices + zone.getDevicesByType(cls)
+            devices = devices + zone.get_devices_by_type(cls)
 
         return devices
 
@@ -104,15 +104,15 @@ class ZoneManager:
         def reset_failed_auto_report_devices():
             devices = []
             for z in self.get_zones():
-                [devices.append(d) for d in z.getDevices()
-                 if d.isAutoReport() and
-                 not d.wasRecentlyActivated(inactive_interval_in_seconds)]
+                [devices.append(d) for d in z.get_devices()
+                 if d.is_auto_report() and
+                 not d.was_recently_activated(inactive_interval_in_seconds)]
 
             if len(devices) > 0:
                 item_names = []
                 for d in devices:
-                    item_names.append(d.getItemName())
-                    d.resetValueStates()
+                    item_names.append(d.get_item_name())
+                    d.reset_value_states()
 
                 pe.log_warning(
                     "AutoReport Watchdog: {} failed auto-report devices: {}".format(

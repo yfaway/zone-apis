@@ -21,4 +21,4 @@ class IlluminanceSensor(Device):
         """
         Returns an positive integer representing the LUX value.
         """
-        return pe.get_number_value(self.getItem())
+        return pe.get_number_value(self.get_item())

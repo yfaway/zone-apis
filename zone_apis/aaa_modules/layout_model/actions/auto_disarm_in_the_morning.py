@@ -14,9 +14,9 @@ class AutoDisarmInTheMorning:
     security panel is triggered during the wake-up hour range.
     """
 
-    def onAction(self, event_info):
-        events = event_info.getEventDispatcher()
-        zone_manager = event_info.getZoneManager()
+    def on_action(self, event_info):
+        events = event_info.get_event_dispatcher()
+        zone_manager = event_info.get_zone_manager()
 
         if not sm.is_armed_stay(zone_manager):
             return False
@@ -27,7 +27,7 @@ class AutoDisarmInTheMorning:
             return False
 
         activity = activities[0]
-        if activity.isWakeupTime():
+        if activity.is_wakeup_time():
             sm.disarm(zone_manager, events)
             return True
         else:

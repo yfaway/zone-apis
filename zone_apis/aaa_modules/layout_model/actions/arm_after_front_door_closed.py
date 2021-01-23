@@ -34,12 +34,12 @@ class ArmAfterFrontDoorClosed:
         self.timer = None
         self.max_elapsed_time_in_seconds = max_elapsed_time_in_seconds
 
-    def onAction(self, event_info):
-        events = event_info.getEventDispatcher()
-        zone = event_info.getZone()
-        zone_manager = event_info.getZoneManager()
+    def on_action(self, event_info):
+        events = event_info.get_event_dispatcher()
+        zone = event_info.get_zone()
+        zone_manager = event_info.get_zone_manager()
 
-        if zone.getName() == "Patio":  # todo: add Zone::isBack()
+        if zone.get_name() == "Patio":  # todo: add Zone::isBack()
             return False
 
         security_partitions = zone_manager.get_devices_by_type(AlarmPartition)
@@ -49,7 +49,7 @@ class ArmAfterFrontDoorClosed:
         if not security_partitions[0].is_unarmed():
             return False
 
-        for door in zone.getDevicesByType(Door):
+        for door in zone.get_devices_by_type(Door):
             if door.is_closed():
                 if self.timer is not None:
                     self.timer.cancel()
@@ -59,10 +59,10 @@ class ArmAfterFrontDoorClosed:
                     active_device = None
 
                     for z in zone_manager.get_zones():
-                        if z.isExternal():
+                        if z.is_external():
                             continue
 
-                        (occupied, active_device) = z.isOccupied([Plug], self.max_elapsed_time_in_seconds)
+                        (occupied, active_device) = z.is_occupied([Plug], self.max_elapsed_time_in_seconds)
                         if occupied:
                             break
 

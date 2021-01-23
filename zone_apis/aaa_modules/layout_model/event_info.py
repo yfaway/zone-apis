@@ -34,23 +34,23 @@ class EventInfo(object):
         self.events = events
         self._owning_zone = owning_zone
 
-    def getEventType(self):
+    def get_event_type(self):
         """ :rtype: ZoneEvent"""
         return self.eventType
 
-    def getItem(self):
+    def get_item(self):
         """ :rtype: Item"""
         return self.item
 
-    def getZone(self):
+    def get_zone(self):
         """ :rtype: Zone"""
         return self.zone
 
-    def getZoneManager(self):
+    def get_zone_manager(self):
         """ :rtype: ImmutableZoneManager"""
         return self.zoneManager
 
-    def getEventDispatcher(self):
+    def get_event_dispatcher(self):
         """ :rtype: Event"""
         return self.events
 

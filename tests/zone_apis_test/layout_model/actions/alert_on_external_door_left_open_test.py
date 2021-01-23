@@ -21,8 +21,8 @@ class AlertOnExternalDoorLeftOpenTest(DeviceTest):
         super(AlertOnExternalDoorLeftOpenTest, self).setUp()
 
         self.action = AlertOnExternalDoorLeftOpen()
-        self.zone1 = Zone.create_external_zone('porch').addDevice(Door(items[0]))
-        self.zone2 = Zone.create_external_zone('garage').addDevice(Door(items[1]))
+        self.zone1 = Zone.create_external_zone('porch').add_device(Door(items[0]))
+        self.zone2 = Zone.create_external_zone('garage').add_device(Door(items[1]))
         self.alertManager = AlertManager()
 
         self.zm = create_zone_manager([self.zone1, self.zone2])
@@ -31,14 +31,14 @@ class AlertOnExternalDoorLeftOpenTest(DeviceTest):
         event_info = EventInfo(ZoneEvent.CONTACT_OPEN,self.get_items()[0],
                                Zone('innerZone').add_action(self.action), self.zm,
                                pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_externalZoneWithNoDoor_returnsFalseAndTimerStarted(self):
         event_info = EventInfo(ZoneEvent.CONTACT_OPEN, self.get_items()[0],
                                Zone.create_external_zone('aZone').add_action(self.action),
                                self.zm, pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_aDoorIsOpen_returnsTrue(self):
@@ -48,7 +48,7 @@ class AlertOnExternalDoorLeftOpenTest(DeviceTest):
         self.zone1 = self.zone1.add_action(self.action)
         event_info = EventInfo(ZoneEvent.CONTACT_OPEN, self.get_items()[0], self.zone1, self.zm,
                                pe.get_event_dispatcher())
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
 
         self.assertTrue(value)
         self.assertTrue(self.action.has_running_timer())
@@ -63,13 +63,13 @@ class AlertOnExternalDoorLeftOpenTest(DeviceTest):
         event_info = EventInfo(ZoneEvent.CONTACT_OPEN, self.get_items()[0], self.zone1, self.zm,
                                pe.get_event_dispatcher())
 
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
 
         self.assertTrue(value)
         self.assertTrue(self.action.has_running_timer())
 
         # simulate door closed
         pe.set_switch_state(self.get_items()[0], False)
-        value = self.action.onAction(event_info)
+        value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertFalse(self.action.has_running_timer())

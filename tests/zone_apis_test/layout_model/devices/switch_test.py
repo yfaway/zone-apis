@@ -22,14 +22,14 @@ class LightTest(DeviceTest):
         super(LightTest, self).tearDown()
 
     def testTurnOn_lightWasOff_returnsExpected(self):
-        self.light.turnOn(pe.get_event_dispatcher())
+        self.light.turn_on(pe.get_event_dispatcher())
         self.assertTrue(pe.is_in_on_state(self.lightItem))
 
     def testTurnOn_lightWasAlreadyOn_timerIsRenewed(self):
         pe.set_switch_state(self.lightItem, True)
         self.assertFalse(self.light._is_timer_active())
 
-        self.light.turnOn(pe.get_event_dispatcher())
+        self.light.turn_on(pe.get_event_dispatcher())
         self.assertTrue(pe.is_in_on_state(self.lightItem))
         self.assertTrue(self.light._is_timer_active())
 
@@ -37,7 +37,7 @@ class LightTest(DeviceTest):
         pe.set_switch_state(self.lightItem, True)
 
         is_processed = self.light.on_switch_turned_on(
-            pe.get_event_dispatcher(), self.light.getItemName())
+            pe.get_event_dispatcher(), self.light.get_item_name())
         self.assertTrue(is_processed)
         self.assertTrue(self.light._is_timer_active())
 
@@ -51,7 +51,7 @@ class LightTest(DeviceTest):
         self.light._start_timer(pe.get_event_dispatcher())
         self.assertTrue(self.light._is_timer_active())
 
-        self.light.turnOff(pe.get_event_dispatcher())
+        self.light.turn_off(pe.get_event_dispatcher())
         self.assertFalse(self.light._is_timer_active())
 
     def testOnSwitchTurnedOff_validParams_timerIsTurnedOn(self):
@@ -59,7 +59,7 @@ class LightTest(DeviceTest):
         self.light._start_timer(pe.get_event_dispatcher())
 
         is_processed = self.light.on_switch_turned_off(
-            pe.get_event_dispatcher(), self.light.getItemName())
+            pe.get_event_dispatcher(), self.light.get_item_name())
         self.assertTrue(is_processed)
         self.assertFalse(self.light._is_timer_active())
 
@@ -69,19 +69,19 @@ class LightTest(DeviceTest):
         self.assertFalse(is_processed)
 
     def testIsLowIlluminance_noThresholdSet_returnsFalse(self):
-        self.assertFalse(self.light.isLowIlluminance(10))
+        self.assertFalse(self.light.is_low_illuminance(10))
 
     def testIsLowIlluminance_currentIlluminanceNotAvailable_returnsFalse(self):
         self.light = Light(self.lightItem, 10, 50)
-        self.assertFalse(self.light.isLowIlluminance(-1))
+        self.assertFalse(self.light.is_low_illuminance(-1))
 
     def testIsLowIlluminance_currentIlluminanceAboveThreshold_returnsFalse(self):
         self.light = Light(self.lightItem, 10, 50)
-        self.assertFalse(self.light.isLowIlluminance(60))
+        self.assertFalse(self.light.is_low_illuminance(60))
 
     def testIsLowIlluminance_currentIlluminanceBelowThreshold_returnsTrue(self):
         self.light = Light(self.lightItem, 10, 50)
-        self.assertTrue(self.light.isLowIlluminance(10))
+        self.assertTrue(self.light.is_low_illuminance(10))
 
     def testTimerTurnedOff_validParams_switchIsOff(self):
         zm = ZoneManager()
@@ -97,4 +97,4 @@ class LightTest(DeviceTest):
 
         time.sleep(0.3)
         self.assertFalse(self.light._is_timer_active())
-        self.assertFalse(self.light.isOn())
+        self.assertFalse(self.light.is_on())

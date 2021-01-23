@@ -24,7 +24,7 @@ class Forecast(object):
         self._precipitation_probability = precipitation_probability
         self._wind = wind
 
-    def getForecastTime(self):
+    def get_forecast_time(self):
         """
         Return the hour in 24-hour format.
 
@@ -32,7 +32,7 @@ class Forecast(object):
         """
         return self._forecastTime
 
-    def getUserFriendlyForecastTime(self):
+    def get_user_friendly_forecast_time(self):
         """
         Returns the forecast hour in user friendly format (1AM, 2PM,...)
 
@@ -50,7 +50,7 @@ class Forecast(object):
         else:
             return str(hour - 12) + ' PM'
 
-    def getTemperature(self):
+    def get_temperature(self):
         """
         Return the temperature in Celcius.
 
@@ -58,7 +58,7 @@ class Forecast(object):
         """
         return self._temperature
 
-    def getCondition(self):
+    def get_condition(self):
         """
         Return the weather condition.
 
@@ -66,7 +66,7 @@ class Forecast(object):
         """
         return self._condition
 
-    def getPrecipationProbability(self):
+    def get_precipation_probability(self):
         """
         Return the precipation probability.
         Possible values: High (70%+), Medium (60% - 70%), Low (< 40%), or Nil (0%).
@@ -75,7 +75,7 @@ class Forecast(object):
         """
         return self._precipitation_probability
 
-    def getWind(self):
+    def get_wind(self):
         """
         Return the wind info such as "15 NW".
 
@@ -87,9 +87,9 @@ class Forecast(object):
         """
         :rtype: str
         """
-        value = u"{:5}: {:7} {:25} {:6} {:6}".format(self.getForecastTime(),
-                                                     self.getTemperature(), self.getCondition(),
-                                                     self.getPrecipationProbability(), self.getWind())
+        value = u"{:5}: {:7} {:25} {:6} {:6}".format(self.get_forecast_time(),
+                                                     self.get_temperature(), self.get_condition(),
+                                                     self.get_precipation_probability(), self.get_wind())
         return value
 
 

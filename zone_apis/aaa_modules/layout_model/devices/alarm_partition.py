@@ -45,7 +45,7 @@ class AlarmPartition(Device):
         :return: True if the partition is in alarm; False otherwise
         :rtype: bool
         """
-        return pe.is_in_on_state(self.getItem())
+        return pe.is_in_on_state(self.get_item())
 
     def get_arm_mode(self) -> AlarmState:
         """

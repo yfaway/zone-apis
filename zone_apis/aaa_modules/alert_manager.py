@@ -65,9 +65,9 @@ class AlertManager:
                 activities = zone_manager.get_devices_by_type(ActivityTimes)
                 if len(activities) > 0:
                     activity = activities[0]
-                    if activity.isSleepTime():
+                    if activity.is_sleep_time():
                         volume = 0
-                    elif activity.isQuietTime():
+                    elif activity.is_quiet_time():
                         volume = 40
                     else:
                         volume = 60

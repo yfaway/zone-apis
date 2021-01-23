@@ -32,19 +32,19 @@ class ActivityTimes(Device):
 
         self.timeRangeMap = time_range_map
 
-    def isLunchTime(self, epoch_seconds=None):
+    def is_lunch_time(self, epoch_seconds=None):
         return self._is_in_time_range('lunch', epoch_seconds)
 
-    def isDinnerTime(self, epoch_seconds=None):
+    def is_dinner_time(self, epoch_seconds=None):
         return self._is_in_time_range('dinner', epoch_seconds)
 
-    def isQuietTime(self, epoch_seconds=None):
+    def is_quiet_time(self, epoch_seconds=None):
         return self._is_in_time_range('quiet', epoch_seconds)
 
-    def isSleepTime(self, epoch_seconds=None):
+    def is_sleep_time(self, epoch_seconds=None):
         return self._is_in_time_range('sleep', epoch_seconds)
 
-    def isWakeupTime(self, epoch_seconds=None):
+    def is_wakeup_time(self, epoch_seconds=None):
         return self._is_in_time_range('wakeup', epoch_seconds)
 
     def _is_in_time_range(self, key, epoch_seconds):
@@ -52,4 +52,4 @@ class ActivityTimes(Device):
             return False
 
         time_range_string = self.timeRangeMap[key]
-        return time_utilities.isInTimeRange(time_range_string, epoch_seconds)
+        return time_utilities.is_in_time_range(time_range_string, epoch_seconds)
