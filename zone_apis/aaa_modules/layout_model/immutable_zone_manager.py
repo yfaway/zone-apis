@@ -1,8 +1,13 @@
+import threading
+import time
 from typing import Type
+
+from schedule import Scheduler
 
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.alert_manager import AlertManager
-from aaa_modules.layout_model.zone import Zone, ZoneEvent
+from aaa_modules.layout_model.zone import Zone
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.device import Device
 
 
@@ -10,13 +15,20 @@ class ImmutableZoneManager:
     """
     Similar to ZoneManager, but this class contains read-only methods. 
     Instances of this class is passed to the method Action#on_action.
+
+    Provide the follow common services:
+      - Alert processing.
+      - Scheduler.
     """
 
-    def __init__(self, get_zones_fcn, get_zone_by_id_fcn, get_devices_by_type_fcn, alert_manager: AlertManager = None):
+    def __init__(self, get_zones_fcn, get_zone_by_id_fcn, get_devices_by_type_fcn,
+                 alert_manager: AlertManager = None):
         self.get_zones_fcn = get_zones_fcn
         self.get_zone_by_id_fcn = get_zone_by_id_fcn
         self.get_devices_by_type_fcn = get_devices_by_type_fcn
         self.alert_manager = alert_manager
+        self.scheduler = Scheduler()
+        self.cease_continuous_run: threading.Event = None
 
     def set_alert_manager(self, alert_manager: AlertManager):
         """ Sets the alert manager and returns a new instance of this class. """
@@ -29,6 +41,35 @@ class ImmutableZoneManager:
 
     def get_alert_manager(self) -> AlertManager:
         return self.alert_manager
+
+    def get_scheduler(self) -> Scheduler:
+        """ Returns the Scheduler instance """
+        return self.scheduler
+
+    def start_scheduler(self, interval_in_seconds=1) -> threading.Event:
+        """ Runs the scheduler in a separate thread. """
+        class ScheduleThread(threading.Thread):
+            @classmethod
+            def run(cls):
+                while not self.cease_continuous_run.is_set():
+                    self.scheduler.run_pending()
+                    time.sleep(interval_in_seconds)
+
+                pe.log_info("Cancelled the scheduler service.")
+
+        if self.cease_continuous_run is None:
+            self.cease_continuous_run = threading.Event()
+            continuous_thread = ScheduleThread()
+            continuous_thread.start()
+
+            pe.log_info("Started the scheduler service.")
+
+        return self.cease_continuous_run
+
+    def cancel_scheduler(self):
+        """ Cancel the scheduler thread if it was started. """
+        if self.cease_continuous_run is not None:
+            self.cease_continuous_run.set()
 
     def get_containing_zone(self, device):
         """

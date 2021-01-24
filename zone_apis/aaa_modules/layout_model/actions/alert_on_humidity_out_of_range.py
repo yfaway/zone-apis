@@ -1,4 +1,5 @@
-from aaa_modules.layout_model.zone import Level, ZoneEvent
+from aaa_modules.layout_model.zone import Level
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.actions.range_violation_alert import RangeViolationAlert
 from aaa_modules.layout_model.devices.humidity_sensor import HumiditySensor

@@ -3,7 +3,8 @@ import time
 from aaa_modules import platform_encapsulator as pe
 
 from aaa_modules.layout_model.event_info import EventInfo
-from aaa_modules.layout_model.zone import Zone, ZoneEvent
+from aaa_modules.layout_model.zone import Zone
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
 from aaa_modules.layout_model.devices.contact import Door

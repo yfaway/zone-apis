@@ -1,3 +1,6 @@
+from aaa_modules.layout_model.zone_event import ZoneEvent
+
+
 class EventInfo(object):
     """
     Represent an event such as switch turned on, switch turned off, or
@@ -12,14 +15,16 @@ class EventInfo(object):
         :param Item item: the OpenHab Item
         :param Zone zone: the zone where the event was triggered
         :param ImmutableZoneManager zone_manager:
-        :param scope.events events: the OpenHab events object to dispatch actions
+        :param Any events: the OpenHab events object to dispatch actions
         """
 
         if event_type is None:
             raise ValueError('eventType must not be None')
 
-        if item is None:
-            raise ValueError('item must not be None')
+        # The item field isn't available for several event types.
+        if event_type not in [ZoneEvent.STARTUP, ZoneEvent.DESTROY, ZoneEvent.TIMER]:
+            if item is None:
+                raise ValueError('item must not be None')
 
         if zone is None:
             raise ValueError('zone must not be None')

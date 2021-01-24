@@ -1,7 +1,7 @@
 from aaa_modules.alert_manager import *
 
 from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition
-from aaa_modules.layout_model.zone import ZoneEvent
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.camera import Camera
 from aaa_modules.layout_model.devices.contact import Door

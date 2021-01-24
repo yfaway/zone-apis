@@ -12,6 +12,7 @@ from aaa_modules.layout_model.devices.switch import Light, Switch
 from aaa_modules.layout_model.neighbor import Neighbor
 
 from aaa_modules import platform_encapsulator as pe
+from aaa_modules.layout_model.zone_event import ZoneEvent
 
 
 @unique
@@ -24,26 +25,6 @@ class Level(Enum):
     SECOND_FLOOR = "SF"  #: The second floor
     THIRD_FLOOR = "TF"  #: The third floor
     VIRTUAL = "VT"  #: The third floor
-
-
-@unique
-class ZoneEvent(Enum):
-    """ An enum of triggering zone events. """
-
-    UNDEFINED = -1  # Undefined
-    MOTION = 1  # A motion triggered event
-    SWITCH_TURNED_ON = 2  # A switch turned-on event
-    SWITCH_TURNED_OFF = 3  # A switch turned-on event
-    CONTACT_OPEN = 4  # A contact (doors/windows) is open
-    CONTACT_CLOSED = 5  # A contact (doors/windows) is close
-    PARTITION_ARMED_AWAY = 6  # Changed to armed away
-    PARTITION_ARMED_STAY = 7  # Changed to armed stay
-    PARTITION_DISARMED_FROM_AWAY = 8  # Changed from armed away to disarm
-    PARTITION_DISARMED_FROM_STAY = 9  # Changed from armed stay to disarm
-    HUMIDITY_CHANGED = 10  # The humidity percentage changed
-    TEMPERATURE_CHANGED = 11  # The temperature changed
-    GAS_TRIGGER_STATE_CHANGED = 12  # The gas sensor triggering boolean changed
-    GAS_VALUE_CHANGED = 13  # The gas sensor value changed
 
 
 class Zone:
@@ -546,35 +527,37 @@ class Zone:
 
         return is_processed
 
-    def dispatch_event(self, zone_event, open_hab_events, item,
+    def dispatch_event(self, zone_event, event_dispatcher, item,
                        immutable_zone_manager, owning_zone=None):
         """
         :param item: the item that received the event
         :param ZoneEvent zone_event:
-        :param events open_hab_events:
+        :param events event_dispatcher:
         :param ImmutableZoneManager immutable_zone_manager:
         :param Any owning_zone: the zone that contains the item; None if the current zone contains
             the item.
         :rtype: boolean
         """
-        return self._invoke_actions(zone_event, open_hab_events, item,
-                                    immutable_zone_manager, owning_zone)
-
-    # noinspection PyUnusedLocal
-    def _invoke_actions(self, zone_event_type, event_dispatcher, item,
-                        immutable_zone_manager, owning_zone):
-        """
-        Helper method to invoke actions associated with the event.
-        :return: True if event is processed. 
-        :rtype: boolean
-        """
-        event_info = EventInfo(zone_event_type, item, self,
+        processed = False
+        event_info = EventInfo(zone_event, item, self,
                                immutable_zone_manager, event_dispatcher)
 
-        processed = False
-        for a in self.get_actions(zone_event_type):
-            if a.on_action(event_info):
-                processed = True
+        if zone_event == ZoneEvent.STARTUP:
+            for action_list in self.actions.values():
+                for action in action_list:
+                    action.on_startup(event_info)
+
+            processed = True
+        elif zone_event == ZoneEvent.DESTROY:
+            for action_list in self.actions.values():
+                for action in action_list:
+                    action.on_destroy(event_info)
+
+            processed = True
+        else:
+            for a in self.get_actions(zone_event):
+                if a.on_action(event_info):
+                    processed = True
 
         return processed
 

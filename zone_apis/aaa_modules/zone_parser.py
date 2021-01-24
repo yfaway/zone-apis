@@ -32,16 +32,19 @@ from aaa_modules.layout_model.devices.temperature_sensor import TemperatureSenso
 from aaa_modules.layout_model.devices.tv import Tv
 from aaa_modules.layout_model.devices.wled import Wled
 from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
-from aaa_modules.layout_model.zone import Zone, Level, ZoneEvent
+from aaa_modules.layout_model.zone import Zone, Level
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.zone_manager import ZoneManager
 from aaa_modules.layout_model.neighbor import NeighborType, Neighbor
 
 
 def parse() -> ImmutableZoneManager:
     """
-    - Parses the zones and devices.
+    - Parses the zones and devices from the remote OpenHab items (via the REST API).
     - Adds devices to the zones.
     - Adds default actions to the zones.
+    - For each action, invoke Action::on_startup method.
+    - Start the scheduler service.
 
     :return:
     """
@@ -121,6 +124,11 @@ def parse() -> ImmutableZoneManager:
 
     for z in zone_mappings.values():
         zm.add_zone(z)
+
+    for z in zm.get_zones():
+        z.dispatch_event(ZoneEvent.STARTUP, pe.get_event_dispatcher(), None, immutable_zm)
+
+    immutable_zm.start_scheduler()
 
     return immutable_zm
 

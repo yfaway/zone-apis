@@ -2,7 +2,7 @@ from threading import Timer
 
 from aaa_modules.alert import Alert
 from aaa_modules.layout_model.devices.plug import Plug
-from aaa_modules.layout_model.zone import ZoneEvent
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition
 from aaa_modules.layout_model.devices.contact import Door

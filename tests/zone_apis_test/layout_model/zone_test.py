@@ -1,6 +1,7 @@
 from aaa_modules import platform_encapsulator as pe
 
-from aaa_modules.layout_model.zone import Zone, Level, ZoneEvent
+from aaa_modules.layout_model.zone import Zone, Level
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.neighbor import Neighbor, NeighborType
 from aaa_modules.layout_model.event_info import EventInfo
 

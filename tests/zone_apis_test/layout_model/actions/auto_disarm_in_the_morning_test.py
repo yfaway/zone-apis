@@ -5,7 +5,8 @@ from aaa_modules.layout_model.actions.auto_disarm_in_the_morning import AutoDisa
 from aaa_modules.layout_model.devices.activity_times import ActivityTimes
 
 from aaa_modules.layout_model.event_info import EventInfo
-from aaa_modules.layout_model.zone import Zone, ZoneEvent
+from aaa_modules.layout_model.zone import Zone
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
 from zone_apis_test.layout_model.device_test import DeviceTest, create_zone_manager

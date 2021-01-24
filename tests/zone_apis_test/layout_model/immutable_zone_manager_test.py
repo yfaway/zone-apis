@@ -5,7 +5,8 @@ from aaa_modules.layout_model.neighbor import Neighbor
 from aaa_modules.layout_model.zone_manager import ZoneManager
 from aaa_modules import platform_encapsulator as pe
 
-from aaa_modules.layout_model.zone import Zone, ZoneEvent, Level
+from aaa_modules.layout_model.zone import Zone, Level
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.devices.switch import Fan, Light
 from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor

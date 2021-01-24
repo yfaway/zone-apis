@@ -8,7 +8,8 @@ from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
 from zone_apis_test.layout_model.device_test import DeviceTest, create_zone_manager
 from aaa_modules.layout_model.event_info import EventInfo
 from aaa_modules.layout_model.neighbor import Neighbor, NeighborType
-from aaa_modules.layout_model.zone import Zone, ZoneEvent
+from aaa_modules.layout_model.zone import Zone
+from aaa_modules.layout_model.zone_event import ZoneEvent
 
 
 class PlayMusicAtDinnerTimeTest(DeviceTest):

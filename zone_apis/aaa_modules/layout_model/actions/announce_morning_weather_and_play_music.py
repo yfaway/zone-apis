@@ -6,7 +6,7 @@ from aaa_modules.audio_manager import Genre, get_music_streams_by_genres, get_ne
 from aaa_modules.environment_canada import EnvCanada
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
-from aaa_modules.layout_model.zone import ZoneEvent
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.devices.activity_times import ActivityTimes
 
 

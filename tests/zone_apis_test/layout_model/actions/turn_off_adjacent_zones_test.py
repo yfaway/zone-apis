@@ -1,7 +1,8 @@
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.actions.turn_off_adjacent_zones import TurnOffAdjacentZones
 from aaa_modules.layout_model.event_info import EventInfo
-from aaa_modules.layout_model.zone import Zone, ZoneEvent
+from aaa_modules.layout_model.zone import Zone
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.neighbor import Neighbor, NeighborType
 from aaa_modules.layout_model.devices.switch import Fan, Light
 

@@ -2,7 +2,8 @@ from zone_apis_test.layout_model.device_test import DeviceTest, create_zone_mana
 from aaa_modules import platform_encapsulator as pe
 
 from aaa_modules.layout_model.event_info import EventInfo
-from aaa_modules.layout_model.zone import Zone, Level, ZoneEvent
+from aaa_modules.layout_model.zone import Zone, Level
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.devices.humidity_sensor import HumiditySensor
 
 from aaa_modules.layout_model.actions.alert_on_humidity_out_of_range import AlertOnHumidityOutOfRange

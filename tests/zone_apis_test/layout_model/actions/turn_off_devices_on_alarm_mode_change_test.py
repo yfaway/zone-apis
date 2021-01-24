@@ -1,7 +1,8 @@
 from aaa_modules import platform_encapsulator as pe
 from zone_apis_test.layout_model.device_test import DeviceTest, create_zone_manager
 from aaa_modules.layout_model.event_info import EventInfo
-from aaa_modules.layout_model.zone import Zone, ZoneEvent
+from aaa_modules.layout_model.zone import Zone
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition
 from aaa_modules.layout_model.devices.switch import Light
 from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink

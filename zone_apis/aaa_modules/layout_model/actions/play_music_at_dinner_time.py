@@ -5,7 +5,7 @@ from aaa_modules import platform_encapsulator as pe
 from aaa_modules.audio_manager import Genre, get_music_streams_by_genres, get_nearby_audio_sink
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
-from aaa_modules.layout_model.zone import ZoneEvent
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.devices.activity_times import ActivityTimes
 
 

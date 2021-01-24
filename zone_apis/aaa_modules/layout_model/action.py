@@ -1,7 +1,23 @@
 import re
 
+from aaa_modules.layout_model.event_info import EventInfo
+from aaa_modules.layout_model.zone_event import ZoneEvent
+
 
 class Action(object):
+    """
+    The base class for all zone actions. An action is invoked when an event is triggered (e.g. when
+    a motion sensor is turned on).
+
+    An action may rely on the states of one or more sensors in the zone.
+
+    Here is the action life cycle:
+      1. Object creation.
+      2. Action::on_startup is invoked with ZoneEvent::STARTUP.
+      3. Action::on_action is invoked when the specified event is triggered.
+      4. Action::on_destroy is invoked with ZoneEvent::DESTROY.
+    """
+
     def __init__(self):
         self._triggering_events = None
         self._external_events = None
@@ -14,12 +30,30 @@ class Action(object):
         self._filtering_disabled = False
         self._priority = 10
 
-    """
-    The base class for all zone actions. An action is invoked when an event is
-    triggered (e.g. when a motion sensor is turned on).
-    
-    An action may rely on the states of one or more sensors in the zone.
-    """
+    # noinspection PyUnusedLocal,PyMethodMayBeStatic
+    def on_action(self, event_info: EventInfo) -> bool:
+        """
+        Invoked when an event is triggered.
+        Subclass must override this method with its own handling.
+
+        :param EventInfo event_info:
+        :return: True if the event is processed; False otherwise.
+        """
+        return True
+
+    def on_startup(self, event_info: EventInfo):
+        """
+        Invoked when the system has been fully initialized, and the action is ready to accept event.
+        Action should perform any initialization actions such as starting the timer here.
+        """
+        pass
+
+    def on_destroy(self, event_info: EventInfo):
+        """
+        Invoked when the system is about to be shutdown.
+        Action should perform any necessary destruction such as cancelling the timer here.
+        """
+        pass
 
     def get_required_devices(self):
         """
@@ -100,16 +134,6 @@ class Action(object):
         self._filtering_disabled = True
         return self
 
-    # noinspection PyUnusedLocal
-    def on_action(self, event_info):
-        """
-        Subclass must override this method with its own handling.
-
-        :param EventInfo event_info:
-        :return: True if the event is processed; False otherwise.
-        """
-        return True
-
 
 def action(devices=None, events=None, internal=True, external=False, levels=None,
            unique_instance=False, zone_name_pattern: str = None, external_events=None,
@@ -184,7 +208,7 @@ def validate(function):
         event_info = args[1]
         zone = event_info.get_zone()
 
-        if obj.is_filtering_disabled():
+        if obj.is_filtering_disabled() or event_info.get_event_type() == ZoneEvent.TIMER:
             return function(*args, **kwargs)
 
         if zone.contains_open_hab_item(event_info.get_item()):

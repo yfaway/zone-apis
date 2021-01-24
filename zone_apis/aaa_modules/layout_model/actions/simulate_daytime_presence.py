@@ -6,7 +6,7 @@ from aaa_modules import security_manager as sm
 from aaa_modules.audio_manager import MusicStreams, get_main_audio_sink
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
-from aaa_modules.layout_model.zone import ZoneEvent
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.devices.activity_times import ActivityTimes
 
 

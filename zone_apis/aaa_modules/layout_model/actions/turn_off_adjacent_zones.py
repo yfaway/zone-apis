@@ -1,4 +1,4 @@
-from aaa_modules.layout_model.zone import ZoneEvent
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.neighbor import NeighborType
 from aaa_modules.layout_model.devices.switch import Light
 from aaa_modules.layout_model.action import action

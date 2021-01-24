@@ -1,5 +1,5 @@
 from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition
-from aaa_modules.layout_model.zone import ZoneEvent
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink
 

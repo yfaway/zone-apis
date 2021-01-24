@@ -1,7 +1,7 @@
 from aaa_modules import security_manager as sm
 from aaa_modules.layout_model.devices.activity_times import ActivityTimes
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
-from aaa_modules.layout_model.zone import ZoneEvent
+from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition
 from aaa_modules import platform_encapsulator as pe
