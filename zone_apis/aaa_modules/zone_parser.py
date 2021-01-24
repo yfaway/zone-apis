@@ -115,7 +115,8 @@ def parse() -> ImmutableZoneManager:
             'lunch': '12:00 - 13:30',
             'quiet': '14:00 - 16:00, 20:00 - 22:59',
             'dinner': '17:50 - 20:00',
-            'sleep': '23:00 - 7:00'
+            'sleep': '23:00 - 7:00',
+            'auto-arm-stay': '20:00 - 2:00',
         }
         zone = zone.add_device(ActivityTimes(time_map))
         zone_mappings[zone.get_id()] = zone

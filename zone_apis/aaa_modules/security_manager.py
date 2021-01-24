@@ -30,10 +30,37 @@ def is_armed_stay(zm: ImmutableZoneManager):
     return False
 
 
+def is_unarmed(zm: ImmutableZoneManager):
+    """
+    :return: True if at least one zone is unarmed.
+    """
+    partition = _get_partition(zm)
+    if partition is not None:
+        return AlarmState.UNARMED == partition.get_arm_mode()
+
+    return False
+
+
+def arm_away(zm: ImmutableZoneManager, events):
+    """ Arms the security system in 'away' mode. """
+    partition = _get_partition(zm)
+    if partition is None:
+        raise ValueError('Missing security partition.')
+
+    partition.arm_away(events)
+
+
+def arm_stay(zm: ImmutableZoneManager, events):
+    """ Arms the security system in 'stay' mode. """
+    partition = _get_partition(zm)
+    if partition is None:
+        raise ValueError('Missing security partition.')
+
+    partition.arm_stay(events)
+
+
 def disarm(zm: ImmutableZoneManager, events):
-    """
-    :return: True if at least one zone is armed-stay
-    """
+    """ Disarms the security system. """
     partition = _get_partition(zm)
     if partition is None:
         raise ValueError('Missing security partition.')

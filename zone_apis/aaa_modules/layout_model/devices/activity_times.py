@@ -25,7 +25,7 @@ class ActivityTimes(Device):
         """
         Device.__init__(self, pe.create_string_item('ActivityTimesItem'))
 
-        acceptable_keys = ['lunch', 'dinner', 'sleep', 'quiet', 'wakeup']
+        acceptable_keys = ['lunch', 'dinner', 'sleep', 'quiet', 'wakeup', 'auto-arm-stay']
         for key in time_range_map.keys():
             if key not in acceptable_keys:
                 raise ValueError('Invalid time range key {}'.format(key))
@@ -46,6 +46,9 @@ class ActivityTimes(Device):
 
     def is_wakeup_time(self, epoch_seconds=None):
         return self._is_in_time_range('wakeup', epoch_seconds)
+
+    def is_auto_arm_stay_time(self, epoch_seconds=None):
+        return self._is_in_time_range('auto-arm-stay', epoch_seconds)
 
     def _is_in_time_range(self, key, epoch_seconds):
         if key not in self.timeRangeMap.keys():
