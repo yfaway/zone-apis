@@ -47,7 +47,7 @@ class PlayMusicDuringShower:
                     return False
 
         if ZoneEvent.SWITCH_TURNED_ON == event_info.get_event_type():
-            volume = 25 if (activity is not None and activity.isQuietTime()) else 35
+            volume = 25 if (activity is not None and activity.is_quiet_time()) else 35
             sink.play_stream(self.music_url, volume)
         elif ZoneEvent.SWITCH_TURNED_OFF == event_info.get_event_type():
             sink.pause()
