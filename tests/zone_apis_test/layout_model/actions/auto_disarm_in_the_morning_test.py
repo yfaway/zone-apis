@@ -49,7 +49,7 @@ class AutoDisarmInTheMorningTest(DeviceTest):
 
         now = datetime.now()
         start_hour = (now.hour + 1) % 24
-        end_hour = start_hour + 1
+        end_hour = (start_hour + 1) % 24
 
         self.activity_times = ActivityTimes({'wakeup': f'{start_hour} - {end_hour}'})
         self.zone1 = Zone('foyer', [self.motionSensor, self.alarmPartition, self.activity_times])\

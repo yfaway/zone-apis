@@ -43,7 +43,7 @@ class AutoArmStayInTheNightTest(DeviceTest):
     def testOnAction_motionTriggeredNotInWakeupTimePeriod_disarm(self):
         now = datetime.now()
         start_hour = (now.hour + 1) % 24
-        end_hour = start_hour + 1
+        end_hour = (start_hour + 1) % 24
 
         self.activity_times = ActivityTimes({'auto-arm-stay': f'{start_hour} - {end_hour}'})
         self.zone1 = Zone('foyer', [self.alarmPartition, self.activity_times])\
