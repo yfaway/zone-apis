@@ -11,6 +11,7 @@ from aaa_modules.layout_model.zone import Zone
 from aaa_modules.layout_model.zone_manager import ZoneManager
 
 
+# noinspection PyProtectedMember
 def create_zone_manager(zones: List[Zone]) -> ImmutableZoneManager:
     zm = ZoneManager()
     for zone in zones:
