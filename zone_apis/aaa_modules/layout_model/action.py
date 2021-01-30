@@ -1,4 +1,5 @@
 import re
+from typing import Any
 
 from aaa_modules.layout_model.event_info import EventInfo
 from aaa_modules.layout_model.zone_event import ZoneEvent
@@ -54,6 +55,24 @@ class Action(object):
         Action should perform any necessary destruction such as cancelling the timer here.
         """
         pass
+
+    def get_containing_zone(self, zm):
+        """
+        :param ImmutableZoneManager zm:
+        :return: the first zone containing this action or None.
+        :rtype: Zone
+        """
+        for z in zm.get_zones():
+            if z.has_action(self):
+                return z
+
+        return None
+
+    def create_timer_event_info(self, event_info: EventInfo, custom_parameter: Any = None):
+        """ Helper method to return the TIMER event info. """
+        return EventInfo(ZoneEvent.TIMER, self.get_containing_zone(event_info.get_zone_manager()),
+                         event_info.get_zone(), event_info.get_zone_manager(),
+                         event_info.get_event_dispatcher(), None, custom_parameter)
 
     def get_required_devices(self):
         """

@@ -1,3 +1,5 @@
+from typing import Any
+
 from aaa_modules.layout_model.zone_event import ZoneEvent
 
 
@@ -7,7 +9,8 @@ class EventInfo(object):
     motion triggered.
     """
 
-    def __init__(self, event_type, item, zone, zone_manager, events, owning_zone=None):
+    def __init__(self, event_type, item, zone, zone_manager, events, owning_zone=None,
+                 custom_parameter: Any = None):
         """
         Creates a new EventInfo object.
 
@@ -16,6 +19,8 @@ class EventInfo(object):
         :param Zone zone: the zone where the event was triggered
         :param ImmutableZoneManager zone_manager:
         :param Any events: the OpenHab events object to dispatch actions
+        :param Zone owning_zone: the zone that contains the item; None if it is the same at the
+            dispatched zone.
         """
 
         if event_type is None:
@@ -38,6 +43,7 @@ class EventInfo(object):
         self.zoneManager = zone_manager
         self.events = events
         self._owning_zone = owning_zone
+        self._custom_parameter = custom_parameter
 
     def get_event_type(self):
         """ :rtype: ZoneEvent"""
@@ -62,3 +68,7 @@ class EventInfo(object):
     def get_owning_zone(self):
         """ Returns the zone that contains the item; returns None if it is the same at the dispatched zone."""
         return self._owning_zone
+
+    def get_custom_parameter(self):
+        """ :rtype: Any"""
+        return self._custom_parameter

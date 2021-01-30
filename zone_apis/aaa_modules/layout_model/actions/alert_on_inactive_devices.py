@@ -1,3 +1,5 @@
+from enum import unique, Enum
+
 from aaa_modules.alert import Alert
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.event_info import EventInfo
@@ -11,6 +13,11 @@ class AlertOnInactiveDevices:
     Send an admin info alert if a battery-powered or auto-report WIFI device hasn't got any update
     in the specified duration.
     """
+
+    @unique
+    class Type(Enum):
+        BATTERY_DEVICES = 1
+        AUTO_REPORT_WIFI_DEVICES = 2
 
     def __init__(self, battery_powered_period_in_hours: float = 3 * 24,
                  auto_report_wifi_period_in_hours: float = 12):
@@ -27,24 +34,18 @@ class AlertOnInactiveDevices:
 
         self._battery_powered_period_in_hours = battery_powered_period_in_hours
         self._auto_report_wifi_period_in_hours = auto_report_wifi_period_in_hours
-        self._battery = False
-        self._wifi = False
 
     def on_startup(self, event_info: EventInfo):
 
         def battery_device_timer_handler():
-            action_event = EventInfo(ZoneEvent.TIMER, None, event_info.get_zone(),
-                                     event_info.get_zone_manager(), event_info.get_event_dispatcher())
-            self._battery = True
-            self.on_action(action_event)
-            self._battery = False
+            self.on_action(
+                self.create_timer_event_info(event_info,
+                                             AlertOnInactiveDevices.Type.BATTERY_DEVICES))
 
         def wifi_device_timer_handler():
-            action_event = EventInfo(ZoneEvent.TIMER, None, event_info.get_zone(),
-                                     event_info.get_zone_manager(), event_info.get_event_dispatcher())
-            self._wifi = True
-            self.on_action(action_event)
-            self._wifi = False
+            self.on_action(
+                self.create_timer_event_info(event_info,
+                                             AlertOnInactiveDevices.Type.AUTO_REPORT_WIFI_DEVICES))
 
         scheduler = event_info.get_zone_manager().get_scheduler()
         scheduler.every(self._battery_powered_period_in_hours).hours.do(battery_device_timer_handler)
@@ -53,10 +54,10 @@ class AlertOnInactiveDevices:
     def on_action(self, event_info):
         zone_manager = event_info.get_zone_manager()
 
-        if self._battery:
+        if event_info.get_custom_parameter() == AlertOnInactiveDevices.Type.BATTERY_DEVICES:
             self._check_and_send_alert(zone_manager, self.get_inactive_battery_devices,
                                        "battery", self._battery_powered_period_in_hours)
-        elif self._wifi:
+        elif event_info.get_custom_parameter() == AlertOnInactiveDevices.Type.AUTO_REPORT_WIFI_DEVICES:
             self._check_and_send_alert(zone_manager, self.get_inactive_auto_report_wifi_devices,
                                        "auto-report WiFi", self._auto_report_wifi_period_in_hours)
         else:

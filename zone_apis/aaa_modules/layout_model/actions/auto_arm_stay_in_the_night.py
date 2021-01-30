@@ -20,9 +20,7 @@ class AutoArmStayInTheNight:
 
         # start timer here. Main logic remains in on_action.
         def timer_handler():
-            action_event = EventInfo(ZoneEvent.TIMER, None, event_info.get_zone(),
-                                     event_info.get_zone_manager(), event_info.get_event_dispatcher())
-            self.on_action(action_event)
+            self.on_action(self.create_timer_event_info(event_info))
 
         scheduler = event_info.get_zone_manager().get_scheduler()
         scheduler.every().hour.at(':00').do(timer_handler)

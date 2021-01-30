@@ -28,38 +28,37 @@ class AlertOnInactiveDevicesTest(DeviceTest):
         self.zm = create_zone_manager([self.zone1])
 
     def testOnAction_noInactiveBatteryDevice_noAlert(self):
-        self.action._battery = True
-        self.assert_no_inactive_devices()
+        self.assert_no_inactive_devices(AlertOnInactiveDevices.Type.BATTERY_DEVICES)
 
     def testOnAction_noInactiveAutoReportWifiDevice_noAlert(self):
-        self.action._wifi = True
-        self.assert_no_inactive_devices()
+        self.assert_no_inactive_devices(AlertOnInactiveDevices.Type.AUTO_REPORT_WIFI_DEVICES)
 
     def testOnAction_oneInactiveBatteryDevice_noAlert(self):
-        self.action._battery = True
         self.motion1.last_activated_timestamp = time.time() - (2 * 3600)  # 10 secs ago
         self.motion2._update_last_activated_timestamp()
 
-        self.assert_inactive_devices("1 inactive battery devices")
+        self.assert_inactive_devices(AlertOnInactiveDevices.Type.BATTERY_DEVICES, "1 inactive battery devices")
 
     def testOnAction_oneInactiveAutoReportWifiDevice_noAlert(self):
-        self.action._wifi = True
         self.motion1._update_last_activated_timestamp()
         self.motion2.last_activated_timestamp = time.time() - (2 * 3600)  # 10 secs ago
 
-        self.assert_inactive_devices("1 inactive auto-report WiFi devices")
+        self.assert_inactive_devices(AlertOnInactiveDevices.Type.AUTO_REPORT_WIFI_DEVICES,
+                                     "1 inactive auto-report WiFi devices")
 
-    def assert_no_inactive_devices(self):
+    def assert_no_inactive_devices(self, custom_param):
         self.motion1._update_last_activated_timestamp()
         self.motion2._update_last_activated_timestamp()
 
-        event_info = EventInfo(ZoneEvent.TIMER, None, self.zone1, self.zm, pe.get_event_dispatcher())
+        event_info = EventInfo(ZoneEvent.TIMER, None, self.zone1, self.zm, pe.get_event_dispatcher(),
+                               None, custom_param)
         value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertTrue(self.zm.get_alert_manager()._lastEmailedSubject is None)
 
-    def assert_inactive_devices(self, alert_subject: str):
-        event_info = EventInfo(ZoneEvent.TIMER, None, self.zone1, self.zm, pe.get_event_dispatcher())
+    def assert_inactive_devices(self, custom_param, alert_subject: str):
+        event_info = EventInfo(ZoneEvent.TIMER, None, self.zone1, self.zm, pe.get_event_dispatcher(),
+                               None, custom_param)
         value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertTrue(alert_subject in self.zm.get_alert_manager()._lastEmailedSubject)
