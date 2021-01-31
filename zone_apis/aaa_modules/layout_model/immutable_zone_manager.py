@@ -1,6 +1,6 @@
 import threading
 import time
-from typing import Type
+from typing import Type, List
 
 from schedule import Scheduler
 
@@ -88,7 +88,7 @@ class ImmutableZoneManager:
 
         return None
 
-    def get_zones(self):
+    def get_zones(self) -> List[Zone]:
         """
         Returns a new list contains all zone.
 
