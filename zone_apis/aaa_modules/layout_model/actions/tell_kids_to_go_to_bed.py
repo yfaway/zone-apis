@@ -1,7 +1,6 @@
 from datetime import datetime
 from enum import unique, Enum
 
-from aaa_modules import platform_encapsulator as pe
 from aaa_modules.audio_manager import get_nearby_audio_sink
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.switch import Light
@@ -44,7 +43,7 @@ class TellKidsToGoToBed:
 
         sink = get_nearby_audio_sink(zone, zone_manager)
         if sink is None:
-            pe.log_info(f"{self.__class__.__name__}: missing audio device; can't play music.")
+            self.log_warning("Missing audio device; can't play music.")
             return False
 
         time_str = datetime.now().strftime("%I:%M")
@@ -55,15 +54,12 @@ class TellKidsToGoToBed:
         else:
             sink.play_message(f'Kids, it is {time_str}; please go upstairs now.')
 
-            print(event_info.get_zone())
-
             foyer_zone = None
             for z in zone_manager.get_zones():
                 if z.get_level() == zone.get_level():
                     if "Foyer" in z.get_name():
                         foyer_zone = z
                     else:
-                        print("*** turning off light")
                         z.turn_off_lights(event_info.get_event_dispatcher())
 
             if foyer_zone is not None:

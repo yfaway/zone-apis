@@ -17,6 +17,7 @@ class TurnOffDevicesOnAlarmModeChange:
     def __init__(self):
         pass
 
+    # noinspection PyMethodMayBeStatic
     def on_action(self, event_info):
         events = event_info.get_event_dispatcher()
         zone_manager = event_info.get_zone_manager()

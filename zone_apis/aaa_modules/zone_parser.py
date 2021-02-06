@@ -29,6 +29,7 @@ from aaa_modules.layout_model.devices.network_presence import NetworkPresence
 from aaa_modules.layout_model.devices.plug import Plug
 from aaa_modules.layout_model.devices.switch import Fan, Light
 from aaa_modules.layout_model.devices.temperature_sensor import TemperatureSensor
+from aaa_modules.layout_model.devices.thermostat import EcobeeThermostat
 from aaa_modules.layout_model.devices.tv import Tv
 from aaa_modules.layout_model.devices.wled import Wled
 from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
@@ -65,6 +66,7 @@ def parse() -> ImmutableZoneManager:
         '[^g].*_NaturalGas$': _create_gas_sensor(NaturalGasSensor),
         '[^g].*_Smoke$': _create_gas_sensor(SmokeSensor),
         '.*_Tv$': lambda zone_manager, an_item: Tv(an_item),
+        '.*_Thermostat_EcobeeName$': lambda zone_manager, an_item: EcobeeThermostat(an_item),
         '[^g].*Temperature$': _create_temperature_sensor,
     }
 

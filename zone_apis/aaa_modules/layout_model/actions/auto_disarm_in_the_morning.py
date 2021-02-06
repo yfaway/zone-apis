@@ -23,7 +23,7 @@ class AutoDisarmInTheMorning:
 
         activities = zone_manager.get_devices_by_type(ActivityTimes)
         if len(activities) == 0:
-            pe.log_warning(f"{self.__class__.__name__}: missing activities time; can't determine wake-up time.")
+            self.log_warning("Missing activities time; can't determine wake-up time.")
             return False
 
         activity = activities[0]

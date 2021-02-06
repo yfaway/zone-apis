@@ -339,3 +339,13 @@ def send_email(email_addresses: List[str], subject: str, body: str = '', attachm
     StringItem.get_item('EmailBody').oh_post_update(body)
     StringItem.get_item('EmailAttachmentUrls').oh_post_update(', '.join(attachment_urls))
     StringItem.get_item('EmailAddresses').oh_post_update(', '.join(email_addresses))
+
+
+def change_ecobee_thermostat_hold_mode(mode: str):
+    """ Change Ecobee thermostat to the specified mode via the Ecobee action in OpenHab. """
+    StringItem.get_item('EcobeeThermostatHoldMode').oh_post_update(mode)
+
+
+def resume_ecobee_thermostat_program():
+    """ Resume the Ecobee thermostat via the Ecobee action in OpenHab. """
+    SwitchItem.get_item('EcobeeThermostatResume').on()

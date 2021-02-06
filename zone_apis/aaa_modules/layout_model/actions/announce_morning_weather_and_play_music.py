@@ -51,7 +51,7 @@ class AnnounceMorningWeatherAndPlayMusic:
 
         activities = zone_manager.get_devices_by_type(ActivityTimes)
         if len(activities) == 0:
-            pe.log_info(f"{self.__class__.__name__}: missing ActivityTimes; can't determine if this is dinner time.")
+            self.log_warning("Missing ActivityTimes; can't determine if this is dinner time.")
             return False
 
         def stop_music_session():
@@ -69,7 +69,7 @@ class AnnounceMorningWeatherAndPlayMusic:
         else:
             self._sink = get_nearby_audio_sink(zone, zone_manager)
             if self._sink is None:
-                pe.log_warning(f"{self.__class__.__name__}: missing audio device; can't play music.")
+                self.log_warning("Missing audio device; can't play music.")
                 return False
 
             activity = activities[0]

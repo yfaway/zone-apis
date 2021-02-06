@@ -1,6 +1,7 @@
 import re
 from typing import Any
 
+from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.event_info import EventInfo
 from aaa_modules.layout_model.zone_event import ZoneEvent
 
@@ -152,6 +153,10 @@ class Action(object):
     def disable_filtering(self):
         self._filtering_disabled = True
         return self
+
+    def log_warning(self, message: str):
+        """ Log a warning with the action name prefix. """
+        pe.log_warning(f"{self.__class__.__name__}: {message}.")
 
 
 def action(devices=None, events=None, internal=True, external=False, levels=None,

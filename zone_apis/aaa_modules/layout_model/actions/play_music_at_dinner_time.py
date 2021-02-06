@@ -1,7 +1,6 @@
 import random
 from threading import Timer
 
-from aaa_modules import platform_encapsulator as pe
 from aaa_modules.audio_manager import Genre, get_music_streams_by_genres, get_nearby_audio_sink
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
@@ -43,12 +42,12 @@ class PlayMusicAtDinnerTime:
 
         activities = zone_manager.get_devices_by_type(ActivityTimes)
         if len(activities) == 0:
-            pe.log_info(f"{self.__class__.__name__}: missing ActivityTimes; can't determine if this is dinner time.")
+            self.log_warning("Missing ActivityTimes; can't determine if this is dinner time.")
             return False
 
         sink = get_nearby_audio_sink(zone, zone_manager)
         if sink is None:
-            pe.log_info(f"{self.__class__.__name__}: missing audio device; can't play music.")
+            self.log_warning("Missing audio device; can't play music.")
             return False
 
         activity = activities[0]
