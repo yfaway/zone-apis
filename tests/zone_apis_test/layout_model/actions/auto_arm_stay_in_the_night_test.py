@@ -2,7 +2,7 @@ from datetime import datetime
 
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.actions.auto_arm_stay_in_the_night import AutoArmStayInTheNight
-from aaa_modules.layout_model.devices.activity_times import ActivityTimes
+from aaa_modules.layout_model.devices.activity_times import ActivityTimes, ActivityType
 
 from aaa_modules.layout_model.event_info import EventInfo
 from aaa_modules.layout_model.zone import Zone
@@ -23,7 +23,7 @@ class AutoArmStayInTheNightTest(DeviceTest):
         self.alarmPartition.disarm(pe.get_event_dispatcher())
 
         time_map = {
-            'auto-arm-stay': '0:00 - 23:59',
+            ActivityType.AUTO_ARM_STAY: '0:00 - 23:59',
         }
         self.activity_times = ActivityTimes(time_map)
 
@@ -45,7 +45,7 @@ class AutoArmStayInTheNightTest(DeviceTest):
         start_hour = (now.hour + 1) % 24
         end_hour = (start_hour + 1) % 24
 
-        self.activity_times = ActivityTimes({'auto-arm-stay': f'{start_hour} - {end_hour}'})
+        self.activity_times = ActivityTimes({ActivityType.AUTO_ARM_STAY: f'{start_hour} - {end_hour}'})
         self.zone1 = Zone('foyer', [self.alarmPartition, self.activity_times])\
             .add_action(self.action)
         self.mockZoneManager = create_zone_manager([self.zone1])

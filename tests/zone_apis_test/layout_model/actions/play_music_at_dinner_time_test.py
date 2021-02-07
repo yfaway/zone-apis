@@ -2,7 +2,7 @@ import time
 
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.actions.play_music_at_dinner_time import PlayMusicAtDinnerTime
-from aaa_modules.layout_model.devices.activity_times import ActivityTimes
+from aaa_modules.layout_model.devices.activity_times import ActivityTimes, ActivityType
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
 
 from zone_apis_test.layout_model.device_test import DeviceTest, create_zone_manager
@@ -27,7 +27,7 @@ class PlayMusicAtDinnerTimeTest(DeviceTest):
         self.motion = MotionSensor(self.motion_item)
 
         time_map = {
-            'dinner': '0:00 - 23:59',
+            ActivityType.DINNER: '0:00 - 23:59',
         }
         self.activity_times = ActivityTimes(time_map)
 

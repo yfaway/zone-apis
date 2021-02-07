@@ -14,7 +14,7 @@ from HABApp.openhab.items import ColorItem, DimmerItem, SwitchItem, StringItem, 
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.alert_manager import AlertManager
 from aaa_modules.layout_model.action import Action
-from aaa_modules.layout_model.devices.activity_times import ActivityTimes
+from aaa_modules.layout_model.devices.activity_times import ActivityTimes, ActivityType
 from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition, AlarmState
 from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 from aaa_modules.layout_model.devices.camera import Camera
@@ -113,12 +113,13 @@ def parse() -> ImmutableZoneManager:
     zone = next((z for z in zone_mappings.values() if z.get_name() == 'Virtual'), None)
     if zone is not None:
         time_map = {
-            'wakeup': '6 - 9',
-            'lunch': '12:00 - 13:30',
-            'quiet': '14:00 - 16:00, 20:00 - 22:59',
-            'dinner': '17:50 - 20:00',
-            'sleep': '23:00 - 7:00',
-            'auto-arm-stay': '20:00 - 2:00',
+            ActivityType.WAKE_UP: '6 - 9',
+            ActivityType.LUNCH: '12:00 - 13:30',
+            ActivityType.QUIET: '14:00 - 16:00, 20:00 - 22:59',
+            ActivityType.DINNER: '17:50 - 20:00',
+            ActivityType.SLEEP: '23:00 - 7:00',
+            ActivityType.AUTO_ARM_STAY: '20:00 - 2:00',
+            ActivityType.TURN_OFF_PLUGS: '23:00 - 2:00',
         }
         zone = zone.add_device(ActivityTimes(time_map))
         zone_mappings[zone.get_id()] = zone

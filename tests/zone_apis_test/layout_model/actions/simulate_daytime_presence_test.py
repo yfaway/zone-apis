@@ -7,7 +7,7 @@ from aaa_modules.layout_model.event_info import EventInfo
 from aaa_modules.layout_model.zone import Zone, Level
 from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition
-from aaa_modules.layout_model.devices.activity_times import ActivityTimes
+from aaa_modules.layout_model.devices.activity_times import ActivityTimes, ActivityType
 from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink
 from zone_apis_test.layout_model.device_test import DeviceTest, create_zone_manager
 from aaa_modules.layout_model.actions.simulate_daytime_presence import SimulateDaytimePresence
@@ -70,7 +70,7 @@ class SimulateDaytimePresenceTest(DeviceTest):
         self.assertFalse(value)
 
     def testOnAction_sleepTime_returnsFalse(self):
-        time_map = {'sleep': '0:00 - 23:59'}
+        time_map = {ActivityType.SLEEP: '0:00 - 23:59'}
         (porch, greatRoom, zm, event_info) = self.create_test_data(
             [], [ActivityTimes(time_map)])
 

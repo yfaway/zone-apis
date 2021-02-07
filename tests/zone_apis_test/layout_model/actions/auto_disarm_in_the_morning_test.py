@@ -2,7 +2,7 @@ from datetime import datetime
 
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.actions.auto_disarm_in_the_morning import AutoDisarmInTheMorning
-from aaa_modules.layout_model.devices.activity_times import ActivityTimes
+from aaa_modules.layout_model.devices.activity_times import ActivityTimes, ActivityType
 
 from aaa_modules.layout_model.event_info import EventInfo
 from aaa_modules.layout_model.zone import Zone
@@ -25,7 +25,7 @@ class AutoDisarmInTheMorningTest(DeviceTest):
         self.motionSensor = MotionSensor(items[2])
 
         time_map = {
-            'wakeup': '0:00 - 23:59',
+            ActivityType.WAKE_UP: '0:00 - 23:59',
         }
         self.activity_times = ActivityTimes(time_map)
 
@@ -51,7 +51,7 @@ class AutoDisarmInTheMorningTest(DeviceTest):
         start_hour = (now.hour + 1) % 24
         end_hour = (start_hour + 1) % 24
 
-        self.activity_times = ActivityTimes({'wakeup': f'{start_hour} - {end_hour}'})
+        self.activity_times = ActivityTimes({ActivityType.WAKE_UP: f'{start_hour} - {end_hour}'})
         self.zone1 = Zone('foyer', [self.motionSensor, self.alarmPartition, self.activity_times])\
             .add_action(self.action)
         self.mockZoneManager = create_zone_manager([self.zone1])

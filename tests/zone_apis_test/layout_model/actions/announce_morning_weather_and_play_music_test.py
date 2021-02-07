@@ -2,7 +2,7 @@ import time
 
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.actions.announce_morning_weather_and_play_music import AnnounceMorningWeatherAndPlayMusic
-from aaa_modules.layout_model.devices.activity_times import ActivityTimes
+from aaa_modules.layout_model.devices.activity_times import ActivityTimes, ActivityType
 from aaa_modules.layout_model.devices.contact import Door
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
 
@@ -38,7 +38,7 @@ class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
         self.external_door = Door(self.external_door_item)
 
         time_map = {
-            'wakeup': '0:00 - 23:59',
+            ActivityType.WAKE_UP: '0:00 - 23:59',
         }
         self.activity_times = ActivityTimes(time_map)
 

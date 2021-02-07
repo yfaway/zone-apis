@@ -2,7 +2,7 @@ import time
 import datetime
 
 from zone_apis_test.layout_model.device_test import DeviceTest
-from aaa_modules.layout_model.devices.activity_times import ActivityTimes
+from aaa_modules.layout_model.devices.activity_times import ActivityTimes, ActivityType
 
 
 class ActivityTimesTest(DeviceTest):
@@ -13,19 +13,17 @@ class ActivityTimesTest(DeviceTest):
         super(ActivityTimesTest, self).setUp()
 
         time_map = {
-            'wakeup': '6 - 9',
-            'lunch': '12:00 - 13:30',
-            'quiet': '14:00 - 16:00, 20:00 - 22:59',
-            'dinner': '17:50 - 20:00',
-            'sleep': '23:00 - 7:00'
+            ActivityType.WAKE_UP: '6 - 9',
+            ActivityType.LUNCH: '12:00 - 13:30',
+            ActivityType.QUIET: '14:00 - 16:00, 20:00 - 22:59',
+            ActivityType.DINNER: '17:50 - 20:00',
+            ActivityType.SLEEP: '23:00 - 7:00'
         }
         self.activity = ActivityTimes(time_map)
 
     def testCtor_invalidKey_throwsError(self):
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(TypeError) as cm:
             ActivityTimes({'invalidKey': '8:00 - 9:00'})
-
-        self.assertEqual('Invalid time range key invalidKey', cm.exception.args[0])
 
     def testIsWakeupTime_lunchTime_returnsTrue(self):
         dt = datetime.datetime(2020, 2, 8, 7, 10)

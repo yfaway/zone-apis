@@ -3,7 +3,7 @@ from typing import List
 from aaa_modules.alert import Alert
 # noinspection PyProtectedMember
 from aaa_modules.alert_manager import AlertManager, _get_owner_email_addresses
-from aaa_modules.layout_model.devices.activity_times import ActivityTimes
+from aaa_modules.layout_model.devices.activity_times import ActivityTimes, ActivityType
 from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink
 from aaa_modules.layout_model.zone import Zone
 from zone_apis_test.layout_model.device_test import DeviceTest, create_zone_manager
@@ -21,10 +21,10 @@ class AlertManagerTest(DeviceTest):
         super(AlertManagerTest, self).setUp()
 
         time_map = {
-            'wakeup': '6 - 9',
-            'lunch': '12:00 - 13:30',
-            'quiet': '14:00 - 16:00, 20:00 - 22:59',
-            'dinner': '17:50 - 20:00',
+            ActivityType.WAKE_UP: '6 - 9',
+            ActivityType.LUNCH: '12:00 - 13:30',
+            ActivityType.QUIET: '14:00 - 16:00, 20:00 - 22:59',
+            ActivityType.DINNER: '17:50 - 20:00',
             # intentionally no sleep time; otherwise some tests will fail at certain time.
         }
         self._activity_time = ActivityTimes(time_map)
