@@ -210,6 +210,9 @@ def _add_actions(zone_mappings: Dict) -> Dict:
             if zone.is_external() and not action.is_applicable_to_external_zone():
                 continue
 
+            if len(action.get_applicable_levels()) > 0 and (zone.get_level() not in action.get_applicable_levels()):
+                continue
+
             zone_name_pattern = action.get_applicable_zone_name_pattern()
             if zone_name_pattern is not None:
                 match = re.search(zone_name_pattern, zone.get_name())

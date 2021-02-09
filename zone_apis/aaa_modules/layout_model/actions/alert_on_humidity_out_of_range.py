@@ -5,7 +5,8 @@ from aaa_modules.layout_model.actions.range_violation_alert import RangeViolatio
 from aaa_modules.layout_model.devices.humidity_sensor import HumiditySensor
 
 
-@action(events=[ZoneEvent.HUMIDITY_CHANGED], devices=[HumiditySensor], internal=True, unique_instance=True)
+@action(events=[ZoneEvent.HUMIDITY_CHANGED], devices=[HumiditySensor], internal=True,
+        levels=[Level.FIRST_FLOOR], unique_instance=True)
 class AlertOnHumidityOutOfRange:
     """
     Send an warning alert if the humidity is outside the range.
