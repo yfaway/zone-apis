@@ -13,17 +13,19 @@ class Plug(Device):
     containing this plug is considered to be occupied.
     """
 
-    def __init__(self, plug_item, power_reading_item=None):
+    def __init__(self, plug_item, power_reading_item=None, always_on=False):
         """
         Ctor
 
         :param SwitchItem plug_item:
         :param NumberItem power_reading_item: the optional item to get the wattage reading
-        :raise ValueError: if plugItem is invalid
+        :param Bool always_on: indicates if the plug should be on all the time
+        :raise ValueError: if plug_item is invalid
         """
         Device.__init__(self, plug_item)
 
         self.power_reading_item = power_reading_item
+        self.always_on = always_on
 
     def is_on(self):
         """
@@ -49,6 +51,10 @@ class Plug(Device):
 
         return pe.get_number_value(self.power_reading_item)
 
+    def is_always_on(self):
+        """ Returns true if this plug should not be turned off automatically. """
+        return self.always_on
+
     def is_occupied(self, seconds_from_last_event=5 * 60):
         """
         Returns True if the power reading is above the threshold.
@@ -72,3 +78,8 @@ class Plug(Device):
         """
         if self.is_on():
             events.send_command(self.get_item_name(), "OFF")
+
+    def __str__(self):
+        """ @override """
+        return u"{}{}".format(
+            super(Plug, self).__str__(), ", always on" if self.is_always_on() else "")

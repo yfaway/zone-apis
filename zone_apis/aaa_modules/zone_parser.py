@@ -361,7 +361,11 @@ def _create_plug(zm: ImmutableZoneManager, item) -> Plug:
     else:
         power_item = None
 
-    return Plug(item, power_item)
+    item_def = HABApp.openhab.interface.get_item(item.name, "alwaysOn")
+    metadata = item_def.metadata
+    always_on = True if "true" == _get_meta_value(metadata, "alwaysOn") else False
+
+    return Plug(item, power_item, always_on)
 
 
 def _create_gas_sensor(cls):

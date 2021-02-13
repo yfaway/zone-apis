@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.actions.auto_arm_stay_in_the_night import AutoArmStayInTheNight
 from aaa_modules.layout_model.devices.activity_times import ActivityTimes, ActivityType
@@ -15,7 +13,7 @@ class AutoArmStayInTheNightTest(DeviceTest):
     """ Unit tests for AutoArmStayInTheNight. """
 
     def setUp(self):
-        items = [pe.create_switch_item('AlarmStatus'), pe.create_number_item('_AlarmMode') ]
+        items = [pe.create_switch_item('AlarmStatus'), pe.create_number_item('_AlarmMode')]
         self.set_items(items)
         super(AutoArmStayInTheNightTest, self).setUp()
 
@@ -28,7 +26,7 @@ class AutoArmStayInTheNightTest(DeviceTest):
         self.activity_times = ActivityTimes(time_map)
 
         self.action = AutoArmStayInTheNight()
-        self.zone1 = Zone('foyer', [self.alarmPartition, self.activity_times])\
+        self.zone1 = Zone('foyer', [self.alarmPartition, self.activity_times]) \
             .add_action(self.action)
 
         self.mockZoneManager = create_zone_manager([self.zone1])
@@ -41,12 +39,8 @@ class AutoArmStayInTheNightTest(DeviceTest):
         self.assertTrue(self.alarmPartition.is_armed_stay())
 
     def testOnAction_motionTriggeredNotInWakeupTimePeriod_disarm(self):
-        now = datetime.now()
-        start_hour = (now.hour + 1) % 24
-        end_hour = (start_hour + 1) % 24
-
-        self.activity_times = ActivityTimes({ActivityType.AUTO_ARM_STAY: f'{start_hour} - {end_hour}'})
-        self.zone1 = Zone('foyer', [self.alarmPartition, self.activity_times])\
+        self.activity_times = ActivityTimes({ActivityType.AUTO_ARM_STAY: self.create_outside_time_range()})
+        self.zone1 = Zone('foyer', [self.alarmPartition, self.activity_times]) \
             .add_action(self.action)
         self.mockZoneManager = create_zone_manager([self.zone1])
 

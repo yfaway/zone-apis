@@ -1,4 +1,5 @@
 import unittest
+from datetime import datetime
 from typing import List, Tuple
 
 from HABApp.core.Items import ItemAlreadyExistsError
@@ -70,3 +71,12 @@ class DeviceTest(unittest.TestCase):
         sink._set_test_mode()
 
         return sink, items
+
+    # noinspection PyMethodMayBeStatic
+    def create_outside_time_range(self) -> str:
+        """ Creates a time range string that is outside the current time."""
+        now = datetime.now()
+        start_hour = (now.hour + 1) % 24
+        end_hour = (start_hour + 1) % 24
+
+        return f'{start_hour} - {end_hour}'
