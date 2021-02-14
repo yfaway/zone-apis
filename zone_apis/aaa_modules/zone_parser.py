@@ -19,7 +19,7 @@ from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition, Ala
 from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 from aaa_modules.layout_model.devices.camera import Camera
 from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink
-from aaa_modules.layout_model.devices.contact import Door
+from aaa_modules.layout_model.devices.contact import Door, GarageDoor
 from aaa_modules.layout_model.devices.dimmer import Dimmer
 from aaa_modules.layout_model.devices.gas_sensor import GasSensor, NaturalGasSensor, SmokeSensor, Co2GasSensor
 from aaa_modules.layout_model.devices.humidity_sensor import HumiditySensor
@@ -266,7 +266,10 @@ def _create_camera(zm: ImmutableZoneManager, item: StringItem) -> Camera:
 
 
 def _create_door(zm: ImmutableZoneManager, item) -> Door:
-    sensor = Door(item)
+    if 'garage' in pe.get_item_name(item).lower():
+        sensor = GarageDoor(item)
+    else:
+        sensor = Door(item)
 
     # noinspection PyUnusedLocal
     def handler(event: ValueChangeEvent):

@@ -16,12 +16,13 @@ class AutoDisarmInTheMorningTest(DeviceTest):
     """ Unit tests for AutoDisarmInTheMorning. """
 
     def setUp(self):
-        items = [pe.create_switch_item('AlarmStatus'), pe.create_number_item('_AlarmMode'),
-                 pe.create_switch_item('InternalMotionSensor')]
+        self.alarmPartition, items = self.create_alarm_partition()
+
+        items = items + [pe.create_switch_item('InternalMotionSensor')]
         self.set_items(items)
+
         super(AutoDisarmInTheMorningTest, self).setUp()
 
-        self.alarmPartition = AlarmPartition(items[0], items[1])
         self.motionSensor = MotionSensor(items[2])
 
         time_map = {

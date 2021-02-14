@@ -8,6 +8,11 @@ Provide quick access to the alarm partition of the zones.
 """
 
 
+def has_security_system(zm: ImmutableZoneManager):
+    """ Returns True if the house has a security system. """
+    return _get_partition(zm) is not None
+
+
 def is_armed_away(zm: ImmutableZoneManager):
     """
     :return: True if at least one zone is armed-away

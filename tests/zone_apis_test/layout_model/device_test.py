@@ -6,6 +6,7 @@ from HABApp.core.Items import ItemAlreadyExistsError
 
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.alert_manager import AlertManager
+from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition
 from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink
 from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
 from aaa_modules.layout_model.zone import Zone
@@ -80,3 +81,10 @@ class DeviceTest(unittest.TestCase):
         end_hour = (start_hour + 1) % 24
 
         return f'{start_hour} - {end_hour}'
+
+    # noinspection PyMethodMayBeStatic
+    def create_alarm_partition(self):
+        items = [pe.create_switch_item('AlarmStatus'), pe.create_number_item('_AlarmMode')]
+        alarm_partition = AlarmPartition(items[0], items[1])
+
+        return alarm_partition, items

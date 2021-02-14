@@ -31,14 +31,15 @@ class Contact(Device):
 
 
 class Door(Contact):
-    """
-    Represents a door.
-    """
+    """ Represents a door. """
+    pass
+
+
+class GarageDoor(Contact):
+    """ Represents a garage door. """
     pass
 
 
 class Window(Contact):
-    """
-    Represents a window.
-    """
+    """ Represents a window. """
     pass

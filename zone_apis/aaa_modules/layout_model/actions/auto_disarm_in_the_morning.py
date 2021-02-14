@@ -4,7 +4,6 @@ from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
 from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition
-from aaa_modules import platform_encapsulator as pe
 
 
 @action(events=[ZoneEvent.MOTION], devices=[AlarmPartition, MotionSensor])
