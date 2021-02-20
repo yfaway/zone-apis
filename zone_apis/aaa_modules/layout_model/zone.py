@@ -216,6 +216,16 @@ class Zone:
             raise ValueError('cls must not be None')
         return [d for d in self.devices if isinstance(d, cls)]
 
+    def get_first_device_by_type(self, cls: type):
+        """
+        Returns the first device matching the given type, or None if there is no device.
+
+        :param type cls: the device type
+        :rtype: Device or None
+        """
+        devices = self.get_devices_by_type(cls)
+        return devices[0] if len(devices) > 0 else None
+
     def get_device_by_event(self, event_info):
         """
         Returns the device that generates the provided event.

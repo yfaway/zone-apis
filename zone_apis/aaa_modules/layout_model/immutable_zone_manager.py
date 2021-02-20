@@ -115,6 +115,15 @@ class ImmutableZoneManager:
         """
         return self.get_devices_by_type_fcn(cls)
 
+    def get_first_device_by_type(self, cls: type):
+        """
+        Returns the first device matching the given type, or None if there is no device.
+
+        :param type cls: the device type
+        """
+        devices = self.get_devices_by_type(cls)
+        return devices[0] if len(devices) > 0 else None
+
     def dispatch_event(self, zone_event: ZoneEvent, open_hab_events, item):
         """
         Dispatches the event to the zones.
