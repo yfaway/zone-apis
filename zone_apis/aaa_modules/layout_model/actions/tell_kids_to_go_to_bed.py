@@ -72,7 +72,7 @@ class TellKidsToGoToBed:
     def _is_applicable(self):
         """ Returns true if the next day is a school day. """
         now = datetime.now()
-        if (0 <= now.weekday() <= 4) or now.weekday() == 6:  # Mon - Thursday and Sunday
+        if (0 <= now.weekday() < 4) or now.weekday() == 6:  # Mon - Thursday and Sunday
             if now.month >= 9 or now.month <= 5:  # Between Sept and June 20
                 return True
             elif now.month == 6:
