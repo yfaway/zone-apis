@@ -7,10 +7,11 @@ from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition
 
 
 @action(events=[ZoneEvent.MOTION], devices=[AlarmPartition, MotionSensor])
-class AutoDisarmInTheMorning:
+class DisarmInTheMorning:
     """
     Automatically disarm the security system when the motion sensor in the zone containing the
-    security panel is triggered during the wake-up hour range.
+    security panel is triggered and the current time is not in the auto-arm-stay or sleep
+    time periods.
     """
 
     def on_action(self, event_info):
@@ -20,14 +21,13 @@ class AutoDisarmInTheMorning:
         if not sm.is_armed_stay(zone_manager):
             return False
 
-        activities = zone_manager.get_devices_by_type(ActivityTimes)
-        if len(activities) == 0:
+        activity = zone_manager.get_first_device_by_type(ActivityTimes)
+        if activity is None:
             self.log_warning("Missing activities time; can't determine wake-up time.")
             return False
 
-        activity = activities[0]
-        if activity.is_wakeup_time():
-            sm.disarm(zone_manager, events)
-            return True
-        else:
+        if activity.is_auto_arm_stay_time() or activity.is_sleep_time():
             return False
+
+        sm.disarm(zone_manager, events)
+        return True

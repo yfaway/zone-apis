@@ -6,11 +6,10 @@ from aaa_modules.layout_model.event_info import EventInfo
 from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition
-from aaa_modules import platform_encapsulator as pe
 
 
 @action(events=[ZoneEvent.TIMER], devices=[AlarmPartition, MotionSensor])
-class AutoArmStayInTheNight:
+class ArmStayInTheNight:
     """
     Automatically arm-stay the house when the current time is within an auto-arm period. Continue to
     check every 15' and arm-stay (if necessary) during that period.
