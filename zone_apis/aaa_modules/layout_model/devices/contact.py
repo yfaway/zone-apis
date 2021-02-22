@@ -35,7 +35,7 @@ class Door(Contact):
     pass
 
 
-class GarageDoor(Contact):
+class GarageDoor(Door):
     """ Represents a garage door. """
     pass
 
