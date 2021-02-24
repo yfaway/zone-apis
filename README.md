@@ -1,8 +1,6 @@
-# Zone API - an alternative approach to access devices / sensors       
-In OpenHab, items are defined in a flat manner in .items files under the /etc/openhab2/items folder.
-They are typically linked to a channel exposed by the underlying hardware (virtual items do not link
-to any).
-                                                                                
+# Zone API - an alternative approach to writing rules
+In OpenHab, items are defined in a flat manner in the *.items* files under the */etc/openhab2/items folder*.
+They are typically linked to a channel exposed by the underlying hardware.
 This flat structure has an impact on how rules (whether in Xtend or Jython) are organized. As there
 is no higher level abstraction, rules tend to listen to changes from the specific devices. When the
 rules need to interact with multiple devices of the same type, they can utilize the 
@@ -16,7 +14,7 @@ pattern, or by dedicated groups. For example, the light switch and motion sensor
 can be named like this: "FF_Foyer_Light", and "FF_Foyer_MotionSensor". When a sensor is triggered,
 the zone can be derived from the name of the triggering item, and other devices/sensors can be
 retrieved using that naming convention. This works but as there is not sufficient abstraction, the
-rule is highly coupled to the naming patern.
+rules are highly coupled to the naming pattern.
                                                                                 
 The [Zone API](https://github.com/yfaway/zone-apis) provides another approach. It provides a layer
 above the devices / sensors. Each [ZoneManager](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/immutable_zone_manager.py)
@@ -28,24 +26,72 @@ The usual OpenHab events are routed in this manner:
 
 `OpenHab events --> ZoneManager --> Zones --> Actions`
 
-It provides a level of abstraction on top of the raw items. The actions can operate on the abstract
-devices and do not concern about the naming of the items or the underlying hardware. The actions
-replace the traditional OpenHab rules. Actions can be unit-tested with various levels of mocking.
+The actions operate on the abstract devices and do not concern about the naming of the items or
+the underlying hardware. They replace the traditional OpenHab rules. Actions can be unit-tested with
+various levels of mocking.
 
-**Most importantly, it enables reusing of action logics.** Why would everyone have to re-write the
-same set of logic for turning on/off lights again and again. All ones need to do is to populate
-the zones and devices / sensors, and the applicable actions will be added and processed
-automatically.
+**Most importantly, it enables reusing of action logics.** There is no need to reinvent the wheels for 
+common rules such as turning on/off the lights. All ones need to do is to populate the zones and
+devices / sensors, and the applicable actions will be added and processed automatically.
 
-# Running on top of HABApp but with minimal dependency
-[The original Zone API modules](https://github.com/yfaway/openhab-rules/tree/master/legacy-jython-code)
-were written in Jython. It was recently migrated over to the HABApp framework with minimal changes
-needed to the core code. See [here](https://community.openhab.org/t/habapp-vs-jsr223-jython/112914) for the comparison between HABApp and JSR223 Jython.
+Here is a sample info log that illustrate the structure of the managed objects.
+```text
+Zone: Kitchen, floor: FIRST_FLOOR, internal, displayIcon: kitchen, displayOrder: 3, 7 devices
+  AstroSensor: VT_Time_Of_Day                                                   
+  HumiditySensor: FF_Kitchen_Humidity                                           
+  IlluminanceSensor: FF_Kitchen_LightSwitch_Illuminance                         
+  Light: FF_Kitchen_LightSwitch, duration: 5 mins, illuminance: 8               
+  MotionSensor: FF_Kitchen_SecurityMotionSensor, battery powered                
+  MotionSensor: FF_Kitchen_LightSwitch_PantryMotionSensor, battery powered      
+  TemperatureSensor: FF_Kitchen_Temperature                                     
+                                                                                
+  Action: HUMIDITY_CHANGED -> AlertOnHumidityOutOfRange                         
+  Action: MOTION -> TurnOnSwitch                                                
+  Action: MOTION -> AnnounceMorningWeatherAndPlayMusic                          
+  Action: MOTION -> PlayMusicAtDinnerTime                                       
+  Action: SWITCH_TURNED_ON -> TurnOffAdjacentZones                              
+  Action: TEMPERATURE_CHANGED -> AlertOnTemperatureOutOfRange                   
+  Action: TIMER -> TellKidsToGoToBed                                            
+                                                                                
+  Neighbor: FF_Foyer, OPEN_SPACE                                                
+  Neighbor: FF_GreatRoom, OPEN_SPACE_MASTER
+Zone: Foyer, floor: FIRST_FLOOR, internal, displayIcon: groundfloor, displayOrder: 4, 6 devices
+  AlarmPartition: FF_Foyer_AlarmPartition, armMode: ARM_STAY                    
+  AstroSensor: VT_Time_Of_Day                                                   
+  Door: FF_Foyer_Door                                                           
+  Light: FF_Foyer_LightSwitch, duration: 5 mins, illuminance: 8, no premature turn-off time range: 0-23:59
+  MotionSensor: FF_Foyer_LightSwitch_ClosetMotionSensor, battery powered        
+  MotionSensor: FF_Foyer_LightSwitch_MotionSensor, battery powered              
+                                                                                
+  Action: MOTION -> TurnOnSwitch                                                
+  Action: MOTION -> DisarmOnInternalMotion                                      
+  Action: MOTION -> ManagePlugs                                                 
+  Action: PARTITION_ARMED_AWAY -> ChangeThermostatBasedOnSecurityArmMode        
+  Action: PARTITION_ARMED_AWAY -> ManagePlugs                                   
+  Action: PARTITION_ARMED_AWAY -> TurnOffDevicesOnAlarmModeChange               
+  Action: PARTITION_DISARMED_FROM_AWAY -> ChangeThermostatBasedOnSecurityArmMode
+  Action: PARTITION_DISARMED_FROM_AWAY -> ManagePlugs                           
+  Action: PARTITION_DISARMED_FROM_AWAY -> TurnOffDevicesOnAlarmModeChange       
+  Action: SWITCH_TURNED_ON -> TurnOffAdjacentZones                              
+  Action: TIMER -> ArmStayIfNoMovement                                          
+  Action: TIMER -> ArmStayInTheNight                                            
+  Action: TIMER -> ManagePlugs                                                  
+                                                                                
+  Neighbor: SF_Lobby, OPEN_SPACE                                                
+  Neighbor: FF_Office, OPEN_SPACE_MASTER 
+```
 
-There are 3 peripheral modules that are tightly coupled to the HABApp API. The rest of the modules
-is framework neutral. It is possible to migrate Zone API to another framework such as GravVM when 
-it is available. Zone API is written in Python 3 and thus is not compatible with Jython (equivalent
-to Python 2.8).
+
+**Running on top of HABApp but with minimal dependency:**
+> [The original Zone API modules](https://github.com/yfaway/openhab-rules/tree/master/legacy-jython-code)
+> were written in Jython. It was recently migrated over to the [HABApp](https://habapp.readthedocs.io/en/latest/installation.html)
+> framework with minimal changes needed to the core code. See [here](https://community.openhab.org/t/habapp-vs-jsr223-jython/112914)
+> for the comparison between HABApp and JSR223 Jython.
+> 
+> There are 3 peripheral modules that are tightly coupled to the HABApp API. The rest of the modules
+> is framework neutral. It is possible to migrate Zone API to another framework running on top of GravVM when 
+> it is available. Zone API is now written in Python 3 and thus is not compatible with Jython
+> (equivalent to Python 2.8).
 
 # The bootstrap rule for the framework
 Here is [an example](https://github.com/yfaway/zone-apis/blob/master/habapp/rules/configure_zone_manager.py) of the only HABApp rule needed to initialize the system.
@@ -81,24 +127,129 @@ to the [zone_parser](https://github.com/yfaway/zone-apis/blob/master/zone_apis/a
 module. The zone_parser parses the OpenHab items following a specific naming pattern, and construct
 the zones and the devices / sensors. It then registers the handlers for the events associated with
 the devices / sensors. Finally, it loads all the actions and add them to the zones based on the
-pre-declared rules associated with each action (more on this later). That's it; from this point
+pre-declared execution rules associated with each action (more on this later). That's it; from this point
 forward, events generated by the devices / sensors will trigger the associated actions.
 
 It is important to note that the zone_parser is just a default mechanism to build the ZoneManager.
-Another module can be used to parser from a different OpenHab naming pattern, or the ZoneManager can
+A custom module can be used to parse from a different OpenHab naming pattern, or the ZoneManager can
 be constructed manually. The role of the parser is no longer needed once the ZoneManager has been
 built.
 
+# ZoneManager
+Contains a set of zones and is responsible for dispatching the events to the zones.
+
 # Zone
+Contains a set of devices, actions, and is responsible for dispatching the events to the actions.
+
+A zone is aware of its neighbors. Certain rules such as the [turning on/off of the lights](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/actions/turn_on_switch.py)
+is highly dependent on the layout of the zones. The following [neighbor](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/neighbor.py)
+types are available.
+1. ```CLOSED_SPACE```
+2. ```OPEN_SPACE```
+3. ```OPEN_SPACE_MASTER```
+4. ```OPEN_SPACE_SLAVE```
 
 # Devices
 The [devices](https://github.com/yfaway/zone-apis/tree/master/zone_apis/aaa_modules/layout_model/devices)
-contains one or more underlying OpenHab items. Rather than operating on a SwitchItem or on on
+contains one or more underlying OpenHab items. Rather than operating on a SwitchItem or on a
 NumberItem, the device represents meaningful concrete things such as a [MotionSensor](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/devices/motion_sensor.py),
 or a [Light](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/devices/switch.py).
-Devices contain both attributes (such as 'is the door open') and behaviors (such as 'arm the security
+Devices contain both attributes (e.g. 'is the door open') and behaviors (e.g. 'arm the security
 system').
 
-# Actions
-
 # Events
+Similar to the abstraction for the devices, the events are also more concrete. Zone API maps the
+OpenHab items events to the event enums in [ZoneEvent](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/zone_event.py)
+such as ```ZoneEvent.HUMIDITY_CHANGED``` or ```ZoneEvent.PARTITION_ARMED_AWAY```.
+There is also the special event ```ZoneEvent.TIMER``` that represents triggering from a scheduler.
+
+The event is dispatched to the appropriate zones which then invokes the actions registered for that
+event. See [EventInfo](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/event_info.py)
+for more info.
+
+# Actions
+All the [actions](https://github.com/yfaway/zone-apis/tree/master/zone_apis/aaa_modules/layout_model/actions) implement the [Action](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/action.py) interface.
+The action's life cycle is represented by the three functions: 
+1. ```on_startup()``` - invoked after the ZoneManager has been fully populated, via the event
+   ```ZoneEvent.STARTUP```.
+2. ```on_action()``` - invoked where the device generates an event or when a timer event is
+   triggered (via ```ZoneEvent.TIMER```).
+3. ```on_destroy()``` - currently not invoked.
+
+The ```@action``` decorator provides execution rules for the action as well as basic validation.
+If the condition (based on the execution rules) does not match, the action won't be executed.
+Below are the currently supported decorator parameters:
+1. *devices* - the list of devices the zone must have in order to invoke the action.
+2. *events* - the list of events for which the action will response to.
+3. *internal* - if set, this action is only applicable for internal zone
+4. *external* - if set, this action is only applicable for external zone
+5. *levels* - the zone levels that this action is applicable to. the empty list default value indicates that the action is applicable to all zone levels.
+6. *unique_instance* - if set, do not share the same action instance across zones. This is the case when the action is stateful.
+7. *zone_name_pattern* - if set, the zone name regular expression that is applicable to this action.
+8. *external_events* - the list of events from other zones that this action processes. These events won't be filtered using the same mechanism as the internal events as they come from other zones.
+9. *priority* - the action priority with respect to other actions within the same zone. Actions with lower priority values are executed first.
+
+These parameters are also available to the action and can be used as a filtering mechanism
+to make sure that the action is only added to the applicable zones.
+
+Here is a simple action to disarm the security system when a motion sensor is triggered:
+```python
+from aaa_modules import security_manager as sm
+from aaa_modules.layout_model.devices.activity_times import ActivityTimes
+from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
+from aaa_modules.layout_model.zone_event import ZoneEvent
+from aaa_modules.layout_model.action import action
+from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition
+
+
+@action(events=[ZoneEvent.MOTION], devices=[AlarmPartition, MotionSensor])
+class DisarmOnInternalMotion:
+    """
+    Automatically disarm the security system when the motion sensor in the zone containing the
+    security panel is triggered and the current time is not in the auto-arm-stay or sleep
+    time periods.
+    """
+
+    def on_action(self, event_info):
+        events = event_info.get_event_dispatcher()
+        zone_manager = event_info.get_zone_manager()
+
+        if not sm.is_armed_stay(zone_manager):
+            return False
+
+        activity = zone_manager.get_first_device_by_type(ActivityTimes)
+        if activity is None:
+            self.log_warning("Missing activities time; can't determine wake-up time.")
+            return False
+
+        if activity.is_auto_arm_stay_time() or (activity.is_sleep_time() and not activity.is_wakeup_time()):
+            return False
+
+        sm.disarm(zone_manager, events)
+        return True
+```
+
+The decorator for the action above indicates that it is triggered by the motion event, and should
+only be added to a zone that contains both the AlarmPartition and the Motion devices.
+
+# ZoneParser
+The default parser uses this naming pattern for the OpenHab items.
+
+ 1. The zones are defined as a String item with this pattern Zone_{name}:
+    
+        String Zone_GreatRoom                                                           
+            { level="FF", displayIcon="player", displayOrder="1",                         
+              openSpaceSlaveNeighbors="FF_Kitchen" } 
+      - The levels are the reversed mapping of the enums in Zone::Level.
+      - Here are the list of supported attributes: level, external, openSpaceNeighbors,
+        openSpaceMasterNeighbors, openSpaceSlaveNeighbors, displayIcon, displayOrder.
+       
+ 2. The individual OpenHab items are named after this convention: ```{zone_id}_{device_type}_{device_name}```.
+    
+    Here's an example:
+    
+        Switch FF_Office_LightSwitch "Office Light" (gWallSwitch, gLightSwitch, gFirstFloorLightSwitch)
+            [shared-motion-sensor]                                                        
+            { channel="zwave:device:9e4ce05e:node8:switch_binary",                        
+              turnOff="FF_Foyer_LightSwitch",                                             
+              durationInMinutes="15" }                                                    
