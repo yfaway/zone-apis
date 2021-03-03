@@ -253,3 +253,6 @@ The default parser uses this naming pattern for the OpenHab items.
             { channel="zwave:device:9e4ce05e:node8:switch_binary",                        
               turnOff="FF_Foyer_LightSwitch",                                             
               durationInMinutes="15" }                                                    
+
+See here for a [sample .items](https://github.com/yfaway/openhab-rules/blob/master/items/switch-and-plug.items)
+file that is parsable by ZoneParser.

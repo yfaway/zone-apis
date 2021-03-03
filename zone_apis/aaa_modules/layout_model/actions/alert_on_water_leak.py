@@ -1,14 +1,13 @@
 from aaa_modules.alert import Alert
+from aaa_modules.layout_model.devices.water_leak_sensor import WaterLeakSensor
 from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.action import action
-from aaa_modules.layout_model.devices.gas_sensor import GasSensor
 
 
-@action(events=[ZoneEvent.GAS_TRIGGER_STATE_CHANGED], devices=[GasSensor], unique_instance=True)
-class AlertOnHighGasLevel:
+@action(events=[ZoneEvent.WATER_LEAK_STATE_CHANGED], devices=[WaterLeakSensor], unique_instance=True)
+class AlertOnWaterLeak:
     """
-    Send a critical alert if the gas sensor is triggered (i.e. the reading
-    is above the threshold).
+    Send a critical alert if a water leak is detected.
     """
 
     def __init__(self, interval_between_alerts_in_minutes=15):
@@ -27,18 +26,18 @@ class AlertOnHighGasLevel:
         zone = event_info.get_zone()
         zone_manager = event_info.get_zone_manager()
 
-        gas_sensor = zone.get_device_by_event(event_info)
-        gas_type = gas_sensor.__class__.__name__
+        sensor = zone.get_device_by_event(event_info)
 
-        if gas_sensor.is_triggered():
+        if sensor.is_water_detected():
             self._notified = True
-            alert_message = f'The {zone.get_name()} {gas_type} at {gas_sensor.get_value()} is above normal level.'
+            alert_message = f'Water leak detected in {zone.get_name()}.'
+            alert_module = alert_message
             alert = Alert.create_critical_alert(alert_message, None, [],
-                                                gas_type, self._interval_between_alerts_in_minutes)
+                                                alert_module, self._interval_between_alerts_in_minutes)
             zone_manager.get_alert_manager().process_alert(alert, zone_manager)
 
         elif self._notified:
-            alert_message = f'The {zone.get_name()} {gas_type} is back to normal.'
+            alert_message = f'No more water leak detected in {zone.get_name()}.'
             alert = Alert.create_info_alert(alert_message)
             zone_manager.get_alert_manager().process_alert(alert, zone_manager)
             self._notified = False

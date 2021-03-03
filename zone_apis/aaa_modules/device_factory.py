@@ -20,6 +20,7 @@ from aaa_modules.layout_model.devices.network_presence import NetworkPresence
 from aaa_modules.layout_model.devices.plug import Plug
 from aaa_modules.layout_model.devices.switch import Light, Fan
 from aaa_modules.layout_model.devices.temperature_sensor import TemperatureSensor
+from aaa_modules.layout_model.devices.water_leak_sensor import WaterLeakSensor
 from aaa_modules.layout_model.devices.wled import Wled
 from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
 from aaa_modules.layout_model.zone_event import ZoneEvent
@@ -207,7 +208,6 @@ def create_motion_sensor(zm: ImmutableZoneManager, item) -> MotionSensor:
     # noinspection PyUnusedLocal
     def handler(event: ValueChangeEvent):
         if pe.is_in_on_state(item):
-            zm.update_device_last_activated_time(item)
             dispatch_event(zm, ZoneEvent.MOTION, item)
 
     item.listen_event(handler, ValueChangeEvent)
@@ -327,6 +327,20 @@ def create_door(zm: ImmutableZoneManager, item) -> Door:
             dispatch_event(zm, ZoneEvent.CONTACT_CLOSED, item)
 
     item.listen_event(handler, ValueChangeEvent)
+
+    return sensor
+
+
+def create_water_leak_sensor(zm: ImmutableZoneManager, item) -> WaterLeakSensor:
+    """
+    Creates a water leak sensor and register for change event.
+    :param zm: the zone manager instance to dispatch the event.
+    :param item: SwitchItem
+    :return: WaterLeakSensor
+    """
+    sensor = WaterLeakSensor(item)
+    item.listen_event(lambda event: dispatch_event(zm, ZoneEvent.WATER_LEAK_STATE_CHANGED, item),
+                      ValueChangeEvent)
 
     return sensor
 

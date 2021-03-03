@@ -19,6 +19,7 @@ class ZoneEvent(Enum):
     TEMPERATURE_CHANGED = 11  # The temperature changed
     GAS_TRIGGER_STATE_CHANGED = 12  # The gas sensor triggering boolean changed
     GAS_VALUE_CHANGED = 13  # The gas sensor value changed
+    WATER_LEAK_STATE_CHANGED = 14  # The water leak sensor state changed
 
     TIMER = 98  # A timer event is triggered.
     STARTUP = 99  # action startup event

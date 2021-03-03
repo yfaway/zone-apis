@@ -79,6 +79,7 @@ def parse(activity_times: ActivityTimes) -> ImmutableZoneManager:
         '.*_Tv$': lambda zone_manager, an_item: Tv(an_item),
         '.*_Thermostat_EcobeeName$': lambda zone_manager, an_item: EcobeeThermostat(an_item),
         '[^g].*Temperature$': df.create_temperature_sensor,
+        '[^g].*WaterLeakState$': df.create_water_leak_sensor,
     }
 
     zm: ZoneManager = ZoneManager()
