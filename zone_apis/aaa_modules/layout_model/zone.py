@@ -272,7 +272,8 @@ class Zone:
 
         new_actions = dict(self.actions)
 
-        for zone_event in action.get_required_events():
+        events = action.get_required_events() + action.get_external_events()
+        for zone_event in events:
             if zone_event in new_actions:
                 new_actions[zone_event].append(action)
                 new_actions[zone_event].sort(key=lambda a: a.get_priority())

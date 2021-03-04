@@ -1,4 +1,5 @@
 from aaa_modules import platform_encapsulator as pe
+from aaa_modules.layout_model.actions.announce_morning_weather_and_play_music import AnnounceMorningWeatherAndPlayMusic
 
 from aaa_modules.layout_model.zone import Zone, Level
 from aaa_modules.layout_model.zone_event import ZoneEvent
@@ -142,6 +143,12 @@ class ZoneTest(DeviceTest):
         zone = zone.add_action(TurnOffAdjacentZones())
         self.assertEqual(1, len(zone.get_actions(ZoneEvent.MOTION)))
         self.assertEqual(1, len(zone.get_actions(ZoneEvent.SWITCH_TURNED_ON)))
+
+    def testAddAction_validActionWithExternalEvent_actionAdded(self):
+        zone = Zone('ff').add_action(AnnounceMorningWeatherAndPlayMusic())
+        self.assertEqual(1, len(zone.get_actions(ZoneEvent.MOTION)))
+        self.assertEqual(1, len(zone.get_actions(ZoneEvent.CONTACT_CLOSED)))
+        self.assertEqual(0, len(zone.get_actions(ZoneEvent.SWITCH_TURNED_ON)))
 
     def testIsOccupied_everythingOff_returnsFalse(self):
         zone = Zone('ff', [self.light, self.motionSensor])
