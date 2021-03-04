@@ -13,12 +13,15 @@ from aaa_modules.layout_model.device import Device
 
 class ImmutableZoneManager:
     """
-    Similar to ZoneManager, but this class contains read-only methods. 
-    Instances of this class is passed to the method Action#on_action.
+    Similar to ZoneManager, but this class contains read-only methods. Instances of this class is
+    passed to the method Action#on_action.
 
     Provide the follow common services:
       - Alert processing.
       - Scheduler.
+
+    Instance of this class is only usable after method #start() has been called, after the zones
+    have been fully populated (outside the scope of the class).
     """
 
     def __init__(self, get_zones_fcn, get_zone_by_id_fcn, get_devices_by_type_fcn,
@@ -28,7 +31,27 @@ class ImmutableZoneManager:
         self.get_devices_by_type_fcn = get_devices_by_type_fcn
         self.alert_manager = alert_manager
         self.scheduler = Scheduler()
+
+        # noinspection PyTypeChecker
         self.cease_continuous_run: threading.Event = None
+
+        # map from primary item name to zone for quick look-up.
+        self.item_name_to_zone = {}
+        self.fully_initialized = False
+
+    def start(self):
+        """
+        Indicates that the zones are fully populated. The following actions will take place:
+          1. Map device item name to zone.
+          2. Start scheduler.
+        """
+        for z in self.get_zones():
+            for d in z.get_devices():
+                self.item_name_to_zone[d.get_item_name()] = z
+
+        self._start_scheduler()
+
+        self.fully_initialized = True
 
     def set_alert_manager(self, alert_manager: AlertManager):
         """ Sets the alert manager and returns a new instance of this class. """
@@ -46,8 +69,9 @@ class ImmutableZoneManager:
         """ Returns the Scheduler instance """
         return self.scheduler
 
-    def start_scheduler(self, interval_in_seconds=1) -> threading.Event:
+    def _start_scheduler(self, interval_in_seconds=1) -> threading.Event:
         """ Runs the scheduler in a separate thread. """
+
         class ScheduleThread(threading.Thread):
             @classmethod
             def run(cls):
@@ -98,13 +122,23 @@ class ImmutableZoneManager:
 
     def get_zone_by_id(self, zone_id):
         """
-        Returns the zone associated with the given zoneId.
+        Returns the zone associated with the given zone_id.
 
         :param string zone_id: the value returned by Zone::get_id()
-        :return: the associated zone or None if the zoneId is not found
+        :return: the associated zone or None if the zone_id is not found
         :rtype: Zone
         """
         return self.get_zone_by_id_fcn(zone_id)
+
+    def get_zone_by_item_name(self, item_name):
+        """
+        Returns the zone associated with the given item_name.
+
+        :param str item_name:
+        :return: the associated zone or None if the item_name is not found
+        :rtype: Zone
+        """
+        return self.item_name_to_zone[item_name] if item_name in self.item_name_to_zone.keys() else None
 
     def get_devices_by_type(self, cls: Type):
         """
@@ -138,13 +172,10 @@ class ImmutableZoneManager:
 
         # Small optimization: dispatch directly to the applicable zone first if we can determine
         # the zone id from the item name.
-        zone_id = Zone.get_zone_id_from_item_name(pe.get_item_name(item))
-        owning_zone = None
-        if zone_id is not None:
-            owning_zone = self.get_zone_by_id(zone_id)
-            if owning_zone is not None:
-                value = owning_zone.dispatch_event(zone_event, open_hab_events, item, self)
-                return_values.append(value)
+        owning_zone: Zone = self.get_zone_by_item_name(pe.get_item_name(item))
+        if owning_zone is not None:
+            value = owning_zone.dispatch_event(zone_event, open_hab_events, item, self)
+            return_values.append(value)
 
         # Then continue to dispatch to other zones even if a priority zone has been dispatched to.
         # This allows action to process events from other zones.

@@ -55,40 +55,34 @@ class ImmutableZoneManagerTest(DeviceTest):
                 self.dispatched_zones.append(self)
                 return True
 
-        self.zone1 = MyZone(self.dispatched_zones, 'Foyer', [self.fan, self.motionSensor, self.shared_light], Level.FIRST_FLOOR)
+        self.zone1 = MyZone(self.dispatched_zones, 'Foyer', [self.fan, self.motionSensor, self.shared_light],
+                            Level.FIRST_FLOOR)
         self.zone2 = MyZone(self.dispatched_zones, 'Kitchen', [self.light, self.shared_light], Level.FIRST_FLOOR)
 
         self.zone_manager = ZoneManager().add_zone(self.zone1).add_zone(self.zone2)
         self.immutable_zm = self.zone_manager.get_immutable_instance()
+        self.immutable_zm.start()
 
     def tearDown(self):
+        self.immutable_zm.cancel_scheduler()
         self.zone_manager.stop_auto_report_watch_dog()
         self.fan._cancel_timer()
         self.light._cancel_timer()
 
         super(ImmutableZoneManagerTest, self).tearDown()
 
-    def testDispatch_zoneIdInItemName_correctZoneDispatchedFirst(self):
+    def testDispatch_itemNameMappableToZone_correctZoneDispatchedFirst(self):
         self.assertTrue(self.immutable_zm.dispatch_event(
             ZoneEvent.MOTION, pe.get_event_dispatcher(), self.lightItem))
         self.assertEqual(self.dispatched_zones, [self.zone2, self.zone1])
 
-    def testDispatch_zoneIdNotInItemNameButItemInZone_returnsTrue(self):
-        self.assertTrue(self.immutable_zm.dispatch_event(
-            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensorItem))
-        self.assertEqual(self.dispatched_zones, [self.zone1, self.zone2])
-
-    def testDispatch_zoneIdInItemNameButIdNotMapToZoneAndItemInZone_returnsTrue(self):
-        self.assertTrue(self.immutable_zm.dispatch_event(
-            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.fanItem))
-        self.assertEqual(self.dispatched_zones, [self.zone1, self.zone2])
-
-    def testDispatch_zoneIdNotInItemNameAndItemInMultipleZones_returnsTrue(self):
+    def testDispatch_itemInMultipleZones_returnsTrue(self):
         self.assertTrue(self.immutable_zm.dispatch_event(
             ZoneEvent.MOTION, pe.get_event_dispatcher(), self.shared_light_item))
-        self.assertEqual(self.dispatched_zones, [self.zone1, self.zone2])
+        self.assertTrue(self.zone1 in self.dispatched_zones)
+        self.assertTrue(self.zone2 in self.dispatched_zones)
 
     def testDispatch_itemNotInAnyZone_dispatchToAllZoneAndReturnsTrue(self):
         self.assertTrue(self.immutable_zm.dispatch_event(
             ZoneEvent.MOTION, pe.get_event_dispatcher(), self.illuminanceSensorItem))
-        self.assertEqual(self.dispatched_zones, [self.zone1, self.zone2])
+        self.assertTrue(self.zone1 in self.dispatched_zones, [self.zone1, self.zone2])
