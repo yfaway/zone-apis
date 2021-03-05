@@ -64,7 +64,7 @@ class ImmutableZoneManagerTest(DeviceTest):
         self.immutable_zm.start()
 
     def tearDown(self):
-        self.immutable_zm.cancel_scheduler()
+        self.immutable_zm.stop()
         self.zone_manager.stop_auto_report_watch_dog()
         self.fan._cancel_timer()
         self.light._cancel_timer()

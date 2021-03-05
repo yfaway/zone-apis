@@ -459,15 +459,6 @@ class Zone:
             if light.is_on():
                 light.turn_off(events)
 
-    # noinspection PyMethodMayBeStatic,PyUnusedLocal
-    def on_timer_expired(self, events, item):
-        """
-        Determines if the timer item is associated with a switch in this
-        zone; if yes, turns off the switch and returns True. Otherwise returns
-        False.
-        """
-        return False
-
     def on_switch_turned_on(self, events, item, immutable_zone_manager):
         """
         If item belongs to this zone, dispatches the event to the associated

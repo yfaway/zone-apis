@@ -241,13 +241,6 @@ class ZoneTest(DeviceTest):
         self.lightWithIlluminance.get_channel = lambda: 'a channel'
         self.assertTrue(zone1.share_sensor_with(zone2, Light))
 
-    def testOnTimerExpired_invalidTimerItem_returnsFalse(self):
-        zone = Zone('ff', [self.light])
-
-        is_processed = zone.on_timer_expired(
-            pe.get_event_dispatcher(), pe.create_string_item('dummy name'))
-        self.assertFalse(is_processed)
-
     def testOnSwitchedTurnedOn_validItemName_returnsTrue(self):
         zone = Zone('ff', [self.light])
 

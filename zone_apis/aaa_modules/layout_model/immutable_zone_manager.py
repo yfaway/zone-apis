@@ -20,8 +20,10 @@ class ImmutableZoneManager:
       - Alert processing.
       - Scheduler.
 
-    Instance of this class is only usable after method #start() has been called, after the zones
-    have been fully populated (outside the scope of the class).
+    Instance of this class has life cycle:
+      - start() should be called first to indicate that the zones have been fully populated (outside
+        the scope of the class).
+      - stop() should be called when the object is no longer used.
     """
 
     def __init__(self, get_zones_fcn, get_zone_by_id_fcn, get_devices_by_type_fcn,
@@ -43,15 +45,23 @@ class ImmutableZoneManager:
         """
         Indicates that the zones are fully populated. The following actions will take place:
           1. Map device item name to zone.
-          2. Start scheduler.
+          2. Start scheduler (if not in a unit test).
         """
         for z in self.get_zones():
             for d in z.get_devices():
                 self.item_name_to_zone[d.get_item_name()] = z
 
-        self._start_scheduler()
+        if not pe.is_in_unit_tests():
+            self._start_scheduler()
 
         self.fully_initialized = True
+
+    def stop(self):
+        """
+        Indicates that this object is no longer being used.
+        """
+        self._cancel_scheduler()
+        self.fully_initialized = False
 
     def set_alert_manager(self, alert_manager: AlertManager):
         """ Sets the alert manager and returns a new instance of this class. """
@@ -90,7 +100,7 @@ class ImmutableZoneManager:
 
         return self.cease_continuous_run
 
-    def cancel_scheduler(self):
+    def _cancel_scheduler(self):
         """ Cancel the scheduler thread if it was started. """
         if self.cease_continuous_run is not None:
             self.cease_continuous_run.set()
@@ -220,18 +230,6 @@ class ImmutableZoneManager:
         return_values = []
         for z in self.get_zones():
             return_values.append(z.on_switch_turned_off(events, item, self))
-        return any(return_values)
-
-    def on_timer_expired(self, events, item):
-        """
-        Dispatches the timer expiry event to each zone.
-
-        :param scope.events events: the global events object
-        :param Item item:
-        :return: True if at least one zone processed the event; False otherwise
-        :rtype: bool
-        """
-        return_values = [z.on_timer_expired(events, item) for z in self.get_zones()]
         return any(return_values)
 
     def update_device_last_activated_time(self, item):

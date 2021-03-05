@@ -143,17 +143,6 @@ class ZoneManagerTest(DeviceTest):
         self.assertTrue(self.zm.get_immutable_instance().dispatch_event(
             ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor.get_item()))
 
-    def testOnTimerExpired_noZone_returnsFalse(self):
-        self.assertFalse(self.zm.get_immutable_instance().on_timer_expired(
-            pe.get_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
-
-    def testOnTimerExpired_withNonApplicableZone_returnsFalse(self):
-        zone = Zone('ff', [self.light, self.motionSensor])
-        self.zm.add_zone(zone)
-
-        self.assertFalse(self.zm.get_immutable_instance().on_timer_expired(
-            pe.get_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
-
     def testOnSwitchTurnedOn_noZone_returnsFalse(self):
         self.assertFalse(self.zm.get_immutable_instance().on_switch_turned_on(
             pe.get_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
