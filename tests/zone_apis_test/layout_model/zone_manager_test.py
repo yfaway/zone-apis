@@ -123,14 +123,14 @@ class ZoneManagerTest(DeviceTest):
 
     def testOnMotionSensorTurnedOn_noZone_returnsFalse(self):
         self.assertFalse(self.zm.get_immutable_instance().dispatch_event(
-            ZoneEvent.MOTION, pe.get_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
+            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor, pe.create_string_item(INVALID_ITEM_NAME)))
 
     def testOnMotionSensorTurnedOn_withNonApplicableZone_returnsFalse(self):
         zone = Zone('ff', [self.light, self.motionSensor])
         self.zm.add_zone(zone)
 
         self.assertFalse(self.zm.get_immutable_instance().dispatch_event(
-            ZoneEvent.MOTION, pe.get_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
+            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor, pe.create_string_item(INVALID_ITEM_NAME)))
 
     def testOnMotionSensorTurnedOn_withApplicableZone_returnsTrue(self):
         self.assertFalse(self.light.is_on())
@@ -141,40 +141,40 @@ class ZoneManagerTest(DeviceTest):
         self.zm.add_zone(zone)
 
         self.assertTrue(self.zm.get_immutable_instance().dispatch_event(
-            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor.get_item()))
+            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor, self.motionSensor.get_item()))
 
     def testOnSwitchTurnedOn_noZone_returnsFalse(self):
         self.assertFalse(self.zm.get_immutable_instance().on_switch_turned_on(
-            pe.get_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
+            pe.get_event_dispatcher(), self.light, pe.create_string_item(INVALID_ITEM_NAME)))
 
     def testOnSwitchTurnedOn_withNonApplicableZone_returnsFalse(self):
         zone = Zone('ff', [self.light, self.motionSensor])
         self.zm.add_zone(zone)
 
         self.assertFalse(self.zm.get_immutable_instance().on_switch_turned_on(
-            pe.get_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
+            pe.get_event_dispatcher(), self.light, pe.create_string_item(INVALID_ITEM_NAME)))
 
     def testOnSwitchTurnedOn_withApplicableZone_returnsTrue(self):
         zone = Zone('ff', [self.light, self.motionSensor])
         self.zm.add_zone(zone)
 
         self.assertTrue(self.zm.get_immutable_instance().on_switch_turned_on(
-            pe.get_event_dispatcher(), self.light.get_item()))
+            pe.get_event_dispatcher(), self.light, self.light.get_item()))
 
     def testOnSwitchTurnedOff_noZone_returnsFalse(self):
         self.assertFalse(self.zm.get_immutable_instance().on_switch_turned_off(
-            pe.get_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
+            pe.get_event_dispatcher(), self.light, pe.create_string_item(INVALID_ITEM_NAME)))
 
     def testOnSwitchTurnedOff_withNonApplicableZone_returnsFalse(self):
         zone = Zone('ff', [self.light, self.motionSensor])
         self.zm.add_zone(zone)
 
         self.assertFalse(self.zm.get_immutable_instance().on_switch_turned_off(
-            pe.get_event_dispatcher(), pe.create_string_item(INVALID_ITEM_NAME)))
+            pe.get_event_dispatcher(), self.light, pe.create_string_item(INVALID_ITEM_NAME)))
 
     def testOnSwitchTurnedOff_withApplicableZone_returnsTrue(self):
         zone = Zone('ff', [self.light, self.motionSensor])
         self.zm.add_zone(zone)
 
         self.assertTrue(self.zm.get_immutable_instance().on_switch_turned_off(
-            pe.get_event_dispatcher(), self.light.get_item()))
+            pe.get_event_dispatcher(), self.light, self.light.get_item()))

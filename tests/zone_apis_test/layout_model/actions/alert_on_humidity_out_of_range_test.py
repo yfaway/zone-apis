@@ -18,8 +18,9 @@ class AlertOnHumidityOutOfRangeTest(DeviceTest):
         super(AlertOnHumidityOutOfRangeTest, self).setUp()
 
         self.action = AlertOnHumidityOutOfRange(35, 50, 3)
+        self.humidity_sensor = HumiditySensor(items[0])
         self.zone1 = Zone('great room', [], Level.FIRST_FLOOR) \
-            .add_device(HumiditySensor(items[0])) \
+            .add_device(self.humidity_sensor) \
             .add_action(self.action)
 
         self.zm = create_zone_manager([self.zone1])
@@ -98,14 +99,14 @@ class AlertOnHumidityOutOfRangeTest(DeviceTest):
 
     def sendEventAndAssertNoAlert(self):
         event_info = EventInfo(ZoneEvent.HUMIDITY_CHANGED, self.get_items()[0], self.zone1,
-                               self.zm, pe.get_event_dispatcher())
+                               self.zm, pe.get_event_dispatcher(), None, self.humidity_sensor)
         value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertEqual(None, self.zm.get_alert_manager()._lastEmailedSubject)
 
     def sendEventAndAssertAlertContainMessage(self, message):
         event_info = EventInfo(ZoneEvent.HUMIDITY_CHANGED, self.get_items()[0], self.zone1,
-                               self.zm, pe.get_event_dispatcher())
+                               self.zm, pe.get_event_dispatcher(), None, self.humidity_sensor)
         value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertTrue(message in self.zm.get_alert_manager()._lastEmailedSubject)

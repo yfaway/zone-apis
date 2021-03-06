@@ -168,15 +168,17 @@ class ImmutableZoneManager:
         devices = self.get_devices_by_type(cls)
         return devices[0] if len(devices) > 0 else None
 
-    def dispatch_event(self, zone_event: ZoneEvent, open_hab_events, item):
+    def dispatch_event(self, zone_event: ZoneEvent, open_hab_events, device: Device, item):
         """
         Dispatches the event to the zones.
 
-        :param item:
+        :param Device device: the device containing the triggered item; a device may contain multiple items.
+        :param Any item: the triggered item.
         :param ZoneEvent zone_event:
         :param events open_hab_events:
         """
-        self.update_device_last_activated_time(item)
+        # noinspection PyProtectedMember
+        device._update_last_activated_timestamp()
 
         return_values = []
 
@@ -184,43 +186,46 @@ class ImmutableZoneManager:
         # the zone id from the item name.
         owning_zone: Zone = self.get_zone_by_item_name(pe.get_item_name(item))
         if owning_zone is not None:
-            value = owning_zone.dispatch_event(zone_event, open_hab_events, item, self)
+            value = owning_zone.dispatch_event(zone_event, open_hab_events, device, item, self)
             return_values.append(value)
 
         # Then continue to dispatch to other zones even if a priority zone has been dispatched to.
         # This allows action to process events from other zones.
         for z in self.get_zones():
             if z is not owning_zone:
-                value = z.dispatch_event(zone_event, open_hab_events, item, self, owning_zone)
+                value = z.dispatch_event(zone_event, open_hab_events, device, item, self, owning_zone)
                 return_values.append(value)
 
         return any(return_values)
 
-    # noinspection PyUnusedLocal
-    def on_network_device_connected(self, events, item):
+    # noinspection PyUnusedLocal,PyMethodMayBeStatic
+    def on_network_device_connected(self, events, device, item):
         """
         Dispatches the network device connected (to local network) to each zone.
 
         :return: True if at least one zone processed the event; False otherwise
         :rtype: bool
         """
-        self.update_device_last_activated_time(item)
+        # noinspection PyProtectedMember
+        device._update_last_activated_timestamp()
 
         return True
 
-    def on_switch_turned_on(self, events, item):
+    def on_switch_turned_on(self, events, device, item):
         """
         Dispatches the switch turned on event to each zone.
 
         :return: True if at least one zone processed the event; False otherwise
         :rtype: bool
         """
-        self.update_device_last_activated_time(item)
+        # noinspection PyProtectedMember
+        device._update_last_activated_timestamp()
 
         return_values = [z.on_switch_turned_on(events, item, self) for z in self.get_zones()]
         return any(return_values)
 
-    def on_switch_turned_off(self, events, item):
+    # noinspection PyUnusedLocal
+    def on_switch_turned_off(self, events, device, item):
         """
         Dispatches the switch turned off event to each zone.
 
@@ -231,17 +236,6 @@ class ImmutableZoneManager:
         for z in self.get_zones():
             return_values.append(z.on_switch_turned_off(events, item, self))
         return any(return_values)
-
-    def update_device_last_activated_time(self, item):
-        """
-        Determine if the item is associated with a managed device. If yes,
-        update it last activated time to the current epoch second.
-        """
-        for zone in self.get_zones():
-            devices = [d for d in zone.get_devices() if d.contains_item(item)]
-            for d in devices:
-                # noinspection PyProtectedMember
-                d._update_last_activated_timestamp()
 
     def __str__(self):
         value = u""

@@ -44,7 +44,7 @@ class AlertOnHumidityOutOfRange:
         zone = event_info.get_zone()
         zone_manager = event_info.get_zone_manager()
 
-        percentage = self.get_first_device(event_info).get_humidity()
+        percentage = event_info.get_device().get_humidity()
         self.rangeAlert.update_state(percentage, zone, zone_manager)
 
         return True

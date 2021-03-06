@@ -10,7 +10,7 @@ class EventInfo(object):
     """
 
     def __init__(self, event_type, item, zone, zone_manager, events, owning_zone=None,
-                 custom_parameter: Any = None):
+                 device=None, custom_parameter: Any = None):
         """
         Creates a new EventInfo object.
 
@@ -21,6 +21,7 @@ class EventInfo(object):
         :param Any events: the OpenHab events object to dispatch actions
         :param Zone owning_zone: the zone that contains the item; None if it is the same at the
             dispatched zone.
+        :param Device device: the device containing the item triggered the event.
         """
 
         if event_type is None:
@@ -38,6 +39,7 @@ class EventInfo(object):
             raise ValueError('events must not be None')
 
         self.eventType = event_type
+        self.device = device
         self.item = item
         self.zone = zone
         self.zoneManager = zone_manager
@@ -48,6 +50,10 @@ class EventInfo(object):
     def get_event_type(self):
         """ :rtype: ZoneEvent"""
         return self.eventType
+
+    def get_device(self):
+        """ :rtype: Device"""
+        return self.device
 
     def get_item(self):
         """ :rtype: Item"""

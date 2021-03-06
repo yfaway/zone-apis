@@ -73,7 +73,7 @@ class Action(object):
         """ Helper method to return the TIMER event info. """
         return EventInfo(ZoneEvent.TIMER, self.get_containing_zone(event_info.get_zone_manager()),
                          event_info.get_zone(), event_info.get_zone_manager(),
-                         event_info.get_event_dispatcher(), None, custom_parameter)
+                         event_info.get_event_dispatcher(), None, None, custom_parameter)
 
     def get_required_devices(self):
         """
@@ -123,17 +123,6 @@ class Action(object):
         :rtype: str
         """
         return self._zone_name_pattern
-
-    def get_first_device(self, event_info):
-        """
-        Returns the first applicable device that might have generated the
-        event.
-        """
-        if len(self.get_required_devices()) == 0:
-            return None
-        else:
-            devices = event_info.get_zone().get_devices_by_type(self.get_required_devices()[0])
-            return devices[0]
 
     def must_be_unique_instance(self):
         """

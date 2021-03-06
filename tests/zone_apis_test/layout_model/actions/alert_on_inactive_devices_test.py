@@ -51,14 +51,14 @@ class AlertOnInactiveDevicesTest(DeviceTest):
         self.motion2._update_last_activated_timestamp()
 
         event_info = EventInfo(ZoneEvent.TIMER, None, self.zone1, self.zm, pe.get_event_dispatcher(),
-                               None, custom_param)
+                               None, None, custom_param)
         value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertTrue(self.zm.get_alert_manager()._lastEmailedSubject is None)
 
     def assert_inactive_devices(self, custom_param, alert_subject: str):
         event_info = EventInfo(ZoneEvent.TIMER, None, self.zone1, self.zm, pe.get_event_dispatcher(),
-                               None, custom_param)
+                               None, None, custom_param)
         value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertTrue(alert_subject in self.zm.get_alert_manager()._lastEmailedSubject)

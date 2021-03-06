@@ -49,7 +49,7 @@ class ImmutableZoneManagerTest(DeviceTest):
 
                 self.dispatched_zones = dispatched_list
 
-            def dispatch_event(self, zone_event, open_hab_events, item,
+            def dispatch_event(self, zone_event, open_hab_events, device, item,
                                immutable_zone_manager, owning_zone=None):
 
                 self.dispatched_zones.append(self)
@@ -73,16 +73,16 @@ class ImmutableZoneManagerTest(DeviceTest):
 
     def testDispatch_itemNameMappableToZone_correctZoneDispatchedFirst(self):
         self.assertTrue(self.immutable_zm.dispatch_event(
-            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.lightItem))
+            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.light, self.lightItem))
         self.assertEqual(self.dispatched_zones, [self.zone2, self.zone1])
 
     def testDispatch_itemInMultipleZones_returnsTrue(self):
         self.assertTrue(self.immutable_zm.dispatch_event(
-            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.shared_light_item))
+            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.shared_light, self.shared_light_item))
         self.assertTrue(self.zone1 in self.dispatched_zones)
         self.assertTrue(self.zone2 in self.dispatched_zones)
 
     def testDispatch_itemNotInAnyZone_dispatchToAllZoneAndReturnsTrue(self):
         self.assertTrue(self.immutable_zm.dispatch_event(
-            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.illuminanceSensorItem))
+            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.illuminanceSensor, self.illuminanceSensorItem))
         self.assertTrue(self.zone1 in self.dispatched_zones, [self.zone1, self.zone2])

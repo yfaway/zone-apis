@@ -1,6 +1,5 @@
-import re
 from enum import Enum, unique
-from typing import List, Union
+from typing import List
 
 from aaa_modules.layout_model.action import Action
 from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
@@ -515,10 +514,11 @@ class Zone:
 
         return is_processed
 
-    def dispatch_event(self, zone_event, event_dispatcher, item,
+    def dispatch_event(self, zone_event, event_dispatcher, device: Device, item,
                        immutable_zone_manager, owning_zone=None):
         """
-        :param item: the item that received the event
+        :param Device device: the device containing the item that received the event.
+        :param Any item: the OpenHab item that received the event
         :param ZoneEvent zone_event:
         :param events event_dispatcher:
         :param ImmutableZoneManager immutable_zone_manager:

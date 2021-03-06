@@ -259,7 +259,7 @@ class ZoneTest(DeviceTest):
         zone = Zone('ff', [self.light, self.motionSensor])
         zone = zone.add_action(TurnOnSwitch())
 
-        is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(),
+        is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor,
                                            self.motionSensor.get_item(), create_zone_manager([zone]), True)
         self.assertFalse(is_processed)
 
@@ -271,7 +271,7 @@ class ZoneTest(DeviceTest):
                            self.illuminanceSensor])
         zone = zone.add_action(TurnOnSwitch())
 
-        is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(),
+        is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor,
                                            self.motionSensor.get_item(), create_zone_manager([zone]), True)
         self.assertFalse(is_processed)
         self.assertFalse(self.light.is_on())
@@ -284,7 +284,7 @@ class ZoneTest(DeviceTest):
                            self.illuminanceSensor])
         zone = zone.add_action(TurnOnSwitch())
 
-        is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(),
+        is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor,
                                            self.motionSensor.get_item(), create_zone_manager([zone]), True)
         self.assertTrue(is_processed)
 
@@ -296,7 +296,7 @@ class ZoneTest(DeviceTest):
         zone = Zone('ff', [self.light, self.astroSensor])
         zone = zone.add_action(TurnOnSwitch())
 
-        is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(),
+        is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor,
                                            self.motionSensor.get_item(), None, True)
         self.assertFalse(is_processed)
 
@@ -309,7 +309,7 @@ class ZoneTest(DeviceTest):
                            self.illuminanceSensor, self.astroSensor])
         zone = zone.add_action(TurnOnSwitch())
 
-        is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(),
+        is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor,
                                            self.motionSensor.get_item(), create_zone_manager([zone]), True)
         self.assertTrue(is_processed)
         self.assertTrue(self.light.is_on())
@@ -321,7 +321,7 @@ class ZoneTest(DeviceTest):
         zone = Zone('ff', [self.light, self.motionSensor, self.astroSensor])
         zone = zone.add_action(TurnOnSwitch())
 
-        is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(),
+        is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor,
                                            self.motionSensor.get_item(), create_zone_manager([zone]), True)
         self.assertTrue(is_processed)
         self.assertTrue(self.light.is_on())

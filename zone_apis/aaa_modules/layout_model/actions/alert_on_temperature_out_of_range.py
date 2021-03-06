@@ -42,7 +42,7 @@ class AlertOnTemperatureOutOfRange:
         zone = event_info.get_zone()
         zone_manager = event_info.get_zone_manager()
 
-        percentage = self.get_first_device(event_info).get_temperature()
+        percentage = event_info.get_device().get_temperature()
         self.rangeAlert.update_state(percentage, zone, zone_manager)
 
         return True
