@@ -64,6 +64,7 @@ def parse(activity_times: ActivityTimes) -> ImmutableZoneManager:
         '.*AlarmPartition$': df.create_alarm_partition,
         '.*_ChromeCast$': df.create_chrome_cast,
         '.*Door$': df.create_door,
+        '[^g].*_Window$': df.create_window,
         '.*_Camera$': df.create_camera,
         '[^g].*MotionSensor$': df.create_motion_sensor,
         '[^g].*LightSwitch.*': df.create_switches,

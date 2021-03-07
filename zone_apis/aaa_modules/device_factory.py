@@ -12,7 +12,7 @@ from aaa_modules.layout_model.device import Device
 from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition, AlarmState
 from aaa_modules.layout_model.devices.camera import Camera
 from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink
-from aaa_modules.layout_model.devices.contact import Door, GarageDoor
+from aaa_modules.layout_model.devices.contact import Door, GarageDoor, Window
 from aaa_modules.layout_model.devices.dimmer import Dimmer
 from aaa_modules.layout_model.devices.gas_sensor import GasSensor
 from aaa_modules.layout_model.devices.humidity_sensor import HumiditySensor
@@ -328,6 +328,21 @@ def create_door(zm: ImmutableZoneManager, item) -> Door:
             dispatch_event(zm, ZoneEvent.CONTACT_OPEN, sensor, item)
         else:
             dispatch_event(zm, ZoneEvent.CONTACT_CLOSED, sensor, item)
+
+    item.listen_event(handler, ValueChangeEvent)
+
+    return sensor
+
+
+def create_window(zm: ImmutableZoneManager, item) -> Window:
+    sensor = Window(item)
+
+    # noinspection PyUnusedLocal
+    def handler(event: ValueChangeEvent):
+        if pe.is_in_on_state(item) or pe.is_in_open_state(item):
+            dispatch_event(zm, ZoneEvent.WINDOW_OPEN, sensor, item)
+        else:
+            dispatch_event(zm, ZoneEvent.WINDOW_CLOSED, sensor, item)
 
     item.listen_event(handler, ValueChangeEvent)
 
