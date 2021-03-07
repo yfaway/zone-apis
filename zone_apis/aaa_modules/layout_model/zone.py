@@ -528,7 +528,7 @@ class Zone:
         """
         processed = False
         event_info = EventInfo(zone_event, item, self,
-                               immutable_zone_manager, event_dispatcher, owning_zone)
+                               immutable_zone_manager, event_dispatcher, owning_zone, device)
 
         if zone_event == ZoneEvent.STARTUP:
             for action_list in self.actions.values():

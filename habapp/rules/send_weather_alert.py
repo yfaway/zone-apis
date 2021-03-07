@@ -1,6 +1,6 @@
 import HABApp
 from HABApp.core.events import ValueChangeEvent
-from HABApp.openhab.items import StringItem
+from HABApp.openhab.items import DatetimeItem, StringItem
 
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.alert import Alert
@@ -20,7 +20,7 @@ class SendWeatherAlert(HABApp.Rule):
 
         if alert_message is not None:
             subject = f"[Weather Alert] {self.weather_item.get_value()}"
-            date_item = StringItem.get_item('VT_Weather_Alert_Date').get_value()
+            date_item = DatetimeItem.get_item('VT_Weather_Alert_Date').get_value()
             body = f"{alert_message}\nLink: {url}\nPublished Date: {date_item}"
 
             alert = Alert.create_info_alert(subject, body)
