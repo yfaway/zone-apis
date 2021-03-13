@@ -1,5 +1,6 @@
 from aaa_modules import security_manager as sm
 from aaa_modules.layout_model.devices.activity_times import ActivityTimes
+from aaa_modules.layout_model.devices.contact import Door
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
 from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.action import action
@@ -28,6 +29,13 @@ class DisarmOnInternalMotion:
 
         if activity.is_auto_arm_stay_time() or (activity.is_sleep_time() and not activity.is_wakeup_time()):
             return False
+
+        # determine if any external door was just opened.
+        external_zones = [z for z in zone_manager.get_zones() if z.is_external()]
+        for z in external_zones:
+            doors = [d for d in z.get_devices_by_type(Door) if d.was_recently_activated(30)]
+            if len(doors) > 0:
+                return False
 
         sm.disarm(zone_manager, events)
         return True
