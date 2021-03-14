@@ -96,6 +96,13 @@ class AlarmPartition(Device):
         """
         events.send_command(pe.get_item_name(self.arm_mode_item), str(AlarmState.UNARMED.value))
 
+    def get_arm_mode_item(self):
+        return self.arm_mode_item
+
+    def contains_item(self, item):
+        """ Override. """
+        return super(AlarmPartition, self).contains_item(item) or self.arm_mode_item == item
+
     def __str__(self):
         """
         @override

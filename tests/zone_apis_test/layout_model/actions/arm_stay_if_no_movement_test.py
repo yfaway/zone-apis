@@ -20,7 +20,6 @@ class ArmStayIfNoMovementTest(DeviceTest):
         self.set_items(items)
         super(ArmStayIfNoMovementTest, self).setUp()
 
-        self.alarmPartition = AlarmPartition(items[0], items[1])
         self.alarmPartition.disarm(pe.get_event_dispatcher())
 
         self.motionSensor = MotionSensor(items[2])

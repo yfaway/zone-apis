@@ -3,8 +3,9 @@ from typing import Union, Dict, Any
 
 import HABApp
 from HABApp.core import Items
-from HABApp.core.events import ValueChangeEvent
+from HABApp.core.events import ValueChangeEvent, ValueUpdateEvent, ComplexEventValue
 from HABApp.core.items.base_item import BaseItem
+from HABApp.openhab.events import ItemCommandEvent
 from HABApp.openhab.items import ColorItem, DimmerItem, NumberItem, SwitchItem, StringItem
 
 from aaa_modules import platform_encapsulator as pe
@@ -135,14 +136,22 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
     arm_mode_item = Items.get_item(item.name + '_ArmMode')
     device = AlarmPartition(item, arm_mode_item)
 
-    def handler(event: ValueChangeEvent):
+    def handle_value_changed(event: ValueChangeEvent):
         if AlarmState.ARM_AWAY == AlarmState(int(event.value)):
             dispatch_event(zm, ZoneEvent.PARTITION_ARMED_AWAY, device, item)
         elif AlarmState.UNARMED == AlarmState(int(event.value)) \
                 and AlarmState.ARM_AWAY == AlarmState(int(event.old_value)):
             dispatch_event(zm, ZoneEvent.PARTITION_DISARMED_FROM_AWAY, device, item)
 
-    arm_mode_item.listen_event(handler, ValueChangeEvent)
+    def handle_update(event: ItemCommandEvent):
+        pe.log_info(f"*** got ICE: {event.value}")
+        if AlarmState.ARM_AWAY == AlarmState(int(event.value)):
+            dispatch_event(zm, ZoneEvent.PARTITION_RECEIVE_ARM_AWAY, device, item)
+        if AlarmState.ARM_STAY == AlarmState(int(event.value)):
+            dispatch_event(zm, ZoneEvent.PARTITION_RECEIVE_ARM_STAY, device, item)
+
+    arm_mode_item.listen_event(handle_value_changed, ValueChangeEvent)
+    arm_mode_item.listen_event(handle_update, ValueUpdateEvent)
 
     return device
 
