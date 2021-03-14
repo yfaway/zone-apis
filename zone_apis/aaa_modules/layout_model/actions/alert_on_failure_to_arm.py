@@ -19,7 +19,7 @@ class AlertOnFailureToArm:
 
         alert_message = None
 
-        external_zones = [z for z in zone_manager.get_zones() if z.is_external()]
+        external_zones = [z for z in zone_manager.get_zones() if z.is_external() or z == zone]
         for z in external_zones:
             doors = [d for d in z.get_devices_by_type(Door) if d.is_open()]
             if len(doors) > 0:

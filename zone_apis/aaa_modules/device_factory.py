@@ -144,11 +144,10 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
             dispatch_event(zm, ZoneEvent.PARTITION_DISARMED_FROM_AWAY, device, item)
 
     def handle_update(event: ItemCommandEvent):
-        pe.log_info(f"*** got ICE: {event.value}")
         if AlarmState.ARM_AWAY == AlarmState(int(event.value)):
-            dispatch_event(zm, ZoneEvent.PARTITION_RECEIVE_ARM_AWAY, device, item)
-        if AlarmState.ARM_STAY == AlarmState(int(event.value)):
-            dispatch_event(zm, ZoneEvent.PARTITION_RECEIVE_ARM_STAY, device, item)
+            dispatch_event(zm, ZoneEvent.PARTITION_RECEIVE_ARM_AWAY, device, arm_mode_item)
+        elif AlarmState.ARM_STAY == AlarmState(int(event.value)):
+            dispatch_event(zm, ZoneEvent.PARTITION_RECEIVE_ARM_STAY, device, arm_mode_item)
 
     arm_mode_item.listen_event(handle_value_changed, ValueChangeEvent)
     arm_mode_item.listen_event(handle_update, ValueUpdateEvent)
