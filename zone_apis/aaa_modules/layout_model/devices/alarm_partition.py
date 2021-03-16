@@ -101,7 +101,8 @@ class AlarmPartition(Device):
 
     def contains_item(self, item):
         """ Override. """
-        return super(AlarmPartition, self).contains_item(item) or self.arm_mode_item == item
+        return super(AlarmPartition, self).contains_item(item) \
+               or pe.get_item_name(self.arm_mode_item) == pe.get_item_name(item)
 
     def __str__(self):
         """

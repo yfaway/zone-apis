@@ -39,7 +39,7 @@ class GasSensor(Device):
 
     def contains_item(self, item):
         """ Override. """
-        return super(GasSensor, self).contains_item(item) or self._state_item == item
+        return super(GasSensor, self).contains_item(item) or pe.get_item_name(self._state_item) == pe.get_item_name(item)
 
     def reset_value_states(self):
         """ Override. """
