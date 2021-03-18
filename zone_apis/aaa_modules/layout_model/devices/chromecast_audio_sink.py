@@ -5,9 +5,6 @@ from aaa_modules.layout_model.device import Device
 
 MAX_SAY_WAIT_TIME_IN_SECONDS = 20
 
-# Constant to fix a bug in OpenHab. For some reasons, OH might invoke the script twice.
-COMMAND_INTERVAL_THRESHOLD_IN_SECONDS = 30
-
 
 class ChromeCastAudioSink(Device):
     """
@@ -65,6 +62,9 @@ class ChromeCastAudioSink(Device):
         if message is None or '' == message:
             raise ValueError('message must not be null or empty')
 
+        was_active = self.is_active()
+        previous_volume = pe.get_number_value(self._volume_item)
+
         pe.set_number_value(self._volume_item, volume)
         if not self._testMode:
             pe.play_text_to_speech_message(self.get_sink_name(), message)
@@ -89,23 +89,21 @@ class ChromeCastAudioSink(Device):
 
             self.pause()
 
+        if was_active:
+            pe.set_number_value(self._volume_item, previous_volume)
+            self.resume()
+
         return True
 
     def play_sound_file(self, local_file, duration_in_secs, volume=None):
         """
         Plays the provided local sound file. See '/etc/openhab2/sound'.
-        Returns immediately if the same command was recently executed (see
-        COMMAND_INTERVAL_THRESHOLD_IN_SECONDS).
 
         :param volume:
         :param str local_file: a sound file located in '/etc/openhab2/sound'
         :param int duration_in_secs: the duration of the sound file in seconds
         :rtype: boolean
         """
-
-        if local_file == self._lastCommand:
-            if (time.time() - self._lastCommandTimestamp) <= COMMAND_INTERVAL_THRESHOLD_IN_SECONDS:
-                return
 
         self._lastCommandTimestamp = time.time()
         self._lastCommand = local_file

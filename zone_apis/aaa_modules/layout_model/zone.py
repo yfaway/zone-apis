@@ -399,10 +399,11 @@ class Zone:
 
     def is_occupied(self, ignored_device_types=None, seconds_from_last_event=5 * 60):
         """
-        Returns an array of two items. The first item is True if - at least one switch turned on, or - a motion event
-        was triggered within the provided # of seconds, or - a network device was active in the local network within
-        the provided # of seconds. If the first item is True, the item is a Device that indicates occupancy.
-        Otherwise it is None.
+        Returns a list of two value.
+        The first value is True if at least one device's is_occupied() method returns true (i.e. at least one device was
+        triggered within the provided # of seconds); otherwise it is False.
+        If the first list item is True, then the second value is the Device that indicates occupancy; otherwise it i
+        None.
 
         :param seconds_from_last_event:
         :param list(Device) ignored_device_types: the devices not to be
