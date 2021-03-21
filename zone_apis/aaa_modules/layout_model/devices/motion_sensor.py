@@ -33,9 +33,3 @@ class MotionSensor(Device):
 
         return self.was_recently_activated(seconds_from_last_event)
 
-    # noinspection PyUnusedLocal
-    def on_triggered(self, event) -> None:
-        """
-        Handled the motion sensor ON event.
-        """
-        self._update_last_activated_timestamp()

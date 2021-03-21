@@ -1,3 +1,4 @@
+import datetime
 from copy import copy
 import time
 
@@ -210,6 +211,8 @@ class Device(object):
             value += ", auto report"
 
         if self.last_activated_timestamp is not None:
-            value += ", last activated: {}".format(self.last_activated_timestamp)
+            diff_in_seconds = time.time() - self.last_activated_timestamp
+            value += ", last activated: {} ({})".format(self.last_activated_timestamp,
+                                                        str(datetime.timedelta(seconds=diff_in_seconds)))
 
         return value

@@ -43,5 +43,10 @@ class ArmStayIfNoMovement:
             if occupied:
                 return False
 
+        self.log_info(f"*** Debug for ArmStayIfNoMovement: {self._unoccupied_duration_in_minutes} minutes")
+        for z in zone_manager.get_zones():
+            for d in z.get_devices_by_type(MotionSensor):
+                self.log_info("    " + str(d))
+
         sm.arm_stay(zone_manager, events)
         return True
