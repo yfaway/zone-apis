@@ -16,11 +16,7 @@ from aaa_modules.layout_model.devices.activity_times import ActivityTimes
 from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 from aaa_modules.layout_model.devices.dimmer import Dimmer
 from aaa_modules.layout_model.devices.gas_sensor import NaturalGasSensor, SmokeSensor, Co2GasSensor
-from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
-from aaa_modules.layout_model.devices.network_presence import NetworkPresence
 from aaa_modules.layout_model.devices.switch import Light
-from aaa_modules.layout_model.devices.thermostat import EcobeeThermostat
-from aaa_modules.layout_model.devices.tv import Tv
 from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
 from aaa_modules.layout_model.zone import Zone, Level
 from aaa_modules.layout_model.zone_event import ZoneEvent
@@ -70,15 +66,15 @@ def parse(activity_times: ActivityTimes) -> ImmutableZoneManager:
         '[^g].*LightSwitch.*': df.create_switches,
         '.*FanSwitch.*': df.create_switches,
         '.*Wled_MasterControls.*': df.create_switches,
-        '[^g].*_Illuminance.*': lambda zone_manager, an_item: IlluminanceSensor(an_item),
+        '[^g].*_Illuminance.*': df.create_illuminance_sensor,
         '[^g].*Humidity$': df.create_humidity_sensor,
-        '[^g].*_NetworkPresence.*': lambda zone_manager, an_item: NetworkPresence(an_item),
+        '[^g].*_NetworkPresence.*': df.create_network_presence_device,
         '[^g].*_Plug$': df.create_plug,
         '[^g].*_Co2$': df.create_gas_sensor(Co2GasSensor),
         '[^g].*_NaturalGas$': df.create_gas_sensor(NaturalGasSensor),
         '[^g].*_Smoke$': df.create_gas_sensor(SmokeSensor),
-        '.*_Tv$': lambda zone_manager, an_item: Tv(an_item),
-        '.*_Thermostat_EcobeeName$': lambda zone_manager, an_item: EcobeeThermostat(an_item),
+        '.*_Tv$': df.create_television_device,
+        '.*_Thermostat_EcobeeName$': df.create_ecobee_thermostat,
         '[^g].*Temperature$': df.create_temperature_sensor,
         '[^g].*WaterLeakState$': df.create_water_leak_sensor,
     }
@@ -108,9 +104,6 @@ def parse(activity_times: ActivityTimes) -> ImmutableZoneManager:
                 if zone_id not in zone_mappings.keys():
                     pe.log_warning("Invalid zone id '{}'".format(zone_id))
                     continue
-
-                device = device.set_channel(pe.get_channel(device.get_item()))
-                device = device.set_zone_manager(immutable_zm)
 
                 zone = zone_mappings[zone_id].add_device(device)
                 zone_mappings[zone_id] = zone

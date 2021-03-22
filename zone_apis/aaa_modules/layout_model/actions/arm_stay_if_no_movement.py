@@ -16,7 +16,7 @@ class ArmStayIfNoMovement:
     disarm on internal motion sensor.
     """
 
-    def __init__(self, unoccupied_duration_in_minutes=45):
+    def __init__(self, unoccupied_duration_in_minutes=30):
         self._unoccupied_duration_in_minutes = unoccupied_duration_in_minutes
 
     def on_startup(self, event_info: EventInfo):
@@ -42,11 +42,6 @@ class ArmStayIfNoMovement:
             (occupied, device) = z.is_occupied([NetworkPresence], self._unoccupied_duration_in_minutes * 60)
             if occupied:
                 return False
-
-        self.log_info(f"*** Debug for ArmStayIfNoMovement: {self._unoccupied_duration_in_minutes} minutes")
-        for z in zone_manager.get_zones():
-            for d in z.get_devices_by_type(MotionSensor):
-                self.log_info("    " + str(d))
 
         sm.arm_stay(zone_manager, events)
         return True

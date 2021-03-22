@@ -1,5 +1,5 @@
 from enum import Enum, unique
-from typing import List
+from typing import List, Union
 
 from aaa_modules.layout_model.action import Action
 from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
@@ -515,7 +515,7 @@ class Zone:
 
         return is_processed
 
-    def dispatch_event(self, zone_event, event_dispatcher, device: Device, item,
+    def dispatch_event(self, zone_event, event_dispatcher, device: Union[Device, None], item,
                        immutable_zone_manager, owning_zone=None):
         """
         :param Device device: the device containing the item that received the event.
