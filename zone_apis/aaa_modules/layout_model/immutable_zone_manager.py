@@ -6,6 +6,7 @@ from schedule import Scheduler
 
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.alert_manager import AlertManager
+from aaa_modules.layout_model.devices.vacation import Vacation
 from aaa_modules.layout_model.zone import Zone
 from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.device import Device
@@ -158,6 +159,15 @@ class ImmutableZoneManager:
         :rtype: list(Device)
         """
         return self.get_devices_by_type_fcn(cls)
+
+    def is_in_vacation(self):
+        """ Returns true if at least one device indicates that the house is in vacation mode, vie Vacation class. """
+        for z in self.get_zones():
+            for d in z.get_devices_by_type(Vacation):
+                if d.is_in_vacation():
+                    return True
+
+        return False
 
     def get_first_device_by_type(self, cls: type):
         """

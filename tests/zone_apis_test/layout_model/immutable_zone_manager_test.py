@@ -1,6 +1,7 @@
 from typing import List
 
 from aaa_modules.layout_model.device import Device
+from aaa_modules.layout_model.devices.thermostat import EcobeeThermostat
 from aaa_modules.layout_model.neighbor import Neighbor
 from aaa_modules.layout_model.zone_manager import ZoneManager
 from aaa_modules import platform_encapsulator as pe
@@ -23,19 +24,22 @@ class ImmutableZoneManagerTest(DeviceTest):
                  pe.create_number_item('IlluminanceSensorName'),
                  pe.create_switch_item('BM_Utility_TestFanName'),
                  pe.create_switch_item('SharedLight'),
+                 pe.create_string_item('EcobeeName'),
+                 pe.create_string_item('EcobeeEventType'),
                  ]
 
         self.set_items(items)
         super(ImmutableZoneManagerTest, self).setUp()
 
         [self.lightItem, self.motionSensorItem, self.illuminanceSensorItem,
-         self.fanItem, self.shared_light_item] = items
+         self.fanItem, self.shared_light_item, self.ecobee_name_item, self.ecobee_event_type] = items
 
         self.motionSensor = MotionSensor(self.motionSensorItem)
         self.light = Light(self.lightItem, 2)
         self.illuminanceSensor = IlluminanceSensor(self.illuminanceSensorItem)
         self.fan = Fan(self.fanItem, 2)
         self.shared_light = Light(self.shared_light_item, 2)
+        self.thermostat = EcobeeThermostat(self.ecobee_name_item, self.ecobee_event_type)
 
         self.dispatched_zones = []
 
@@ -58,6 +62,7 @@ class ImmutableZoneManagerTest(DeviceTest):
         self.zone1 = MyZone(self.dispatched_zones, 'Foyer', [self.fan, self.motionSensor, self.shared_light],
                             Level.FIRST_FLOOR)
         self.zone2 = MyZone(self.dispatched_zones, 'Kitchen', [self.light, self.shared_light], Level.FIRST_FLOOR)
+        self.zone3 = MyZone(self.dispatched_zones, 'GreatRoom', [self.thermostat], Level.FIRST_FLOOR)
 
         self.zone_manager = ZoneManager().add_zone(self.zone1).add_zone(self.zone2)
         self.immutable_zm = self.zone_manager.get_immutable_instance()
@@ -86,3 +91,19 @@ class ImmutableZoneManagerTest(DeviceTest):
         self.assertTrue(self.immutable_zm.dispatch_event(
             ZoneEvent.MOTION, pe.get_event_dispatcher(), self.illuminanceSensor, self.illuminanceSensorItem))
         self.assertTrue(self.zone1 in self.dispatched_zones, [self.zone1, self.zone2])
+
+    def testIsInVacation_noDeviceImplementVacation_returnsFalse(self):
+        self.assertFalse(self.immutable_zm.is_in_vacation())
+
+    def testIsInVacation_oneDeviceImplementVacationButNotInVacation_returnsFalse(self):
+        zm = ZoneManager().add_zone(self.zone1).add_zone(self.zone2).add_zone(self.zone3)
+        izm = zm.get_immutable_instance()
+
+        self.assertFalse(izm.is_in_vacation())
+
+    def testIsInVacation_inVacationMode_returnsTrue(self):
+        pe.set_string_value(self.ecobee_event_type, 'vacation')
+        zm = ZoneManager().add_zone(self.zone1).add_zone(self.zone2).add_zone(self.zone3)
+        izm = zm.get_immutable_instance()
+
+        self.assertTrue(izm.is_in_vacation())

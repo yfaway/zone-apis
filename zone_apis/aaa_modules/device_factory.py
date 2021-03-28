@@ -396,8 +396,12 @@ def create_illuminance_sensor(zm: ImmutableZoneManager, item) -> IlluminanceSens
 
 def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> IlluminanceSensor:
     """ Create an Ecobee thermostat. """
+
+    event_item_name = item.name.replace("EcobeeName", "FirstEvent_Type")
+    event_item = Items.get_item(event_item_name)
+
     # noinspection PyTypeChecker
-    return _configure_device(EcobeeThermostat(item), zm)
+    return _configure_device(EcobeeThermostat(item, event_item), zm)
 
 
 def create_television_device(zm: ImmutableZoneManager, item) -> Tv:

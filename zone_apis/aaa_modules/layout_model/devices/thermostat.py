@@ -1,5 +1,6 @@
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.device import Device
+from aaa_modules.layout_model.devices.vacation import Vacation
 
 
 class Thermostat(Device):
@@ -24,7 +25,20 @@ class Thermostat(Device):
         pass
 
 
-class EcobeeThermostat(Thermostat):
+class EcobeeThermostat(Thermostat, Vacation):
+    def __init__(self, name_item, event_type_item):
+        """
+        Ctor
+
+        :param StringItem name_item:
+        :param StringItem event_type_item: the top most event type in the thermostat (i.e. #events[0].type).
+        :raise ValueError: if any parameter is invalid
+        """
+
+        Thermostat.__init__(self, name_item)
+
+        self.event_type_item = event_type_item
+
     # noinspection PyMethodMayBeStatic
     def set_away_mode(self):
         """
@@ -40,3 +54,15 @@ class EcobeeThermostat(Thermostat):
         @Override
         """
         pe.resume_ecobee_thermostat_program()
+
+    def is_in_vacation(self):
+        """ @Override """
+        return pe.get_string_value(self.event_type_item) == 'vacation'
+
+    def contains_item(self, item):
+        """ Override. """
+        return super(Thermostat, self).contains_item(item) or pe.get_item_name(self.event_type_item) == pe.get_item_name(item)
+
+    def __str__(self):
+        return f"{super(Thermostat, self).__str__()}, {pe.get_string_value(self.get_item())}, " \
+               f"{pe.get_string_value(self.event_type_item)}"
