@@ -21,7 +21,7 @@ class DisarmOnInternalMotionTest(DeviceTest):
 
         super(DisarmOnInternalMotionTest, self).setUp()
 
-        self.motionSensor = MotionSensor(items[2])
+        self.motionSensor = MotionSensor(items[-2])
         self.door = Door(items[-1])
 
         time_map = {

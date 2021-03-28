@@ -21,11 +21,12 @@ class ZoneEvent(Enum):
     PARTITION_RECEIVE_ARM_STAY = 13  # Changed to armed stay
     PARTITION_DISARMED_FROM_AWAY = 14  # Changed from armed away to disarm
     PARTITION_DISARMED_FROM_STAY = 15  # Changed from armed stay to disarm
-    HUMIDITY_CHANGED = 16  # The humidity percentage changed
-    TEMPERATURE_CHANGED = 17  # The temperature changed
-    GAS_TRIGGER_STATE_CHANGED = 18  # The gas sensor triggering boolean changed
-    GAS_VALUE_CHANGED = 19  # The gas sensor value changed
-    WATER_LEAK_STATE_CHANGED = 20  # The water leak sensor state changed
+    PARTITION_IN_ALARM_STATE_CHANGED = 16  # The partition is either in alarm or no longer in alarm.
+    HUMIDITY_CHANGED = 17  # The humidity percentage changed
+    TEMPERATURE_CHANGED = 18  # The temperature changed
+    GAS_TRIGGER_STATE_CHANGED = 19  # The gas sensor triggering boolean changed
+    GAS_VALUE_CHANGED = 20  # The gas sensor value changed
+    WATER_LEAK_STATE_CHANGED = 21  # The water leak sensor state changed
 
     TIMER = 98  # A timer event is triggered.
     STARTUP = 99  # action startup event

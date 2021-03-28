@@ -6,7 +6,6 @@ from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
 from aaa_modules.layout_model.event_info import EventInfo
 from aaa_modules.layout_model.zone import Zone
 from aaa_modules.layout_model.zone_event import ZoneEvent
-from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition
 from zone_apis_test.layout_model.device_test import DeviceTest, create_zone_manager
 
 
@@ -22,7 +21,7 @@ class ArmStayIfNoMovementTest(DeviceTest):
 
         self.alarmPartition.disarm(pe.get_event_dispatcher())
 
-        self.motionSensor = MotionSensor(items[2])
+        self.motionSensor = MotionSensor(items[-1])
 
         self.activity_times = ActivityTimes({ActivityType.AUTO_ARM_STAY: self.create_outside_time_range()})
 

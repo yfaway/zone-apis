@@ -141,21 +141,27 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
     arm_mode_item = Items.get_item(item.name + '_ArmMode')
     device = _configure_device(AlarmPartition(item, arm_mode_item), zm)
 
-    def handle_value_changed(event: ValueChangeEvent):
+    def arm_mode_value_changed(event: ValueChangeEvent):
         if AlarmState.ARM_AWAY == AlarmState(int(event.value)):
             dispatch_event(zm, ZoneEvent.PARTITION_ARMED_AWAY, device, item)
         elif AlarmState.UNARMED == AlarmState(int(event.value)) \
                 and AlarmState.ARM_AWAY == AlarmState(int(event.old_value)):
             dispatch_event(zm, ZoneEvent.PARTITION_DISARMED_FROM_AWAY, device, item)
 
-    def handle_update(event: ItemCommandEvent):
+    def arm_mode_value_received(event: ItemCommandEvent):
         if AlarmState.ARM_AWAY == AlarmState(int(event.value)):
             dispatch_event(zm, ZoneEvent.PARTITION_RECEIVE_ARM_AWAY, device, arm_mode_item)
         elif AlarmState.ARM_STAY == AlarmState(int(event.value)):
             dispatch_event(zm, ZoneEvent.PARTITION_RECEIVE_ARM_STAY, device, arm_mode_item)
 
-    arm_mode_item.listen_event(handle_value_changed, ValueChangeEvent)
-    arm_mode_item.listen_event(handle_update, ValueUpdateEvent)
+    # noinspection PyUnusedLocal
+    def state_change_handler(event: ValueChangeEvent):
+        dispatch_event(zm, ZoneEvent.PARTITION_IN_ALARM_STATE_CHANGED, device, item)
+
+    arm_mode_item.listen_event(arm_mode_value_changed, ValueChangeEvent)
+    arm_mode_item.listen_event(arm_mode_value_received, ValueUpdateEvent)
+
+    item.listen_event(state_change_handler, ValueChangeEvent)
 
     # noinspection PyTypeChecker
     return device
