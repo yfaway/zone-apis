@@ -48,7 +48,7 @@ class DisarmOnInternalMotionTest(DeviceTest):
         ))
 
     def testOnAction_motionTriggeredInWakeupTimePeriodButExternalDoorWasJustOpened_NotDisarm(self):
-        self.mockZoneManager.dispatch_event(ZoneEvent.CONTACT_OPEN, pe.get_event_dispatcher(), self.door,
+        self.mockZoneManager.dispatch_event(ZoneEvent.DOOR_OPEN, pe.get_event_dispatcher(), self.door,
                                             self.door.get_item())
 
         self.assert_not_disarm(ActivityTimes({

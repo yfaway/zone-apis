@@ -26,7 +26,7 @@ class PlayMusicDuringShowerTest(DeviceTest):
 
     def testOnAction_wrongEventType_returnsFalse(self):
         self.zone = Zone('innerZone').add_action(self.action)
-        event_info = EventInfo(ZoneEvent.CONTACT_OPEN, self.fan_item, self.zone,
+        event_info = EventInfo(ZoneEvent.DOOR_OPEN, self.fan_item, self.zone,
                                create_zone_manager([self.zone]), pe.get_event_dispatcher())
         value = self.action.on_action(event_info)
         self.assertFalse(value)

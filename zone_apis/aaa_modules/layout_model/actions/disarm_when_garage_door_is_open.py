@@ -7,7 +7,7 @@ from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.action import action
 
 
-@action(events=[ZoneEvent.CONTACT_OPEN], devices=[GarageDoor], external=True)
+@action(events=[ZoneEvent.DOOR_OPEN], devices=[GarageDoor], external=True)
 class DisarmWhenGarageDoorIsOpen:
     """
     Automatically disarm after the garage door is open and a network device is connected to WiFi.

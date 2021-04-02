@@ -39,7 +39,7 @@ class SimulateDaytimePresenceTest(DeviceTest):
 
     def testOnAction_wrongEventType_returnsFalse(self):
         (porch, greatRoom, zm, _) = self.create_test_data()
-        event_info = EventInfo(ZoneEvent.CONTACT_OPEN, self.get_items()[0],
+        event_info = EventInfo(ZoneEvent.DOOR_OPEN, self.get_items()[0],
                                porch, zm, pe.get_event_dispatcher())
         value = self.action.on_action(event_info)
         self.assertFalse(value)

@@ -26,6 +26,8 @@ class Thermostat(Device):
 
 
 class EcobeeThermostat(Thermostat, Vacation):
+    VACATION_EVENT_TYPE = 'vacation'
+
     def __init__(self, name_item, event_type_item):
         """
         Ctor
@@ -57,7 +59,7 @@ class EcobeeThermostat(Thermostat, Vacation):
 
     def is_in_vacation(self):
         """ @Override """
-        return pe.get_string_value(self.event_type_item) == 'vacation'
+        return pe.get_string_value(self.event_type_item) == EcobeeThermostat.VACATION_EVENT_TYPE
 
     def contains_item(self, item):
         """ Override. """

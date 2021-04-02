@@ -6,7 +6,7 @@ from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.contact import Door
 
 
-@action(events=[ZoneEvent.CONTACT_OPEN, ZoneEvent.CONTACT_CLOSED],
+@action(events=[ZoneEvent.DOOR_OPEN, ZoneEvent.DOOR_CLOSED],
         devices=[Door], internal=False, external=True)
 class AlertOnExternalDoorLeftOpen:
     """

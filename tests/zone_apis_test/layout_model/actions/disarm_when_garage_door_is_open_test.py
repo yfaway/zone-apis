@@ -34,14 +34,14 @@ class DisarmWhenGarageDoorIsOpenTest(DeviceTest):
 
     def testOnAction_ownerDetectedImmediately_disarm(self):
         pe.set_switch_state(self.network_presence.get_item(), True)
-        event_info = EventInfo(ZoneEvent.CONTACT_OPEN, self.garage_door.get_item(),
+        event_info = EventInfo(ZoneEvent.DOOR_OPEN, self.garage_door.get_item(),
                                self.zone1, self.mockZoneManager, pe.get_event_dispatcher())
         value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertTrue(self.alarm_partition.is_unarmed())
 
     def testOnAction_ownerDetectedInTimerEvent_disarm(self):
-        event_info = EventInfo(ZoneEvent.CONTACT_OPEN, self.garage_door.get_item(),
+        event_info = EventInfo(ZoneEvent.DOOR_OPEN, self.garage_door.get_item(),
                                self.zone1, self.mockZoneManager, pe.get_event_dispatcher())
         value = self.action.on_action(event_info)
         time.sleep(0.02)
@@ -54,7 +54,7 @@ class DisarmWhenGarageDoorIsOpenTest(DeviceTest):
         self.assertTrue(self.alarm_partition.is_unarmed())
 
     def testOnAction_ownerNotDetected_disarm(self):
-        event_info = EventInfo(ZoneEvent.CONTACT_OPEN, self.garage_door.get_item(),
+        event_info = EventInfo(ZoneEvent.DOOR_OPEN, self.garage_door.get_item(),
                                self.zone1, self.mockZoneManager, pe.get_event_dispatcher())
         value = self.action.on_action(event_info)
         time.sleep(0.05)

@@ -347,9 +347,9 @@ def create_door(zm: ImmutableZoneManager, item) -> Door:
     # noinspection PyUnusedLocal
     def handler(event: ValueChangeEvent):
         if pe.is_in_on_state(item) or pe.is_in_open_state(item):
-            dispatch_event(zm, ZoneEvent.CONTACT_OPEN, sensor, item)
+            dispatch_event(zm, ZoneEvent.DOOR_OPEN, sensor, item)
         else:
-            dispatch_event(zm, ZoneEvent.CONTACT_CLOSED, sensor, item)
+            dispatch_event(zm, ZoneEvent.DOOR_CLOSED, sensor, item)
 
     item.listen_event(handler, ValueChangeEvent)
 
@@ -400,8 +400,18 @@ def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> IlluminanceSenso
     event_item_name = item.name.replace("EcobeeName", "FirstEvent_Type")
     event_item = Items.get_item(event_item_name)
 
+    device = EcobeeThermostat(item, event_item)
+
+    def handler(event: ValueChangeEvent):
+        if device.is_in_vacation():
+            dispatch_event(zm, ZoneEvent.VACATION_MODE_ON, device, event_item)
+        elif event.old_value == EcobeeThermostat.VACATION_EVENT_TYPE:
+            dispatch_event(zm, ZoneEvent.VACATION_MODE_OFF, device, event_item)
+
+    event_item.listen_event(handler, ValueChangeEvent)
+
     # noinspection PyTypeChecker
-    return _configure_device(EcobeeThermostat(item, event_item), zm)
+    return _configure_device(device, zm)
 
 
 def create_television_device(zm: ImmutableZoneManager, item) -> Tv:
