@@ -177,12 +177,19 @@ class ImmutableZoneManager:
 
         :rtype: bool or None
         """
+        has_astro_sensors = False
         for z in self.get_zones():
             astro_sensors = z.get_devices_by_type(AstroSensor)
-            if len(astro_sensors) == 0:
-                return None
-            else:
-                return any(s.is_light_on_time() for s in astro_sensors)
+            if len(astro_sensors) > 0:
+                has_astro_sensors = True
+                value = any(s.is_light_on_time() for s in astro_sensors)
+                if value:
+                    return True
+
+        if not has_astro_sensors:
+            return None
+        else:
+            return False
 
     def get_first_device_by_type(self, cls: type):
         """
