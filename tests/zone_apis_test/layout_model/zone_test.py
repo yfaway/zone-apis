@@ -208,20 +208,6 @@ class ZoneTest(DeviceTest):
                            self.illuminanceSensor])
         self.assertEqual(ILLUMINANCE_THRESHOLD_IN_LUX, zone.get_illuminance_level())
 
-    def testIsLightOnTime_noSensor_returnsNone(self):
-        zone = Zone('ff', [self.lightWithIlluminance, self.motionSensor])
-        self.assertEqual(None, zone.is_light_on_time())
-
-    def testIsLightOnTime_withSensorIndicatesDayTime_returnsFalse(self):
-        pe.set_string_value(self.astroSensorItem, 'MORNING')
-        zone = Zone('ff', [self.lightWithIlluminance, self.astroSensor])
-        self.assertFalse(zone.is_light_on_time())
-
-    def testIsLightOnTime_withSensorIndicatesEveningTime_returnsTrue(self):
-        pe.set_string_value(self.astroSensorItem, AstroSensor.LIGHT_ON_TIMES[0])
-        zone = Zone('ff', [self.lightWithIlluminance, self.astroSensor])
-        self.assertTrue(zone.is_light_on_time())
-
     def testShareSensorWith_noSharedSensors_returnsFalse(self):
         zone1 = Zone('ff', [self.lightWithIlluminance, self.astroSensor])
         zone2 = Zone('foyer', [])
@@ -297,7 +283,7 @@ class ZoneTest(DeviceTest):
         zone = zone.add_action(TurnOnSwitch())
 
         is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor,
-                                           self.motionSensor.get_item(), None, True)
+                                           self.motionSensor.get_item(), create_zone_manager([zone]), True)
         self.assertFalse(is_processed)
 
     def testOnMotionSensorTurnedOn_notLightOnTimeButIlluminanceBelowThreshold_turnsOnLight(self):

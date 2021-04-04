@@ -4,13 +4,13 @@ from functools import reduce
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.event_info import EventInfo
+from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
 from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.neighbor import NeighborType
 from aaa_modules.layout_model.devices.switch import Light, Switch, Fan
 from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
 
 from aaa_modules.layout_model.actions.turn_off_adjacent_zones import TurnOffAdjacentZones
-from aaa_modules.layout_model.zone_manager import ZoneManager
 
 DEBUG = False
 
@@ -52,11 +52,11 @@ class TurnOnSwitch:
     def on_action(self, event_info):
         events = event_info.get_event_dispatcher()
         zone = event_info.get_zone()
-        zone_manager: ZoneManager = event_info.get_zone_manager()
+        zone_manager: ImmutableZoneManager = event_info.get_zone_manager()
 
         is_processed = False
         can_turn_off_adjacent_zones = True
-        light_on_time = zone.is_light_on_time()
+        light_on_time = zone_manager.is_light_on_time()
         zone_illuminance = zone.get_illuminance_level()
 
         switch = None

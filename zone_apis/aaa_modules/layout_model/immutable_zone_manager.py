@@ -6,6 +6,7 @@ from schedule import Scheduler
 
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.alert_manager import AlertManager
+from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 from aaa_modules.layout_model.devices.vacation import Vacation
 from aaa_modules.layout_model.zone import Zone
 from aaa_modules.layout_model.zone_event import ZoneEvent
@@ -168,6 +169,20 @@ class ImmutableZoneManager:
                     return True
 
         return False
+
+    def is_light_on_time(self):
+        """
+        Returns True if it is light-on time; returns false if it is no. Returns None if there is no AstroSensor to
+        determine the time.
+
+        :rtype: bool or None
+        """
+        for z in self.get_zones():
+            astro_sensors = z.get_devices_by_type(AstroSensor)
+            if len(astro_sensors) == 0:
+                return None
+            else:
+                return any(s.is_light_on_time() for s in astro_sensors)
 
     def get_first_device_by_type(self, cls: type):
         """

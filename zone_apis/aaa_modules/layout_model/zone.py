@@ -384,19 +384,6 @@ class Zone:
 
         return zone_illuminance
 
-    def is_light_on_time(self):
-        """
-        Returns True if it is light-on time; returns false if it is no. Returns
-        None if there is no AstroSensor to determine the time.
-
-        :rtype: bool or None
-        """
-        astro_sensors = self.get_devices_by_type(AstroSensor)
-        if len(astro_sensors) == 0:
-            return None
-        else:
-            return any(s.is_light_on_time() for s in astro_sensors)
-
     def is_occupied(self, ignored_device_types=None, seconds_from_last_event=5 * 60):
         """
         Returns a list of two value.

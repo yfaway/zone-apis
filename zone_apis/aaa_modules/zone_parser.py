@@ -13,10 +13,7 @@ from aaa_modules import device_factory as df
 from aaa_modules.alert_manager import AlertManager
 from aaa_modules.layout_model.action import Action
 from aaa_modules.layout_model.devices.activity_times import ActivityTimes
-from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
-from aaa_modules.layout_model.devices.dimmer import Dimmer
 from aaa_modules.layout_model.devices.gas_sensor import NaturalGasSensor, SmokeSensor, Co2GasSensor
-from aaa_modules.layout_model.devices.switch import Light
 from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
 from aaa_modules.layout_model.zone import Zone, Level
 from aaa_modules.layout_model.zone_event import ZoneEvent
@@ -77,6 +74,7 @@ def parse(activity_times: ActivityTimes) -> ImmutableZoneManager:
         '.*_Thermostat_EcobeeName$': df.create_ecobee_thermostat,
         '[^g].*Temperature$': df.create_temperature_sensor,
         '[^g].*WaterLeakState$': df.create_water_leak_sensor,
+        '[^g].*_TimeOfDay$': df.create_astro_sensor,
     }
 
     zm: ZoneManager = ZoneManager()
@@ -107,13 +105,6 @@ def parse(activity_times: ActivityTimes) -> ImmutableZoneManager:
 
                 zone = zone_mappings[zone_id].add_device(device)
                 zone_mappings[zone_id] = zone
-
-    # Add the AstroSensor to any zone that has a Light device.
-    astro_sensor = AstroSensor(Items.get_item('VT_Time_Of_Day')).set_zone_manager(immutable_zm)
-    for zone in zone_mappings.values():
-        if len(zone.get_devices_by_type(Light)) > 0 or len(zone.get_devices_by_type(Dimmer)) > 0:
-            zone = zone.add_device(astro_sensor)
-            zone_mappings[zone.get_id()] = zone
 
     # Add specific devices to the Virtual Zone
     zone = next((z for z in zone_mappings.values() if z.get_name() == 'Virtual'), None)

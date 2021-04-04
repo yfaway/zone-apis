@@ -1,6 +1,7 @@
 from typing import List
 
 from aaa_modules.layout_model.device import Device
+from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 from aaa_modules.layout_model.devices.thermostat import EcobeeThermostat
 from aaa_modules.layout_model.neighbor import Neighbor
 from aaa_modules.layout_model.zone_manager import ZoneManager
@@ -26,13 +27,15 @@ class ImmutableZoneManagerTest(DeviceTest):
                  pe.create_switch_item('SharedLight'),
                  pe.create_string_item('EcobeeName'),
                  pe.create_string_item('EcobeeEventType'),
+                 pe.create_string_item('AstroSensorName'),
                  ]
 
         self.set_items(items)
         super(ImmutableZoneManagerTest, self).setUp()
 
         [self.lightItem, self.motionSensorItem, self.illuminanceSensorItem,
-         self.fanItem, self.shared_light_item, self.ecobee_name_item, self.ecobee_event_type] = items
+         self.fanItem, self.shared_light_item, self.ecobee_name_item, self.ecobee_event_type,
+         self.astroSensorItem] = items
 
         self.motionSensor = MotionSensor(self.motionSensorItem)
         self.light = Light(self.lightItem, 2)
@@ -40,6 +43,7 @@ class ImmutableZoneManagerTest(DeviceTest):
         self.fan = Fan(self.fanItem, 2)
         self.shared_light = Light(self.shared_light_item, 2)
         self.thermostat = EcobeeThermostat(self.ecobee_name_item, self.ecobee_event_type)
+        self.astroSensor = AstroSensor(self.astroSensorItem)
 
         self.dispatched_zones = []
 
@@ -63,6 +67,7 @@ class ImmutableZoneManagerTest(DeviceTest):
                             Level.FIRST_FLOOR)
         self.zone2 = MyZone(self.dispatched_zones, 'Kitchen', [self.light, self.shared_light], Level.FIRST_FLOOR)
         self.zone3 = MyZone(self.dispatched_zones, 'GreatRoom', [self.thermostat], Level.FIRST_FLOOR)
+        self.zone4 = MyZone(self.dispatched_zones, 'Virtual', [self.astroSensor], Level.FIRST_FLOOR)
 
         self.zone_manager = ZoneManager().add_zone(self.zone1).add_zone(self.zone2)
         self.immutable_zm = self.zone_manager.get_immutable_instance()
@@ -107,3 +112,16 @@ class ImmutableZoneManagerTest(DeviceTest):
         izm = zm.get_immutable_instance()
 
         self.assertTrue(izm.is_in_vacation())
+
+    def testIsLightOnTime_noSensor_returnsNone(self):
+        self.assertEqual(None, self.immutable_zm.is_light_on_time())
+
+    def testIsLightOnTime_withSensorIndicatesDayTime_returnsFalse(self):
+        pe.set_string_value(self.astroSensorItem, 'MORNING')
+        izm = ZoneManager().add_zone(self.zone4).get_immutable_instance()
+        self.assertFalse(izm.is_light_on_time())
+
+    def testIsLightOnTime_withSensorIndicatesEveningTime_returnsTrue(self):
+        pe.set_string_value(self.astroSensorItem, AstroSensor.LIGHT_ON_TIMES[0])
+        izm = ZoneManager().add_zone(self.zone4).get_immutable_instance()
+        self.assertTrue(izm.is_light_on_time())

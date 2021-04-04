@@ -18,11 +18,14 @@ class AstroSensor(Device):
         """
         Device.__init__(self, string_item)
 
-    def is_light_on_time(self):
+    def is_light_on_time(self, value=None):
         """
         Returns True if it is evening time; returns False otherwise.
 
+        :param str value: the current time period. if is None, retrieve the value from the item.
         :rtype: bool
         """
-        value = pe.get_string_value(self.get_item())
+        if value is None:
+            value = pe.get_string_value(self.get_item())
+
         return any(s == value for s in self.LIGHT_ON_TIMES)

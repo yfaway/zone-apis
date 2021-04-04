@@ -11,6 +11,7 @@ from HABApp.openhab.items import ColorItem, DimmerItem, NumberItem, SwitchItem, 
 from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.device import Device
 from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition, AlarmState
+from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 from aaa_modules.layout_model.devices.camera import Camera
 from aaa_modules.layout_model.devices.chromecast_audio_sink import ChromeCastAudioSink
 from aaa_modules.layout_model.devices.contact import Door, GarageDoor, Window
@@ -409,6 +410,24 @@ def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> IlluminanceSenso
             dispatch_event(zm, ZoneEvent.VACATION_MODE_OFF, device, event_item)
 
     event_item.listen_event(handler, ValueChangeEvent)
+
+    # noinspection PyTypeChecker
+    return _configure_device(device, zm)
+
+
+def create_astro_sensor(zm: ImmutableZoneManager, item) -> AstroSensor:
+    device = AstroSensor(item)
+
+    def handler(event: ValueChangeEvent):
+        was_light_on_time = device.is_light_on_time(event.old_value)
+        is_light_on_time = device.is_light_on_time(event.value)
+        if was_light_on_time != is_light_on_time:
+            if is_light_on_time:
+                dispatch_event(zm, ZoneEvent.ASTRO_LIGHT_ON, device, item)
+            else:
+                dispatch_event(zm, ZoneEvent.ASTRO_LIGHT_OFF, device, item)
+
+    item.listen_event(handler, ValueChangeEvent)
 
     # noinspection PyTypeChecker
     return _configure_device(device, zm)
