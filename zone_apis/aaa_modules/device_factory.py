@@ -396,7 +396,11 @@ def create_illuminance_sensor(zm: ImmutableZoneManager, item) -> IlluminanceSens
 
 
 def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> IlluminanceSensor:
-    """ Create an Ecobee thermostat. """
+    """
+    Create an Ecobee thermostat and set up the event listener to trap the vacation setting via the Ecobee
+    application.
+    If the OH switch item 'Out_Vacation' is present, set its value to the vacation mode setting.
+    """
 
     event_item_name = item.name.replace("EcobeeName", "FirstEvent_Type")
     event_item = Items.get_item(event_item_name)
@@ -404,10 +408,16 @@ def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> IlluminanceSenso
     device = EcobeeThermostat(item, event_item)
 
     def handler(event: ValueChangeEvent):
+        display_item_name = 'Out_Vacation'
+
         if device.is_in_vacation():
             dispatch_event(zm, ZoneEvent.VACATION_MODE_ON, device, event_item)
+            if pe.has_item(display_item_name):
+                pe.set_switch_state(display_item_name, True)
         elif event.old_value == EcobeeThermostat.VACATION_EVENT_TYPE:
             dispatch_event(zm, ZoneEvent.VACATION_MODE_OFF, device, event_item)
+            if pe.has_item(display_item_name):
+                pe.set_switch_state(display_item_name, False)
 
     event_item.listen_event(handler, ValueChangeEvent)
 

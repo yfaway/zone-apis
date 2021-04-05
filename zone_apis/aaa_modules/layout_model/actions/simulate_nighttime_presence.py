@@ -1,6 +1,7 @@
 import random
 from threading import Timer
 
+from aaa_modules import platform_encapsulator as pe
 from aaa_modules.layout_model.action import action
 from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 from aaa_modules.layout_model.devices.switch import Light
@@ -11,6 +12,8 @@ from aaa_modules.layout_model.zone_event import ZoneEvent
 ON_EVENTS = [ZoneEvent.VACATION_MODE_ON, ZoneEvent.ASTRO_LIGHT_ON]
 OFF_EVENTS = [ZoneEvent.ASTRO_LIGHT_OFF, ZoneEvent.VACATION_MODE_OFF]
 
+DISPLAY_ITEM_NAME = 'Out_Light_Simulation'
+
 
 @action(events=ON_EVENTS + OFF_EVENTS, devices=[AstroSensor])
 class SimulateNighttimePresence:
@@ -18,6 +21,7 @@ class SimulateNighttimePresence:
     When on vacation mode, after the sunset and before bed time, randomly turn on a managed light for a random period.
     After the period expires, randomly select another light (could be the same one again) and turn it on. Repeat this
     process until the vacation mode ends or until bed time.
+    If the OH switch item DISPLAY_ITEM_NAME is present, set its value to True if light simulation is running.
     """
 
     def __init__(self, min_light_on_duration_in_minutes=3, max_light_on_duration_in_minutes=8):
@@ -60,6 +64,10 @@ class SimulateNighttimePresence:
 
             if self.timer is None:  # is simulation is already running
                 turn_on_random_light()
+
+                if pe.has_item(DISPLAY_ITEM_NAME):
+                    pe.set_switch_state(DISPLAY_ITEM_NAME, True)
+
                 self.log_info("Started light simulation.")
 
         else:  # events to turn off simulation mode
@@ -79,3 +87,6 @@ class SimulateNighttimePresence:
             self.iteration_count = 0
 
             self.log_info("Canceled light simulation mode.")
+
+        if pe.has_item(DISPLAY_ITEM_NAME):
+            pe.set_switch_state(DISPLAY_ITEM_NAME, False)

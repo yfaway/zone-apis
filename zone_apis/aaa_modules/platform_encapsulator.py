@@ -142,14 +142,18 @@ def create_string_item(name: str) -> StringItem:
     return StringItem(name)
 
 
-def set_switch_state(item: SwitchItem, on: bool):
+def set_switch_state(item_or_item_name: Union[SwitchItem, str], on: bool):
+    """ Set the switch state for the given item or item name. """
+    if isinstance(item_or_item_name, str):
+        item_or_item_name = SwitchItem.get_item(item_or_item_name)
+
     if is_in_unit_tests():
-        item.set_value(OnOffValue.ON if on else OnOffValue.OFF)
+        item_or_item_name.set_value(OnOffValue.ON if on else OnOffValue.OFF)
     else:
         if on:
-            item.on()
+            item_or_item_name.on()
         else:
-            item.off()
+            item_or_item_name.off()
 
 
 def set_dimmer_value(item: DimmerItem, percentage: int):
@@ -207,6 +211,11 @@ def change_player_state_to_play(item: PlayerItem):
 
 def is_player_playing(item: PlayerItem):
     return item.get_value() == "PLAY"
+
+
+def has_item(item_name: str):
+    """ Returns true if the item name is present in the back store. """
+    return Items.item_exists(item_name)
 
 
 def get_item_name(item):
