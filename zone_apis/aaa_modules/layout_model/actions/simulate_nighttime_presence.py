@@ -15,7 +15,9 @@ OFF_EVENTS = [ZoneEvent.ASTRO_LIGHT_OFF, ZoneEvent.VACATION_MODE_OFF]
 DISPLAY_ITEM_NAME = 'Out_Light_Simulation'
 
 
-@action(events=ON_EVENTS + OFF_EVENTS, devices=[AstroSensor])
+@action(events=ON_EVENTS + OFF_EVENTS,
+        external_events=ON_EVENTS + OFF_EVENTS,
+        devices=[AstroSensor])
 class SimulateNighttimePresence:
     """
     When on vacation mode, after the sunset and before bed time, randomly turn on a managed light for a random period.
@@ -48,12 +50,15 @@ class SimulateNighttimePresence:
             def turn_on_random_light():
                 self.iteration_count += 1
 
+                if self.light is not None:  # turn off the previous light.
+                    self.light.turn_off(event_info.get_event_dispatcher())
+
                 self.light = random.choice(zm.get_devices_by_type(Light))
                 self.light.turn_on(event_info.get_event_dispatcher())
 
                 duration_in_seconds = random.randint(self.min_light_on_duration_in_minutes * 60,
                                                      self.max_light_on_duration_in_minutes * 60)
-                self.log_info(f"Light simulation: turning on {self.light.get_item_name()} for "
+                self.log_info(f"turning on {self.light.get_item_name()} for "
                               f"{int(duration_in_seconds / 60)} minutes")
 
                 if not zm.is_light_on_time() or not zm.is_in_vacation():
@@ -63,12 +68,12 @@ class SimulateNighttimePresence:
                 self.timer.start()
 
             if self.timer is None:  # is simulation is already running
+                self.log_info("Starting light simulation.")
+
                 turn_on_random_light()
 
                 if pe.has_item(DISPLAY_ITEM_NAME):
                     pe.set_switch_state(DISPLAY_ITEM_NAME, True)
-
-                self.log_info("Started light simulation.")
 
         else:  # events to turn off simulation mode
             self.cancel_timer()
