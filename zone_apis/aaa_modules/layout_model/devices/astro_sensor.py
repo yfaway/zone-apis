@@ -7,7 +7,9 @@ class AstroSensor(Device):
     A virtual sensor to determine the light on time; backed by a StringItem.
     """
 
-    LIGHT_ON_TIMES = ["EVENING", "NIGHT", "BED"]
+    BED_TIME = "BED"
+
+    LIGHT_ON_TIMES = ["EVENING", "NIGHT", BED_TIME]
 
     def __init__(self, string_item):
         """
@@ -29,3 +31,15 @@ class AstroSensor(Device):
             value = pe.get_string_value(self.get_item())
 
         return any(s == value for s in self.LIGHT_ON_TIMES)
+
+    def is_bed_time(self, value=None):
+        """
+        Returns True if it is bed time; returns False otherwise.
+
+        :param str value: the current time period. if is None, retrieve the value from the item.
+        :rtype: bool
+        """
+        if value is None:
+            value = pe.get_string_value(self.get_item())
+
+        return value == self.BED_TIME

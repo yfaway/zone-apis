@@ -30,8 +30,9 @@ class ZoneEvent(Enum):
 
     ASTRO_LIGHT_ON = 80  # Indicates that it is getting dark and the light should be turn on.
     ASTRO_LIGHT_OFF = 81  # Indicates that the time period transitions to day time.
-    VACATION_MODE_ON = 82
-    VACATION_MODE_OFF = 83
+    ASTRO_BED_TIME = 82  # Indicates that the time period transitions to bed time.
+    VACATION_MODE_ON = 83
+    VACATION_MODE_OFF = 84
 
     TIMER = 98  # A timer event is triggered.
     STARTUP = 99  # action startup event

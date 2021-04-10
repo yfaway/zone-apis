@@ -437,6 +437,9 @@ def create_astro_sensor(zm: ImmutableZoneManager, item) -> AstroSensor:
             else:
                 dispatch_event(zm, ZoneEvent.ASTRO_LIGHT_OFF, device, item)
 
+        if device.is_bed_time(event.value):
+            dispatch_event(zm, ZoneEvent.ASTRO_BED_TIME, device, item)
+
     item.listen_event(handler, ValueChangeEvent)
 
     # noinspection PyTypeChecker

@@ -10,14 +10,12 @@ from aaa_modules.layout_model.immutable_zone_manager import ImmutableZoneManager
 from aaa_modules.layout_model.zone_event import ZoneEvent
 
 ON_EVENTS = [ZoneEvent.VACATION_MODE_ON, ZoneEvent.ASTRO_LIGHT_ON]
-OFF_EVENTS = [ZoneEvent.ASTRO_LIGHT_OFF, ZoneEvent.VACATION_MODE_OFF]
+OFF_EVENTS = [ZoneEvent.ASTRO_LIGHT_OFF, ZoneEvent.ASTRO_BED_TIME, ZoneEvent.VACATION_MODE_OFF]
 
 DISPLAY_ITEM_NAME = 'Out_Light_Simulation'
 
 
-@action(events=ON_EVENTS + OFF_EVENTS,
-        external_events=ON_EVENTS + OFF_EVENTS,
-        devices=[AstroSensor])
+@action(events=ON_EVENTS + OFF_EVENTS, external_events=ON_EVENTS + OFF_EVENTS, devices=[AstroSensor])
 class SimulateNighttimePresence:
     """
     When on vacation mode, after the sunset and before bed time, randomly turn on a managed light for a random period.
