@@ -2,7 +2,6 @@ from enum import Enum, unique
 from typing import List, Union
 
 from aaa_modules.layout_model.action import Action
-from aaa_modules.layout_model.devices.astro_sensor import AstroSensor
 from aaa_modules.layout_model.event_info import EventInfo
 from aaa_modules.layout_model.device import Device
 
@@ -257,7 +256,7 @@ class Zone:
 
         new_actions = dict(self.actions)
 
-        events = action.get_required_events() + action.get_external_events()
+        events = set(action.get_required_events() + action.get_external_events())
         for zone_event in events:
             if zone_event in new_actions:
                 new_actions[zone_event].append(action)
