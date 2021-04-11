@@ -28,6 +28,11 @@ class ZoneEvent(Enum):
     GAS_VALUE_CHANGED = 20  # The gas sensor value changed
     WATER_LEAK_STATE_CHANGED = 21  # The water leak sensor state changed
 
+    PLAYER_PAUSE = 40
+    PLAYER_PLAY = 41
+    PLAYER_NEXT = 42
+    PLAYER_PREVIOUS = 43
+
     ASTRO_LIGHT_ON = 80  # Indicates that it is getting dark and the light should be turn on.
     ASTRO_LIGHT_OFF = 81  # Indicates that the time period transitions to day time.
     ASTRO_BED_TIME = 82  # Indicates that the time period transitions to bed time.

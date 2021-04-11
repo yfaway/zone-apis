@@ -178,8 +178,19 @@ def create_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> ChromeCast
     title_item = Items.get_item(item.name + "Title")
     idling_item = Items.get_item(item.name + "Idling")
 
+    device = _configure_device(ChromeCastAudioSink(sink_name, player_item, volume_item, title_item, idling_item), zm)
+
+    def player_command_event(event):
+        event_map = {'NEXT': ZoneEvent.PLAYER_NEXT,
+                     'PREVIOUS': ZoneEvent.PLAYER_PREVIOUS}
+        if event.value in event_map.keys():
+            event = event_map[event.value]
+            dispatch_event(zm, event, device, player_item)
+
+    player_item.listen_event(player_command_event, ItemCommandEvent)
+
     # noinspection PyTypeChecker
-    return _configure_device(ChromeCastAudioSink(sink_name, player_item, volume_item, title_item, idling_item), zm)
+    return device
 
 
 def get_meta_value(metadata: Dict[str, Any], key, default_value=None) -> str:
@@ -405,7 +416,7 @@ def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> IlluminanceSenso
     event_item_name = item.name.replace("EcobeeName", "FirstEvent_Type")
     event_item = Items.get_item(event_item_name)
 
-    device = EcobeeThermostat(item, event_item)
+    device = _configure_device(EcobeeThermostat(item, event_item), zm)
 
     def handler(event: ValueChangeEvent):
         display_item_name = 'Out_Vacation'
@@ -422,11 +433,11 @@ def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> IlluminanceSenso
     event_item.listen_event(handler, ValueChangeEvent)
 
     # noinspection PyTypeChecker
-    return _configure_device(device, zm)
+    return device
 
 
 def create_astro_sensor(zm: ImmutableZoneManager, item) -> AstroSensor:
-    device = AstroSensor(item)
+    device = _configure_device(AstroSensor(item), zm)
 
     def handler(event: ValueChangeEvent):
         was_light_on_time = device.is_light_on_time(event.old_value)
@@ -443,7 +454,7 @@ def create_astro_sensor(zm: ImmutableZoneManager, item) -> AstroSensor:
     item.listen_event(handler, ValueChangeEvent)
 
     # noinspection PyTypeChecker
-    return _configure_device(device, zm)
+    return device
 
 
 def create_television_device(zm: ImmutableZoneManager, item) -> Tv:

@@ -178,10 +178,10 @@ class ChromeCastAudioSink(Device):
 
         if pe.is_in_on_state(self._idling_item):
             pe.play_stream_url(self.get_sink_name(), self.get_stream_url())
-            pass
         else:
             pe.play_stream_url(self.get_sink_name(), self.get_stream_url())
-            pe.change_player_state_to_play(self._player_item)
+
+        pe.change_player_state_to_play(self._player_item)
 
     def is_active(self):
         """
@@ -224,3 +224,11 @@ class ChromeCastAudioSink(Device):
 
     def _get_last_test_command(self):
         return self._testLastCommand
+
+    def contains_item(self, item):
+        """ Override. """
+        return super(ChromeCastAudioSink, self).contains_item(item) \
+               or pe.get_item_name(self._volume_item) == pe.get_item_name(item) \
+               or pe.get_item_name(self._player_item) == pe.get_item_name(item) \
+               or pe.get_item_name(self._idling_item) == pe.get_item_name(item) \
+               or pe.get_item_name(self._title_item) == pe.get_item_name(item)
