@@ -75,8 +75,6 @@ def create_switches(zm: ImmutableZoneManager,
     if 'LightSwitch' == device_name:
         no_premature_turn_off_time_range = get_meta_value(metadata, "noPrematureTurnOffTimeRange", None)
 
-        disable_triggering = True if "true" == get_meta_value(metadata, disable_triggering_key) else False
-
         if dimmable_key in metadata:
             config = metadata.get(dimmable_key).get('config')
             level = int(config.get('level'))
@@ -84,12 +82,10 @@ def create_switches(zm: ImmutableZoneManager,
 
             device = Dimmer(item, duration_in_minutes, level, time_ranges,
                             illuminance_threshold_in_lux,
-                            disable_triggering,
                             no_premature_turn_off_time_range)
         else:
             device = Light(item, duration_in_minutes,
                            illuminance_threshold_in_lux,
-                           disable_triggering,
                            no_premature_turn_off_time_range)
 
     elif 'FanSwitch' == device_name:
@@ -235,7 +231,12 @@ def create_motion_sensor(zm: ImmutableZoneManager, item) -> MotionSensor:
     :param item: SwitchItem
     :return: MotionSensor
     """
-    sensor = _configure_device(MotionSensor(item), zm)
+    key_disable_triggering_switches = "disableTriggeringSwitches"
+    item_def = HABApp.openhab.interface.get_item(item.name, f"{key_disable_triggering_switches}")
+    metadata = item_def.metadata
+    can_trigger_switches = False if "true" == get_meta_value(metadata, key_disable_triggering_switches) else True
+
+    sensor = _configure_device(MotionSensor(item, True, can_trigger_switches), zm)
 
     # noinspection PyUnusedLocal
     def handler(event: ValueChangeEvent):
@@ -416,7 +417,8 @@ def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> IlluminanceSenso
     event_item_name = item.name.replace("EcobeeName", "FirstEvent_Type")
     event_item = Items.get_item(event_item_name)
 
-    device = _configure_device(EcobeeThermostat(item, event_item), zm)
+    # noinspection PyTypeChecker
+    device: EcobeeThermostat = _configure_device(EcobeeThermostat(item, event_item), zm)
 
     def handler(event: ValueChangeEvent):
         display_item_name = 'Out_Vacation'
@@ -437,7 +439,8 @@ def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> IlluminanceSenso
 
 
 def create_astro_sensor(zm: ImmutableZoneManager, item) -> AstroSensor:
-    device = _configure_device(AstroSensor(item), zm)
+    # noinspection PyTypeChecker
+    device: AstroSensor = _configure_device(AstroSensor(item), zm)
 
     def handler(event: ValueChangeEvent):
         was_light_on_time = device.is_light_on_time(event.old_value)

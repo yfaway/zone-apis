@@ -7,12 +7,14 @@ class MotionSensor(Device):
     Represents a motion sensor; the underlying OpenHab object is a SwitchItem.
     """
 
-    def __init__(self, switch_item, battery_powered=True):
+    def __init__(self, switch_item, battery_powered=True, can_trigger_switches=True):
         """
         :param SwitchItem switch_item:
         :raise ValueError: if any parameter is invalid
         """
         Device.__init__(self, switch_item, battery_powered)
+
+        self._can_trigger_switches = can_trigger_switches
 
     def is_on(self):
         """
@@ -33,3 +35,14 @@ class MotionSensor(Device):
 
         return self.was_recently_activated(seconds_from_last_event)
 
+    def can_trigger_switches(self) -> bool:
+        """
+        Returns true if this motion sensor can turn on associated switches in the same zone.
+        """
+        return self._can_trigger_switches
+
+    def __str__(self):
+        """ @override """
+        return u"{}{}".format(
+            super(MotionSensor, self).__str__(),
+            ", disable triggering switches" if not self.can_trigger_switches() else "")

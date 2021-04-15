@@ -45,14 +45,12 @@ class TurnOnSwitch:
     again.
     """
 
-    def __init__(self):
-        pass
-
     # noinspection PyMethodMayBeStatic
-    def on_action(self, event_info):
+    def on_action(self, event_info: EventInfo):
         events = event_info.get_event_dispatcher()
         zone = event_info.get_zone()
         zone_manager: ImmutableZoneManager = event_info.get_zone_manager()
+        motion_sensor: MotionSensor = event_info.get_device()
 
         is_processed = False
         can_turn_off_adjacent_zones = True
@@ -68,11 +66,10 @@ class TurnOnSwitch:
                 can_turn_off_adjacent_zones = False
                 continue
 
-            if not switch.can_be_triggered_by_motion_sensor():
-                # A special case: if a switch is configured not to be
-                # triggered by a motion sensor, it means there is already 
-                # another switch sharing that motion sensor. In this case, we
-                # don't want to turn off the other switch.
+            if not motion_sensor.can_trigger_switches():
+                # A special case: if a switch is configured not to be # triggered by a motion sensor, it means there is
+                # already another switch sharing that motion sensor. In this case, we # don't want to turn off the
+                # other switch.
                 can_turn_off_adjacent_zones = False
                 if DEBUG:
                     pe.log_info("{}: rejected - can't be triggered by motion sensor".format(

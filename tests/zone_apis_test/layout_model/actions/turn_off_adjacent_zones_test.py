@@ -28,7 +28,7 @@ class TurnOffAdjacentZonesTest(DeviceTest):
         self.washroom_light = Light(self.washroom_light_item, 5)
         self.lobby_light = Light(self.lobby_light_item, 5)
         self.foyer_light = Light(self.foyer_light_item, 5,
-                                 ILLUMINANCE_THRESHOLD_IN_LUX, False, "0-23:59")  # always stay on
+                                 ILLUMINANCE_THRESHOLD_IN_LUX, "0-23:59")  # always stay on
         self.show_fan = Fan(self.fan_item, 5)
 
         self.action = TurnOffAdjacentZones()

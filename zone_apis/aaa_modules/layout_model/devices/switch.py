@@ -14,22 +14,16 @@ class Switch(Device):
     switch is turned off not by the timer, the timer is cancelled.
     """
 
-    def __init__(self, switch_item, duration_in_minutes: float,
-                 disable_triggering_from_motion_sensor: bool = False):
+    def __init__(self, switch_item, duration_in_minutes: float):
         """
         Ctor
 
         :param SwitchItem switch_item:
         :param int duration_in_minutes: how long the switch will be kept on
-        :param bool disable_triggering_from_motion_sensor: a flag to indicate whether \
-            the switch should be turned on when motion sensor is triggered.\
-            There is no logic associate with this value in this class; it is \
-            used by external classes through the getter.
         :raise ValueError: if any parameter is invalid
         """
         Device.__init__(self, switch_item)
 
-        self.disable_triggering_from_motion_sensor = disable_triggering_from_motion_sensor
         self.lastOffTimestampInSeconds = -1
 
         self.duration_in_minutes = duration_in_minutes
@@ -143,18 +137,6 @@ class Switch(Device):
         """
         return self.lastOffTimestampInSeconds
 
-    def can_be_triggered_by_motion_sensor(self):
-        """
-        Returns True if this switch can be turned on when a motion sensor is
-        triggered.
-        A False value might be desired if two switches share the same motion
-        sensor, and only one switch shall be turned on when the motion sensor is
-        triggered.
-
-        :rtype: bool
-        """
-        return not self.disable_triggering_from_motion_sensor
-
     # Misc common things to do when a switch is turned on.
     def _handle_common_on_action(self, events):
         self.lastLightOnSecondSinceEpoch = time.time()
@@ -167,16 +149,14 @@ class Switch(Device):
 
     def __str__(self):
         """ @override """
-        return u"{}, duration: {} mins{}".format(
-            super(Switch, self).__str__(), self.duration_in_minutes,
-            ", disable triggering by motion" if self.disable_triggering_from_motion_sensor else "")
+        return u"{}, duration: {} minutes".format(
+            super(Switch, self).__str__(), self.duration_in_minutes)
 
 
 class Light(Switch):
     """ Represents a regular light.  """
 
     def __init__(self, switch_item, duration_in_minutes: float, illuminance_level: int = None,
-                 disable_triggering_from_motion_sensor=False,
                  no_premature_turn_off_time_range: str = None):
         """
         :param int illuminance_level: the illuminance level in LUX unit. The \
@@ -185,8 +165,7 @@ class Light(Switch):
             the time range when the light should not be turned off before its \
             expiry time.
         """
-        Switch.__init__(self, switch_item, duration_in_minutes,
-                        disable_triggering_from_motion_sensor)
+        Switch.__init__(self, switch_item, duration_in_minutes)
         self.illuminance_level = illuminance_level
         self.no_premature_turn_off_time_range = no_premature_turn_off_time_range
 
@@ -240,9 +219,7 @@ class Light(Switch):
         return self.is_on()
 
     def __str__(self):
-        """
-        @override
-        """
+        """ @override """
         return u"{}, illuminance: {}{}".format(
             super(Light, self).__str__(), self.illuminance_level,
             ", no premature turn-off time range: {}".format(self.no_premature_turn_off_time_range)

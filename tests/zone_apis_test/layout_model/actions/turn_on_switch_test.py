@@ -80,8 +80,8 @@ class TurnOnSwitchTest(DeviceTest):
         self.assertTrue(self.turnOn())
 
     def testOnAction_switchDisablesTriggeringByMotionSensor_returnsFalse(self):
-        self.light1 = Light(self.lightItem1, 30, ILLUMINANCE_THRESHOLD_IN_LUX, True)
-        self.zone1 = Zone('foyer', [self.light1, self.illuminanceSensor])
+        motion_sensor: MotionSensor = self.zone1.get_devices_by_type(MotionSensor)[0]
+        motion_sensor._can_trigger_switches = False
 
         pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
@@ -206,10 +206,11 @@ class TurnOnSwitchTest(DeviceTest):
         if receiving_zone is None:
             receiving_zone = self.zone1
 
-        event_info = EventInfo(ZoneEvent.MOTION, receiving_zone.get_devices_by_type(Switch)[0].get_item(),
+        motion_sensor = receiving_zone.get_devices_by_type(MotionSensor)[0]
+        event_info = EventInfo(ZoneEvent.MOTION, motion_sensor.get_item(),
                                receiving_zone,
                                create_zone_manager([self.zone1, self.zone2, self.zone3, self.zoneWithFan]),
-                               pe.get_event_dispatcher())
+                               pe.get_event_dispatcher(), receiving_zone, motion_sensor)
 
         return self.action.on_action(event_info)
 

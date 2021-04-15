@@ -9,16 +9,13 @@ class Dimmer(Light):
     """
 
     def __init__(self, switch_item, duration_in_minutes: int, dim_level: int = 5, time_ranges: str = None,
-                 illuminance_level: int = None,
-                 disable_triggering_from_motion_sensor=False,
-                 no_premature_turn_off_time_range=None):
+                 illuminance_level: int = None, no_premature_turn_off_time_range=None):
         """
         Constructs a new object.
 
         :raise ValueError: if any parameter is invalid
         """
-        Light.__init__(self, switch_item, duration_in_minutes, illuminance_level,
-                       disable_triggering_from_motion_sensor, no_premature_turn_off_time_range)
+        Light.__init__(self, switch_item, duration_in_minutes, illuminance_level, no_premature_turn_off_time_range)
 
         if dim_level < 0 or dim_level > 100:
             raise ValueError('dimLevel must be between 0 and 100 inclusive')
