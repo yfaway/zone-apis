@@ -148,7 +148,7 @@ class ZoneTest(DeviceTest):
     def testAddAction_validActionWithExternalEvent_actionAdded(self):
         zone = Zone('ff').add_action(AnnounceMorningWeatherAndPlayMusic())
         self.assertEqual(1, len(zone.get_actions(ZoneEvent.MOTION)))
-        self.assertEqual(1, len(zone.get_actions(ZoneEvent.CONTACT_CLOSED)))
+        self.assertEqual(1, len(zone.get_actions(ZoneEvent.DOOR_CLOSED)))
         self.assertEqual(0, len(zone.get_actions(ZoneEvent.SWITCH_TURNED_ON)))
 
     def testAddAction_validActionWithDuplicateEvents_actionAddedAndEventsDeduped(self):

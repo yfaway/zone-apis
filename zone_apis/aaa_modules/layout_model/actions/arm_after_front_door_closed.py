@@ -9,7 +9,7 @@ from aaa_modules.layout_model.devices.contact import Door
 from aaa_modules import platform_encapsulator as pe
 
 
-@action(events=[ZoneEvent.CONTACT_CLOSED], devices=[Door], internal=False, external=True)
+@action(events=[ZoneEvent.DOOR_CLOSED], devices=[Door], internal=False, external=True)
 class ArmAfterFrontDoorClosed:
     """
     Automatically arm the house if a front door was closed and there was no

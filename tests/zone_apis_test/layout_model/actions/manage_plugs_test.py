@@ -113,10 +113,10 @@ class ManagePlugsTest(DeviceTest):
         self.assertTrue(self.plug.is_on())
 
     def testOnAction_disarmedInTurnOffPeriod_turnOff(self):
-        self.zm = self._setup_zone_manager({ActivityType.TURN_OFF_PLUGS: '0 - 23'})
+        self.zm = self._setup_zone_manager({ActivityType.TURN_OFF_PLUGS: '0 - 23:59'})
 
         event_info = EventInfo(ZoneEvent.PARTITION_DISARMED_FROM_AWAY, self.alarmPartition.get_item(),
-                               self.zone1, self.zm, pe.get_event_dispatcher())
+                               self.zone1, self.zm, pe.get_event_dispatcher(), self.zone1, self.alarmPartition)
         value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertFalse(self.plug.is_on())

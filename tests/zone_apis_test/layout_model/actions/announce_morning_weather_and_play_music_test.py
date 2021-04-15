@@ -89,7 +89,7 @@ class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
         self.assertTrue(value)
         self.assertEqual('playStream', self.sink._get_last_test_command())
 
-        event_info = EventInfo(ZoneEvent.CONTACT_CLOSED, self.external_door_item, zone1,
+        event_info = EventInfo(ZoneEvent.DOOR_CLOSED, self.external_door_item, zone1,
                                create_zone_manager([zone1, zone2]), pe.get_event_dispatcher(), zone2)
         value = self.action.on_action(event_info)
         self.assertTrue(value)
@@ -107,7 +107,7 @@ class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
         self.assertTrue(value)
         self.assertEqual('playStream', self.sink._get_last_test_command())
 
-        event_info = EventInfo(ZoneEvent.CONTACT_CLOSED, self.internal_door_item, zone1,
+        event_info = EventInfo(ZoneEvent.DOOR_CLOSED, self.internal_door_item, zone1,
                                create_zone_manager([zone1, zone2]), pe.get_event_dispatcher(), zone2)
         value = self.action.on_action(event_info)
         self.assertFalse(value)

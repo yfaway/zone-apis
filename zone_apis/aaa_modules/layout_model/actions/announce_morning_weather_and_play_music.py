@@ -10,7 +10,7 @@ from aaa_modules.layout_model.zone_event import ZoneEvent
 from aaa_modules.layout_model.devices.activity_times import ActivityTimes
 
 
-@action(events=[ZoneEvent.MOTION], external_events=[ZoneEvent.CONTACT_CLOSED],
+@action(events=[ZoneEvent.MOTION], external_events=[ZoneEvent.DOOR_CLOSED],
         devices=[MotionSensor], zone_name_pattern='.*Kitchen.*')
 class AnnounceMorningWeatherAndPlayMusic:
     """
@@ -58,7 +58,7 @@ class AnnounceMorningWeatherAndPlayMusic:
             self._sink.pause()
             self._in_session = False
 
-        if event_info.get_event_type() == ZoneEvent.CONTACT_CLOSED:
+        if event_info.get_event_type() == ZoneEvent.DOOR_CLOSED:
             if self._in_session:
                 owning_zone = event_info.get_owning_zone()
                 if owning_zone.is_external():
