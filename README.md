@@ -17,11 +17,11 @@ retrieved using that naming convention. This works but as there is not sufficien
 rules are highly coupled to the naming pattern.
                                                                                 
 The [Zone API](https://github.com/yfaway/zone-apis) provides another approach. It provides a layer
-above the devices / sensors. Each [ZoneManager](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/immutable_zone_manager.py)
-(i.e. a house) contains multiple [zones](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/zone.py)
-(i.e. rooms), and each zone contains multiple [devices](https://github.com/yfaway/zone-apis/tree/master/zone_apis/aaa_modules/layout_model/devices).
-Each zone is associated with a set of [actions](https://github.com/yfaway/zone-apis/tree/master/zone_apis/aaa_modules/layout_model/actions) 
-that are triggered by certain [events](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/zone_event.py).
+above the devices / sensors. Each [ZoneManager](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/core/immutable_zone_manager.py)
+(i.e. a house) contains multiple [zones](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/core/zone.py)
+(i.e. rooms), and each zone contains multiple [devices](https://github.com/yfaway/zone-apis/tree/master/src/zone_api/core/devices).
+Each zone is associated with a set of [actions](https://github.com/yfaway/zone-apis/tree/master/src/zone_api/core/actions) 
+that are triggered by certain [events](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/core/zone_event.py).
 The usual OpenHab events are routed in this manner:
 
 `OpenHab events --> ZoneManager --> Zones --> Actions`
@@ -95,11 +95,12 @@ Zone: Foyer, floor: FIRST_FLOOR, internal, displayIcon: groundfloor, displayOrde
 
 # The bootstrap rule for the framework
 Here is [an example](https://github.com/yfaway/zone-apis/blob/master/habapp/rules/configure_zone_manager.py) of the only HABApp rule needed to initialize the system.
+
 ```python
 import HABApp
 
-from aaa_modules import zone_parser as zp
-from aaa_modules.layout_model.devices.activity_times import ActivityType, ActivityTimes
+from zone_api import zone_parser as zp
+from zone_api.core.devices.activity_times import ActivityType, ActivityTimes
 
 class ConfigureZoneManagerRule(HABApp.Rule):
     def __init__(self):
@@ -123,7 +124,7 @@ class ConfigureZoneManagerRule(HABApp.Rule):
 ConfigureZoneManagerRule()
 ```
 The code above defines an ActivityTimes object with various activity time periods and pass it over
-to the [zone_parser](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/zone_parser.py)
+to the [zone_parser](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/zone_parser.py)
 module. The zone_parser parses the OpenHab items following a specific naming pattern, and construct
 the zones and the devices / sensors. It then registers the handlers for the events associated with
 the devices / sensors. Finally, it loads all the actions and add them to the zones based on the
@@ -141,8 +142,8 @@ Contains a set of zones and is responsible for dispatching the events to the zon
 # Zone
 Contains a set of devices, actions, and is responsible for dispatching the events to the actions.
 
-A zone is aware of its neighbors. Certain rules such as the [turning on/off of the lights](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/actions/turn_on_switch.py)
-is highly dependent on the layout of the zones. The following [neighbor](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/neighbor.py)
+A zone is aware of its neighbors. Certain rules such as the [turning on/off of the lights](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/core/actions/turn_on_switch.py)
+is highly dependent on the layout of the zones. The following [neighbor](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/core/neighbor.py)
 types are available.
 1. ```CLOSED_SPACE```
 2. ```OPEN_SPACE```
@@ -150,25 +151,25 @@ types are available.
 4. ```OPEN_SPACE_SLAVE```
 
 # Devices
-The [devices](https://github.com/yfaway/zone-apis/tree/master/zone_apis/aaa_modules/layout_model/devices)
+The [devices](https://github.com/yfaway/zone-apis/tree/master/src/zone_api/core/devices)
 contains one or more underlying OpenHab items. Rather than operating on a SwitchItem or on a
-NumberItem, the device represents meaningful concrete things such as a [MotionSensor](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/devices/motion_sensor.py),
-or a [Light](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/devices/switch.py).
+NumberItem, the device represents meaningful concrete things such as a [MotionSensor](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/core/devices/motion_sensor.py),
+or a [Light](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/core/devices/switch.py).
 Devices contain both attributes (e.g. 'is the door open') and behaviors (e.g. 'arm the security
 system').
 
 # Events
 Similar to the abstraction for the devices, the events are also more concrete. Zone API maps the
-OpenHab items events to the event enums in [ZoneEvent](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/zone_event.py)
+OpenHab items events to the event enums in [ZoneEvent](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/core/zone_event.py)
 such as ```ZoneEvent.HUMIDITY_CHANGED``` or ```ZoneEvent.PARTITION_ARMED_AWAY```.
 There is also the special event ```ZoneEvent.TIMER``` that represents triggering from a scheduler.
 
 The event is dispatched to the appropriate zones which then invokes the actions registered for that
-event. See [EventInfo](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/event_info.py)
+event. See [EventInfo](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/core/event_info.py)
 for more info.
 
 # Actions
-All the [actions](https://github.com/yfaway/zone-apis/tree/master/zone_apis/aaa_modules/layout_model/actions) implement the [Action](https://github.com/yfaway/zone-apis/blob/master/zone_apis/aaa_modules/layout_model/action.py) interface.
+All the [actions](https://github.com/yfaway/zone-apis/tree/master/src/zone_api/core/actions) implement the [Action](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/core/action.py) interface.
 The action's life cycle is represented by the three functions: 
 1. ```on_startup()``` - invoked after the ZoneManager has been fully populated, via the event
    ```ZoneEvent.STARTUP```.
@@ -193,13 +194,14 @@ These parameters are also available to the action and can be used as a filtering
 to make sure that the action is only added to the applicable zones.
 
 Here is a simple action to disarm the security system when a motion sensor is triggered:
+
 ```python
-from aaa_modules import security_manager as sm
-from aaa_modules.layout_model.devices.activity_times import ActivityTimes
-from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
-from aaa_modules.layout_model.zone_event import ZoneEvent
-from aaa_modules.layout_model.action import action
-from aaa_modules.layout_model.devices.alarm_partition import AlarmPartition
+from zone_api import security_manager as sm
+from zone_api.core.devices.activity_times import ActivityTimes
+from zone_api.core.devices.motion_sensor import MotionSensor
+from zone_api.core.zone_event import ZoneEvent
+from zone_api.core.action import action
+from zone_api.core.devices.alarm_partition import AlarmPartition
 
 
 @action(events=[ZoneEvent.MOTION], devices=[AlarmPartition, MotionSensor])

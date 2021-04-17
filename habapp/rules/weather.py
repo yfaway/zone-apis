@@ -2,9 +2,9 @@ import datetime
 
 import HABApp
 
-from aaa_modules.alert import Alert
-from aaa_modules.environment_canada import EnvCanada
-from aaa_modules import platform_encapsulator as pe
+from zone_api.alert import Alert
+from zone_api.environment_canada import EnvCanada
+from zone_api import platform_encapsulator as pe
 
 
 class AlertRainOrSnowDuringTheDay(HABApp.Rule):

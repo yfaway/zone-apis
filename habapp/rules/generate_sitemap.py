@@ -2,17 +2,17 @@ from collections import OrderedDict
 
 import HABApp
 
-from aaa_modules import platform_encapsulator as pe
-from aaa_modules.layout_model.devices.contact import Door
-from aaa_modules.layout_model.devices.gas_sensor import Co2GasSensor, NaturalGasSensor, SmokeSensor
-from aaa_modules.layout_model.devices.humidity_sensor import HumiditySensor
-from aaa_modules.layout_model.devices.illuminance_sensor import IlluminanceSensor
-from aaa_modules.layout_model.devices.motion_sensor import MotionSensor
-from aaa_modules.layout_model.devices.plug import Plug
-from aaa_modules.layout_model.devices.switch import Light, Fan
-from aaa_modules.layout_model.devices.temperature_sensor import TemperatureSensor
-from aaa_modules.layout_model.devices.tv import Tv
-from aaa_modules.layout_model.devices.wled import Wled
+from zone_api import platform_encapsulator as pe
+from zone_api.core.devices.contact import Door
+from zone_api.core.devices.gas_sensor import Co2GasSensor, NaturalGasSensor, SmokeSensor
+from zone_api.core.devices.humidity_sensor import HumiditySensor
+from zone_api.core.devices.illuminance_sensor import IlluminanceSensor
+from zone_api.core.devices.motion_sensor import MotionSensor
+from zone_api.core.devices.plug import Plug
+from zone_api.core.devices.switch import Light, Fan
+from zone_api.core.devices.temperature_sensor import TemperatureSensor
+from zone_api.core.devices.tv import Tv
+from zone_api.core.devices.wled import Wled
 
 
 class GenerateSitemap(HABApp.Rule):

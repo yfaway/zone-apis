@@ -1,11 +1,11 @@
 import HABApp
 # from importlib import reload
-# from aaa_modules import zone_parser
+# from zone_api import zone_parser
 # reload(zone_parser)
 
-from aaa_modules import zone_parser as zp
-from aaa_modules import platform_encapsulator as pe
-from aaa_modules.layout_model.devices.activity_times import ActivityType, ActivityTimes
+from zone_api import zone_parser as zp
+from zone_api import platform_encapsulator as pe
+from zone_api.core.devices.activity_times import ActivityType, ActivityTimes
 
 
 class ConfigureZoneManagerRule(HABApp.Rule):

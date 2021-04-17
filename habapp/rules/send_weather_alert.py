@@ -2,9 +2,9 @@ import HABApp
 from HABApp.core.events import ValueChangeEvent
 from HABApp.openhab.items import DatetimeItem, StringItem
 
-from aaa_modules import platform_encapsulator as pe
-from aaa_modules.alert import Alert
-from aaa_modules.environment_canada import EnvCanada
+from zone_api import platform_encapsulator as pe
+from zone_api.alert import Alert
+from zone_api.environment_canada import EnvCanada
 
 
 class SendWeatherAlert(HABApp.Rule):
