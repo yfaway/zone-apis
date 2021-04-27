@@ -1,5 +1,5 @@
 # Zone API - an alternative approach to writing rules
-In OpenHab, items are defined in a flat manner in the *.items* files under the */etc/openhab2/items folder*.
+In OpenHab, items are defined in a flat manner in the *.items* files under the */etc/openhab/items folder*.
 They are typically linked to a channel exposed by the underlying hardware.
 This flat structure has an impact on how rules (whether in Xtend or Jython) are organized. As there
 is no higher level abstraction, rules tend to listen to changes from the specific devices. When the
@@ -16,7 +16,7 @@ the zone can be derived from the name of the triggering item, and other devices/
 retrieved using that naming convention. This works but as there is not sufficient abstraction, the
 rules are highly coupled to the naming pattern.
                                                                                 
-The [Zone API](https://github.com/yfaway/zone-apis) provides another approach. It provides a layer
+The [Zone API](https://github.com/yfaway/zone-apis) provides another approach. It is a layer
 above the devices / sensors. Each [ZoneManager](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/core/immutable_zone_manager.py)
 (i.e. a house) contains multiple [zones](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/core/zone.py)
 (i.e. rooms), and each zone contains multiple [devices](https://github.com/yfaway/zone-apis/tree/master/src/zone_api/core/devices).
@@ -24,7 +24,9 @@ Each zone is associated with a set of [actions](https://github.com/yfaway/zone-a
 that are triggered by certain [events](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/core/zone_event.py).
 The usual OpenHab events are routed in this manner:
 
-`OpenHab events --> ZoneManager --> Zones --> Actions`
+```
+OpenHab events --> ZoneManager --> Zones --> Actions
+```
 
 The actions operate on the abstract devices and do not concern about the naming of the items or
 the underlying hardware. They replace the traditional OpenHab rules. Actions can be unit-tested with
@@ -33,6 +35,10 @@ various levels of mocking.
 **Most importantly, it enables reusing of action logics.** There is no need to reinvent the wheels for 
 common rules such as turning on/off the lights. All ones need to do is to populate the zones and
 devices / sensors, and the applicable actions will be added and processed automatically.
+
+ZoneApi comes with a set of built-in [actions](https://github.com/yfaway/zone-apis/tree/master/src/zone_api/core/actions).
+There is no need to determine what action to add to a system. Instead, they are added automatically based on the
+zones structure and based on the type of devices available in each zone.
 
 Here is a sample info log that illustrate the structure of the managed objects.
 ```text
@@ -93,8 +99,78 @@ Zone: Foyer, floor: FIRST_FLOOR, internal, displayIcon: groundfloor, displayOrde
 > it is available. Zone API is now written in Python 3 and thus is not compatible with Jython
 > (equivalent to Python 2.8).
 
-# The bootstrap rule for the framework
-Here is [an example](https://github.com/yfaway/zone-apis/blob/master/habapp/rules/configure_zone_manager.py) of the only HABApp rule needed to initialize the system.
+# Set up your home automation system with zone_api
+
+## 1. Name the OpenHab items using the default naming convention
+```Zone_api``` comes with a default parser that builds the zone manager using a pre-defined naming convention. See the
+ZoneParser section at the end of this page for details.
+
+Here are a few sample .items files. Note that the file organization doesn't matter; all items can be defined in a single 
+file if desired.
+
+**zones.items**: defines two zones and their relationship.
+```csv
+String Zone_Office                                                                                  
+  { level="FF", displayIcon="office", displayOrder="2",                                             
+    openSpaceSlaveNeighbors="FF_Foyer" }
+    
+String Zone_Foyer                                                                                   
+  { level="FF", displayIcon="groundfloor", displayOrder="4",                                        
+    openSpaceMasterNeighbors="FF_Office",                                                           
+    openSpaceNeighbors="SF_Lobby" }
+```
+
+**foyer.items**: defines the items in the Foyer zone.
+```csv
+Switch FF_Foyer_LightSwitch "Foyer Light" (gWallSwitch, gLightSwitch, gFirstFloorLightSwitch)       
+  { channel="zwave:device:9e4ce05e:node2:switch_binary",                                            
+    disableMotionTriggeringIfOtherLightIsOn="FF_Office_LightSwitch",                                
+    durationInMinutes="5"}                                                                          
+Switch FF_Foyer_LightSwitch_ClosetMotionSensor "Foyer Closet Motion Sensor"                         
+  (gWallSwitchMotionSensor)                                                                         
+  { channel="mqtt:topic:myBroker:xiaomiMotionSensors:FoyerMotionSensor"}                            
+```
+
+**office.items**: defines the items in the Office zone.
+```csv
+Switch FF_Office_LightSwitch "Office Light" (gWallSwitch, gLightSwitch, gFirstFloorLightSwitch)     
+  [shared-motion-sensor]                                                                            
+  { channel="zwave:device:9e4ce05e:node8:switch_binary",                                            
+    durationInMinutes="15" }                                                                        
+Switch FF_Office_LightSwitch_MotionSensor "Office Motion Sensor"                                    
+  (gWallSwitchMotionSensor, gFirstFloorMotionSensors)                                               
+  { channel="mqtt:topic:myBroker:xiaomiMotionSensors:OfficeMotionSensor"} 
+```
+
+That's it. Once the system is fully set up, ZoneApi's default actions will be registered automatically depending on
+the available devices.
+
+In the example above, the two zones have light switches and motion sensor. Thus the light rule is applicable and will
+automatically turn on the light when a motion sensor is triggered, and turn it off if there is no activity for the
+pre-defined duration. It will also turn off lights in the dependent zones.
+
+## 2. Clone this repository
+```git clone git@github.com:yfaway/zone-apis.git```
+
+## 3. Install, configure, and run HABapp
+
+Refer to the instructions on the [official HABApp website](https://habapp.readthedocs.io/en/latest/installation.html). The instruction below is specifically for the zone_api.
+```bash
+  sudo apt-get install python3-venv # to install python3-venv library
+  cd zone_api # the cloned project in the section above
+  python3 -m venv .
+  source bin/activate # to get into our virtual environment
+  python3 -m pip install --upgrade pip # to upgrade the pip library.
+  python3 -m pip install habapp request schedule # request and schedule are required by zone_api
+```
+
+To manually run HABApp, execute this command within the ```zone_api``` folder:
+```bash
+  ./bin/habapp --config ./habapp/config.yml
+```
+
+The ```./habapp/rules``` folder contains the bootstrap [rule](https://github.com/yfaway/zone-apis/blob/master/habapp/rules/configure_zone_manager.py) to initialize the ```zone_api``` framework.
+The rule is pretty simple with its entire content below.
 
 ```python
 import HABApp
@@ -132,7 +208,7 @@ pre-declared execution rules associated with each action (more on this later). T
 forward, events generated by the devices / sensors will trigger the associated actions.
 
 It is important to note that the zone_parser is just a default mechanism to build the ZoneManager.
-A custom module can be used to parse from a different OpenHab naming pattern, or the ZoneManager can
+A custom module can be used to parse from a different naming pattern for the OpenHab items, or the ZoneManager can
 be constructed manually. The role of the parser is no longer needed once the ZoneManager has been
 built.
 
@@ -253,7 +329,6 @@ The default parser uses this naming pattern for the OpenHab items.
         Switch FF_Office_LightSwitch "Office Light" (gWallSwitch, gLightSwitch, gFirstFloorLightSwitch)
             [shared-motion-sensor]                                                        
             { channel="zwave:device:9e4ce05e:node8:switch_binary",                        
-              turnOff="FF_Foyer_LightSwitch",                                             
               durationInMinutes="15" }                                                    
 
 See here for a [sample .items](https://github.com/yfaway/openhab-rules/blob/master/items/switch-and-plug.items)

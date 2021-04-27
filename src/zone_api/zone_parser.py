@@ -37,9 +37,7 @@ for the OpenHab items.
     Here's an example:
         Switch FF_Office_LightSwitch "Office Light" (gWallSwitch, gLightSwitch, gFirstFloorLightSwitch)
             [shared-motion-sensor]                                                        
-            { channel="zwave:device:9e4ce05e:node8:switch_binary",                        
-              turnOff="FF_Foyer_LightSwitch",                                             
-              durationInMinutes="15" }                                                    
+            { channel="zwave:device:9e4ce05e:node8:switch_binary", durationInMinutes="15" }                                                    
 """
 
 
