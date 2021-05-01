@@ -1,7 +1,9 @@
 import time
+from typing import Union
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
+from zone_api.music_streams import MusicStream
 
 MAX_SAY_WAIT_TIME_IN_SECONDS = 20
 
@@ -11,7 +13,7 @@ class ChromeCastAudioSink(Device):
     Represents a ChromeCast audio sink.
     """
 
-    def __init__(self, sink_name, player_item, volume_item, title_item, idling_item):
+    def __init__(self, sink_name, player_item, volume_item, title_item, idling_item, out_current_stream_item=None):
         """
         Ctor
 
@@ -22,8 +24,9 @@ class ChromeCastAudioSink(Device):
         :param NumberItem volume_item:
         :param StringItem title_item:
         :param SwitchItemItem idling_item:
+        :param StringItem out_current_stream_item: the optional item to display the current music stream name
         :raise ValueError: if any parameter is invalid
-    """
+        """
         Device.__init__(self, pe.create_string_item(f'Chromecast-{sink_name}'))
 
         self._sink_name = sink_name
@@ -32,6 +35,7 @@ class ChromeCastAudioSink(Device):
         self._title_item = title_item
         self._player_item = player_item
         self._idling_item = idling_item
+        self._out_current_stream_item = out_current_stream_item
 
         self.streamUrl = None
         self.lastTtsMessage = None
@@ -127,20 +131,20 @@ class ChromeCastAudioSink(Device):
 
         return True
 
-    def play_stream(self, url, volume=None):
+    def play_stream(self, url_or_stream: Union[str, MusicStream], volume=None):
         """
         Play the given stream url.
 
         :param volume:
-        :param str url:
+        :param str url_or_stream: a string Url or a MusicStream object
         :return: boolean True if success; False if stream name is invalid.
         """
 
         if volume is not None and (volume < 0 or volume > 100):
             raise ValueError('volume must be between 0 and 100.')
 
-        if url is None:
-            raise ValueError('url must be specified.')
+        if url_or_stream is None:
+            raise ValueError('url_or_stream must be specified.')
 
         if self._testMode:
             self._testLastCommand = 'playStream'
@@ -148,6 +152,13 @@ class ChromeCastAudioSink(Device):
 
         if volume is not None:
             pe.set_number_value(self._volume_item, volume)
+
+        if isinstance(url_or_stream, MusicStream):
+            url = url_or_stream.url
+            if self._out_current_stream_item is not None:
+                pe.set_string_value(self._out_current_stream_item, url_or_stream.name)
+        else:
+            url = url_or_stream
 
         if url == self.get_stream_url():
             self.resume()

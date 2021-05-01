@@ -174,7 +174,13 @@ def create_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> ChromeCast
     title_item = Items.get_item(item.name + "Title")
     idling_item = Items.get_item(item.name + "Idling")
 
-    device = _configure_device(ChromeCastAudioSink(sink_name, player_item, volume_item, title_item, idling_item), zm)
+    stream_title_name = item.name + "StreamTitle"
+    stream_title_item = None
+    if pe.has_item(stream_title_name):
+        stream_title_item = Items.get_item(stream_title_name)
+
+    device = _configure_device(ChromeCastAudioSink(
+        sink_name, player_item, volume_item, title_item, idling_item, stream_title_item), zm)
 
     def player_command_event(event):
         event_map = {'NEXT': ZoneEvent.PLAYER_NEXT,

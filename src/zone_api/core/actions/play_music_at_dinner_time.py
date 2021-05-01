@@ -17,21 +17,21 @@ class PlayMusicAtDinnerTime:
 
     # noinspection PyDefaultArgument
     def __init__(self,
-                 music_urls=get_music_streams_by_genres(
+                 music_streams=get_music_streams_by_genres(
                      [Genre.CLASSICAL, Genre.INSTRUMENT, Genre.JAZZ]),
                  duration_in_minutes: float = 180):
         """
         Ctor
 
-        :param list[str] music_urls: a list of music stream URL; a random stream will be selected
+        :param list[str] music_streams: a list of music stream URL; a random stream will be selected
             from the list.
         :raise ValueError: if any parameter is invalid
         """
 
-        if music_urls is None or len(music_urls) == 0:
+        if music_streams is None or len(music_streams) == 0:
             raise ValueError('musicUrls must be specified')
 
-        self._music_urls = music_urls
+        self._music_streams = music_streams
         self._duration_in_minutes = duration_in_minutes
         self._in_session = False
         self._timer = None
@@ -53,7 +53,7 @@ class PlayMusicAtDinnerTime:
         activity = activities[0]
         if activity.is_dinner_time():
             if not self._in_session:
-                sink.play_stream(random.choice(self._music_urls), 40)
+                sink.play_stream(random.choice(self._music_streams), 40)
 
                 self._in_session = True
 

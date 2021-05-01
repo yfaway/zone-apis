@@ -21,6 +21,6 @@ class ControlMusicPlayer:
 
         if event_type in [ZoneEvent.PLAYER_NEXT, ZoneEvent.PLAYER_PREVIOUS]:
             stream: MusicStream = random.choice(list(MusicStreams)).value
-            device.play_stream(stream.url)
+            device.play_stream(stream)
 
         return True

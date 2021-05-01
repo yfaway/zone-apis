@@ -21,22 +21,22 @@ class AnnounceMorningWeatherAndPlayMusic:
 
     # noinspection PyDefaultArgument
     def __init__(self,
-                 music_urls=get_music_streams_by_genres(
+                 music_streams=get_music_streams_by_genres(
                      [Genre.CLASSICAL, Genre.INSTRUMENT, Genre.JAZZ]),
                  duration_in_minutes: float = 120,
                  max_start_count: int = 2):
         """
         Ctor
 
-        :param list[str] music_urls: a list of music stream URL; a random stream will be selected
+        :param list[str] music_streams: a list of music stream URL; a random stream will be selected
             from the list.
         :raise ValueError: if any parameter is invalid
         """
 
-        if music_urls is None or len(music_urls) == 0:
+        if music_streams is None or len(music_streams) == 0:
             raise ValueError('musicUrls must be specified')
 
-        self._music_urls = music_urls
+        self._music_streams = music_streams
         self._max_start_count = max_start_count
         self._duration_in_minutes = duration_in_minutes
         self._in_session = False
@@ -81,7 +81,7 @@ class AnnounceMorningWeatherAndPlayMusic:
 
                 weather_msg = self.get_morning_announcement()
                 self._sink.play_message(weather_msg)
-                self._sink.play_stream(random.choice(self._music_urls), 40)
+                self._sink.play_stream(random.choice(self._music_streams), 40)
 
                 self._start_count += 1
 
