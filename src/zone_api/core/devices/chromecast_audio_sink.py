@@ -101,10 +101,10 @@ class ChromeCastAudioSink(Device):
 
     def play_sound_file(self, local_file, duration_in_secs, volume=None):
         """
-        Plays the provided local sound file. See '/etc/openhab2/sound'.
+        Plays the provided local sound file. See '/etc/openhab/sound'.
 
         :param volume:
-        :param str local_file: a sound file located in '/etc/openhab2/sound'
+        :param str local_file: a sound file located in '/etc/openhab/sound'
         :param int duration_in_secs: the duration of the sound file in seconds
         :rtype: boolean
         """
