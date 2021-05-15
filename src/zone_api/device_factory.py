@@ -14,6 +14,7 @@ from zone_api.core.devices.alarm_partition import AlarmPartition, AlarmState
 from zone_api.core.devices.astro_sensor import AstroSensor
 from zone_api.core.devices.camera import Camera
 from zone_api.core.devices.chromecast_audio_sink import ChromeCastAudioSink
+from zone_api.core.devices.computer import Computer
 from zone_api.core.devices.contact import Door, GarageDoor, Window
 from zone_api.core.devices.dimmer import Dimmer
 from zone_api.core.devices.gas_sensor import GasSensor
@@ -470,6 +471,28 @@ def create_television_device(zm: ImmutableZoneManager, item) -> Tv:
     """ Create an television device. """
     # noinspection PyTypeChecker
     return _configure_device(Tv(item), zm)
+
+
+def create_computer(zm: ImmutableZoneManager, item) -> Computer:
+    """ Create an computer device. """
+    item_def = HABApp.openhab.interface.get_item(item.name, "name, alwaysOn")
+    metadata = item_def.metadata
+
+    name = get_meta_value(metadata, "name", None)
+    always_on = True if get_meta_value(metadata, "alwaysOn", None) == "true" else False
+
+    tmp_item_name = item.name + "_CpuTemperature"
+    cpu_temperature_item = Items.get_item(tmp_item_name) if pe.has_item(tmp_item_name) else None
+
+    tmp_item_name = item.name + "_GpuTemperature"
+    gpu_temperature_item = Items.get_item(tmp_item_name) if pe.has_item(tmp_item_name) else None
+
+    tmp_item_name = item.name + "_GpuFanSpeed"
+    gpu_fan_speed_item = Items.get_item(tmp_item_name) if pe.has_item(tmp_item_name) else None
+
+    # noinspection PyTypeChecker
+    return _configure_device(Computer(
+        name, cpu_temperature_item, gpu_temperature_item, gpu_fan_speed_item, always_on), zm)
 
 
 def dispatch_event(zm: ImmutableZoneManager, zone_event: ZoneEvent, device: Device, item: BaseItem):

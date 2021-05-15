@@ -73,6 +73,7 @@ def parse(activity_times: ActivityTimes) -> ImmutableZoneManager:
         '^(?!.*Computer).*Temperature$': df.create_temperature_sensor,
         '[^g].*WaterLeakState$': df.create_water_leak_sensor,
         '[^g].*_TimeOfDay$': df.create_astro_sensor,
+        '.*_Computer_[^_]+$': df.create_computer,
     }
 
     zm: ZoneManager = ZoneManager()
