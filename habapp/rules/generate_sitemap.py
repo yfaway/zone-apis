@@ -21,7 +21,7 @@ class GenerateSitemap(HABApp.Rule):
     def __init__(self):
         super().__init__()
 
-        # self.run_in(15, self.generate)
+        # self.run.at(15, self.generate)
 
     # noinspection PyMethodMayBeStatic
     def generate(self):

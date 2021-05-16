@@ -12,7 +12,7 @@ class ConfigureZoneManagerRule(HABApp.Rule):
     def __init__(self):
         super().__init__()
 
-        self.run_soon(self.configure_zone_manager)
+        self.run.soon(self.configure_zone_manager)
 
     # noinspection PyMethodMayBeStatic
     def configure_zone_manager(self):

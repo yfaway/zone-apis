@@ -11,8 +11,8 @@ class AlertRainOrSnowDuringTheDay(HABApp.Rule):
     def __init__(self):
         super().__init__()
 
-        self.run_on_workdays(datetime.time(6, 15), self.alert)
-        self.run_on_weekends(datetime.time(8), self.alert)
+        self.run.on_workdays(datetime.time(6, 15), self.alert)
+        self.run.on_weekends(datetime.time(8), self.alert)
 
     # noinspection PyMethodMayBeStatic
     def alert(self):
