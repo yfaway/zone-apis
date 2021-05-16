@@ -7,15 +7,18 @@ class GasSensor(Device):
     Represents a generic gas sensor.
     """
 
-    def __init__(self, value_item, state_item):
+    def __init__(self, value_item, state_item, battery_powered=False, wifi=True, auto_report=True):
         """
         Ctor
 
         :param NumberItem value_item: the item to get the value reading
         :param SwitchItem state_item: the item to get the state reading
+        :param bool battery_powered: indicates if the device is powered by battery.
+        :param bool wifi: indicate if the sensor communicates by WI-FI
+        :param bool auto_report: indicate if the sensor reports periodically
         :raise ValueError: if value_item is invalid
         """
-        Device.__init__(self, value_item)
+        Device.__init__(self, value_item, battery_powered, wifi, auto_report)
 
         if state_item is None:
             raise ValueError('state_item must not be None')

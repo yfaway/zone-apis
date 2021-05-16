@@ -10,8 +10,10 @@ from zone_api.core.action import action
 @action(events=[ZoneEvent.TIMER], devices=[], zone_name_pattern='.*Virtual.*')
 class AlertOnInactiveDevices:
     """
-    Send an admin info alert if a battery-powered or auto-report WIFI device hasn't got any update
-    in the specified duration.
+    Send an admin info alert if a battery-powered or an auto-report device hasn't got any update in the specified
+    duration.
+    There are different thresholds for these types of devices as battery-powered devices tend to not auto-report (cause
+    rapid battery drain). As such, the inactivity timer for those devices are much bigger than for auto-report devices.
     """
 
     @unique
@@ -20,7 +22,7 @@ class AlertOnInactiveDevices:
         AUTO_REPORT_WIFI_DEVICES = 2
 
     def __init__(self, battery_powered_period_in_hours: float = 3 * 24,
-                 auto_report_wifi_period_in_hours: float = 12):
+                 auto_report_period_in_hours: float = 0.5):
         """
         Ctor
 
@@ -29,11 +31,11 @@ class AlertOnInactiveDevices:
         if battery_powered_period_in_hours <= 0:
             raise ValueError('battery_powered_period_in_hours must be positive')
 
-        if auto_report_wifi_period_in_hours <= 0:
-            raise ValueError('auto_report_wifi_period_in_hours must be positive')
+        if auto_report_period_in_hours <= 0:
+            raise ValueError('auto_report_period_in_hours must be positive')
 
         self._battery_powered_period_in_hours = battery_powered_period_in_hours
-        self._auto_report_wifi_period_in_hours = auto_report_wifi_period_in_hours
+        self._auto_report_period_in_hours = auto_report_period_in_hours
 
     def on_startup(self, event_info: EventInfo):
 
@@ -42,14 +44,14 @@ class AlertOnInactiveDevices:
                 self.create_timer_event_info(event_info,
                                              AlertOnInactiveDevices.Type.BATTERY_DEVICES))
 
-        def wifi_device_timer_handler():
+        def auto_report_device_timer_handler():
             self.on_action(
                 self.create_timer_event_info(event_info,
                                              AlertOnInactiveDevices.Type.AUTO_REPORT_WIFI_DEVICES))
 
         scheduler = event_info.get_zone_manager().get_scheduler()
         scheduler.every(self._battery_powered_period_in_hours).hours.do(battery_device_timer_handler)
-        scheduler.every(self._auto_report_wifi_period_in_hours).hours.do(wifi_device_timer_handler)
+        scheduler.every(self._auto_report_period_in_hours).hours.do(auto_report_device_timer_handler)
 
     def on_action(self, event_info):
         zone_manager = event_info.get_zone_manager()
@@ -58,8 +60,8 @@ class AlertOnInactiveDevices:
             self._check_and_send_alert(zone_manager, self.get_inactive_battery_devices,
                                        "battery", self._battery_powered_period_in_hours)
         elif event_info.get_custom_parameter() == AlertOnInactiveDevices.Type.AUTO_REPORT_WIFI_DEVICES:
-            self._check_and_send_alert(zone_manager, self.get_inactive_auto_report_wifi_devices,
-                                       "auto-report WiFi", self._auto_report_wifi_period_in_hours)
+            self._check_and_send_alert(zone_manager, self.get_inactive_auto_report_devices,
+                                       "auto-report WiFi", self._auto_report_period_in_hours)
         else:
             raise RuntimeError("Invalid state.")
 
@@ -96,14 +98,14 @@ class AlertOnInactiveDevices:
         return inactive_device_name
 
     # noinspection PyMethodMayBeStatic
-    def get_inactive_auto_report_wifi_devices(self, zone_manager, threshold_in_seconds):
+    def get_inactive_auto_report_devices(self, zone_manager, threshold_in_seconds):
         """
         :rtype: list(str) the list of auto-reported WiFi devices that haven't
             sent anything in the specified number of seconds.
         """
         inactive_device_name = []
         for z in zone_manager.get_zones():
-            auto_report_devices = [d for d in z.get_devices() if d.use_wifi() and d.is_auto_report()]
+            auto_report_devices = [d for d in z.get_devices() if d.is_auto_report()]
 
             for d in auto_report_devices:
                 if not d.was_recently_activated(threshold_in_seconds):
