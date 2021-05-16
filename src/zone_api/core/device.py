@@ -10,27 +10,25 @@ class Device(object):
     The base class that all other sensors and switches derive from.
     """
 
-    def __init__(self, openhab_item, battery_powered=False, wifi=False,
-                 auto_report=False):
+    def __init__(self, openhab_item, battery_powered=False, wifi=False, auto_report=False):
         """
         Ctor
 
         :param Item openhab_item:
         :param bool battery_powered: indicates if the device is powered by battery.
         :param bool wifi: indicates if the device communicates by WiFi.
-        :param bool auto_report: indicates if the device periodically reports
-                its value.
+        :param bool auto_report: indicates if the device periodically reports its value.
         :raise ValueError: if any parameter is invalid
         """
         if openhab_item is None:
             raise ValueError('openhabItem must not be None')
 
         self.item = openhab_item
-        self.batteryPowered = battery_powered
+        self.battery_powered = battery_powered
         self.wifi = wifi
-        self.autoReport = auto_report
+        self.auto_report = auto_report
         self.last_activated_timestamp = None
-        self.zoneManager = None
+        self.zone_manager = None
         self.channel = None
 
     def contains_item(self, item):
@@ -81,7 +79,7 @@ class Device(object):
                 specified value
         """
         new_obj = copy(self)
-        new_obj.batteryPowered = bool_value
+        new_obj.battery_powered = bool_value
 
         return new_obj
 
@@ -92,7 +90,7 @@ class Device(object):
         :rtype: Boolean
         """
 
-        return self.batteryPowered
+        return self.battery_powered
 
     def set_use_wifi(self, bool_value):
         """
@@ -116,7 +114,7 @@ class Device(object):
         :return: A NEW object with the autoReport attribute set to the specified value.
         """
         new_obj = copy(self)
-        new_obj.autoReport = bool_value
+        new_obj.auto_report = bool_value
 
         return new_obj
 
@@ -126,7 +124,7 @@ class Device(object):
 
         :rtype: Boolean
         """
-        return self.autoReport
+        return self.auto_report
 
     def set_zone_manager(self, zone_manager):
         """
@@ -134,7 +132,7 @@ class Device(object):
             specified value.
         """
         new_obj = copy(self)
-        new_obj.zoneManager = zone_manager
+        new_obj.zone_manager = zone_manager
 
         return new_obj
 
@@ -145,7 +143,7 @@ class Device(object):
 
         :rtype: Zone
         """
-        return self.zoneManager
+        return self.zone_manager
 
     def is_occupied(self, seconds_from_last_event=5 * 60):
         """

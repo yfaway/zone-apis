@@ -490,9 +490,26 @@ def create_computer(zm: ImmutableZoneManager, item) -> Computer:
     tmp_item_name = item.name + "_GpuFanSpeed"
     gpu_fan_speed_item = Items.get_item(tmp_item_name) if pe.has_item(tmp_item_name) else None
 
-    # noinspection PyTypeChecker
-    return _configure_device(Computer(
+    device = _configure_device(Computer(
         name, cpu_temperature_item, gpu_temperature_item, gpu_fan_speed_item, always_on), zm)
+
+    if cpu_temperature_item is not None:
+        cpu_temperature_item.listen_event(
+            lambda event: dispatch_event(zm, ZoneEvent.COMPUTER_CPU_TEMPERATURE_CHANGED, device, cpu_temperature_item),
+            ValueChangeEvent)
+
+    if gpu_temperature_item is not None:
+        gpu_temperature_item.listen_event(
+            lambda event: dispatch_event(zm, ZoneEvent.COMPUTER_GPU_TEMPERATURE_CHANGED, device, gpu_temperature_item),
+            ValueChangeEvent)
+
+    if gpu_fan_speed_item is not None:
+        gpu_fan_speed_item.listen_event(
+            lambda event: dispatch_event(zm, ZoneEvent.COMPUTER_GPU_FAN_SPEED_CHANGED, device, gpu_fan_speed_item),
+            ValueChangeEvent)
+
+    # noinspection PyTypeChecker
+    return device
 
 
 def dispatch_event(zm: ImmutableZoneManager, zone_event: ZoneEvent, device: Device, item: BaseItem):

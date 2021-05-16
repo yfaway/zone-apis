@@ -3,7 +3,10 @@ from zone_api.core.device import Device
 
 
 class Computer(Device):
-    """ Represents a computer. """
+    """
+    Represents a computer. Track states such as cpu temperature, GPU temperature & fan speed, always on, last
+    update time stamp.
+    """
 
     def __init__(self, name: str, cpu_temperature_item=None, gpu_temperature_item=None, gpu_fan_speed_item=None,
                  always_on=False):
@@ -14,19 +17,20 @@ class Computer(Device):
         :param NumberItem cpu_temperature_item:
         :param NumberItem gpu_temperature_item:
         :param NumberItem gpu_fan_speed_item: fan speed in percentage.
+        :param Bool always_on: True if the computer is always on; this value is equivalent to the Device's auto_report
+            value.
         :raise ValueError: if any parameter is invalid
         """
-        Device.__init__(self, pe.create_string_item(f'Computer: {name}'))
+        Device.__init__(self, pe.create_string_item(f'Computer: {name}'), False, False, always_on)
 
         self._name = name
 
         self._cpu_temperature_item = cpu_temperature_item
         self._gpu_temperature_item = gpu_temperature_item
         self._gpu_fan_speed_item = gpu_fan_speed_item
-        self._always_on = always_on
 
     def is_always_on(self):
-        return self._always_on
+        return self.is_auto_report()
 
     def has_cpu_temperature(self):
         return self._cpu_temperature_item is not None
@@ -57,19 +61,16 @@ class Computer(Device):
 
     def __str__(self):
         """ @override """
-        return u"{}{}{}{}{}".format(
+        return u"{}{}{}{}".format(
             super(Computer, self).__str__(),
-            ", always on" if self._always_on else "",
             f", CPU Temp.: {self.get_cpu_temperature()} °C" if self.has_cpu_temperature() else "",
             f", GPU Temp.: {self.get_gpu_temperature()} °C" if self.has_gpu_temperature() else "",
             f", GPU Fan Speed: {self.get_gpu_fan_speed()} %" if self.has_gpu_fan_speed() else "")
 
     def contains_item(self, item):
         """ Override. """
+        item_name = pe.get_item_name(item)
         return super(Computer, self).contains_item(item) \
-               or (self._cpu_temperature_item is not None and pe.get_item_name(
-            self._cpu_temperature_item) == pe.get_item_name(item)) \
-               or (self._gpu_temperature_item is not None and pe.get_item_name(
-            self._gpu_temperature_item) == pe.get_item_name(item)) \
-               or (self._gpu_fan_speed_item is not None and pe.get_item_name(
-            self._gpu_fan_speed_item) == pe.get_item_name(item))
+               or ((self._cpu_temperature_item is not None) and pe.get_item_name(self._cpu_temperature_item) == item_name) \
+               or ((self._gpu_temperature_item is not None) and pe.get_item_name(self._gpu_temperature_item) == item_name) \
+               or ((self._gpu_fan_speed_item is not None) and pe.get_item_name(self._gpu_fan_speed_item) == item_name)

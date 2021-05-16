@@ -33,6 +33,10 @@ class ZoneEvent(Enum):
     PLAYER_NEXT = 42
     PLAYER_PREVIOUS = 43
 
+    COMPUTER_CPU_TEMPERATURE_CHANGED = 45
+    COMPUTER_GPU_TEMPERATURE_CHANGED = 46
+    COMPUTER_GPU_FAN_SPEED_CHANGED = 47
+
     ASTRO_LIGHT_ON = 80  # Indicates that it is getting dark and the light should be turn on.
     ASTRO_LIGHT_OFF = 81  # Indicates that the time period transitions to day time.
     ASTRO_BED_TIME = 82  # Indicates that the time period transitions to bed time.
