@@ -10,7 +10,7 @@ class Device(object):
     The base class that all other sensors and switches derive from.
     """
 
-    def __init__(self, openhab_item, battery_powered=False, wifi=False, auto_report=False):
+    def __init__(self, openhab_item, additional_items=None, battery_powered=False, wifi=False, auto_report=False):
         """
         Ctor
 
@@ -20,6 +20,9 @@ class Device(object):
         :param bool auto_report: indicates if the device periodically reports its value.
         :raise ValueError: if any parameter is invalid
         """
+        if additional_items is None:
+            additional_items = []
+
         if openhab_item is None:
             raise ValueError('openhabItem must not be None')
 
@@ -30,13 +33,18 @@ class Device(object):
         self.last_activated_timestamp = None
         self.zone_manager = None
         self.channel = None
+        self._additional_items = [i for i in additional_items if i is not None]
 
     def contains_item(self, item):
         """
         Returns true if this device contains the specified item.
-        Subclass needs to override if it contains more than one item.
         """
-        return pe.get_item_name(self.item) == pe.get_item_name(item)
+        their_name = pe.get_item_name(item)
+        for item in self.get_all_items():
+            if pe.get_item_name(item) == their_name:
+                return True
+
+        return False
 
     def get_item(self):
         """
@@ -53,6 +61,10 @@ class Device(object):
         :rtype: str
         """
         return pe.get_item_name(self.item)
+
+    def get_all_items(self):
+        """ Return a list of all items in this device. """
+        return [self.item] + self._additional_items
 
     def set_channel(self, channel: str):
         """
@@ -190,10 +202,8 @@ class Device(object):
         else:
             return (time.time() - prev_timestamp) <= seconds
 
-    def _update_last_activated_timestamp(self):
-        """
-        Set the lastActivatedTimestamp field to the current epoch second.
-        """
+    def update_last_activated_timestamp(self):
+        """ Set the lastActivatedTimestamp field to the current epoch second. """
         self.last_activated_timestamp = time.time()
 
     def __str__(self):

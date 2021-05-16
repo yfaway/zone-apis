@@ -39,7 +39,7 @@ class ArmStayIfNoMovementTest(DeviceTest):
         self.assertTrue(self.alarmPartition.is_armed_stay())
 
     def testOnAction_withOccupancy_notArmStay(self):
-        self.motionSensor._update_last_activated_timestamp()
+        self.motionSensor.update_last_activated_timestamp()
 
         event_info = EventInfo(ZoneEvent.TIMER, None,
                                self.zone1, self.mockZoneManager, pe.get_event_dispatcher())
@@ -57,7 +57,7 @@ class ArmStayIfNoMovementTest(DeviceTest):
         self.assertTrue(self.alarmPartition.is_armed_away())
 
     def testOnAction_withOccupancyInAutoArmStayTimePeriod_notArmStay(self):
-        self.motionSensor._update_last_activated_timestamp()
+        self.motionSensor.update_last_activated_timestamp()
 
         self.activity_times = ActivityTimes({ActivityType.AUTO_ARM_STAY: '0:00 - 23:59'})
         self.zone1 = Zone('foyer', [self.alarmPartition, self.activity_times, self.motionSensor]) \

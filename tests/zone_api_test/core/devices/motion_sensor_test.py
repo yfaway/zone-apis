@@ -21,7 +21,7 @@ class MotionSensorTest(DeviceTest):
     def testIsOccupied_various_returnsExpected(self):
         self.assertFalse(self.motionSensor.is_occupied())
 
-        self.motionSensor._update_last_activated_timestamp()
+        self.motionSensor.update_last_activated_timestamp()
         self.assertTrue(self.motionSensor.is_occupied())
 
         pe.set_switch_state(self.get_items()[0], True)

@@ -14,7 +14,7 @@ class TemperatureSensor(Device):
         :param NumberItem temperature_item: the item to get the humidity reading
         :raise ValueError: if temperature_item is invalid
         """
-        Device.__init__(self, temperature_item, battery_powered, wifi, auto_report)
+        Device.__init__(self, temperature_item, [], battery_powered, wifi, auto_report)
 
     def get_temperature(self):
         """

@@ -18,7 +18,7 @@ class GasSensor(Device):
         :param bool auto_report: indicate if the sensor reports periodically
         :raise ValueError: if value_item is invalid
         """
-        Device.__init__(self, value_item, battery_powered, wifi, auto_report)
+        Device.__init__(self, value_item, [state_item], battery_powered, wifi, auto_report)
 
         if state_item is None:
             raise ValueError('state_item must not be None')
@@ -39,10 +39,6 @@ class GasSensor(Device):
         :rtype: bool
         """
         return pe.is_in_on_state(self._state_item)
-
-    def contains_item(self, item):
-        """ Override. """
-        return super(GasSensor, self).contains_item(item) or pe.get_item_name(self._state_item) == pe.get_item_name(item)
 
     def reset_value_states(self):
         """ Override. """

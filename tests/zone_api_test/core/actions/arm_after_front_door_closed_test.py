@@ -49,7 +49,7 @@ class ArmAfterFrontDoorClosedTest(DeviceTest):
 
         time.sleep(0.1)
         # simulate a motion event
-        self.externalMotionSensor._update_last_activated_timestamp()
+        self.externalMotionSensor.update_last_activated_timestamp()
 
         time.sleep(0.2)
         self.assertTrue(self.alarmPartition.is_armed_away())
@@ -85,8 +85,8 @@ class ArmAfterFrontDoorClosedTest(DeviceTest):
 
         # simulate a motion event
         time.sleep(0.1)
-        self.internalMotionSensor._update_last_activated_timestamp()
+        self.internalMotionSensor.update_last_activated_timestamp()
 
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.assertFalse(self.alarmPartition.is_armed_away())
         self.assertFalse(self.action.timer.is_alive())

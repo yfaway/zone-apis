@@ -210,7 +210,7 @@ class ImmutableZoneManager:
         :param events open_hab_events:
         """
         # noinspection PyProtectedMember
-        device._update_last_activated_timestamp()
+        device.update_last_activated_timestamp()
 
         return_values = []
 
@@ -239,7 +239,7 @@ class ImmutableZoneManager:
         :rtype: bool
         """
         # noinspection PyProtectedMember
-        device._update_last_activated_timestamp()
+        device.update_last_activated_timestamp()
 
         return True
 
@@ -251,7 +251,7 @@ class ImmutableZoneManager:
         :rtype: bool
         """
         # noinspection PyProtectedMember
-        device._update_last_activated_timestamp()
+        device.update_last_activated_timestamp()
 
         return_values = [z.on_switch_turned_on(events, item, self) for z in self.get_zones()]
         return any(return_values)

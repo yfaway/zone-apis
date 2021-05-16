@@ -35,20 +35,20 @@ class AlertOnInactiveDevicesTest(DeviceTest):
 
     def testOnAction_oneInactiveBatteryDevice_noAlert(self):
         self.motion1.last_activated_timestamp = time.time() - (2 * 3600)  # 10 secs ago
-        self.motion2._update_last_activated_timestamp()
+        self.motion2.update_last_activated_timestamp()
 
         self.assert_inactive_devices(AlertOnInactiveDevices.Type.BATTERY_DEVICES, "1 inactive battery devices")
 
     def testOnAction_oneInactiveAutoReportWifiDevice_noAlert(self):
-        self.motion1._update_last_activated_timestamp()
+        self.motion1.update_last_activated_timestamp()
         self.motion2.last_activated_timestamp = time.time() - (2 * 3600)  # 10 secs ago
 
         self.assert_inactive_devices(AlertOnInactiveDevices.Type.AUTO_REPORT_WIFI_DEVICES,
                                      "1 inactive auto-report WiFi devices")
 
     def assert_no_inactive_devices(self, custom_param):
-        self.motion1._update_last_activated_timestamp()
-        self.motion2._update_last_activated_timestamp()
+        self.motion1.update_last_activated_timestamp()
+        self.motion2.update_last_activated_timestamp()
 
         event_info = EventInfo(ZoneEvent.TIMER, None, self.zone1, self.zm, pe.get_event_dispatcher(),
                                None, None, custom_param)

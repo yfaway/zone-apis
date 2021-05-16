@@ -33,7 +33,7 @@ class AlarmPartition(Device):
         :param NumberItem arm_mode_item: the item to set the arming/disarming mode
         :raise ValueError: if any parameter is invalid
         """
-        Device.__init__(self, alarm_status_item)
+        Device.__init__(self, alarm_status_item, [arm_mode_item])
 
         if arm_mode_item is None:
             raise ValueError('armModeItem must not be None')
@@ -98,11 +98,6 @@ class AlarmPartition(Device):
 
     def get_arm_mode_item(self):
         return self.arm_mode_item
-
-    def contains_item(self, item):
-        """ Override. """
-        return super(AlarmPartition, self).contains_item(item) \
-               or pe.get_item_name(self.arm_mode_item) == pe.get_item_name(item)
 
     def __str__(self):
         """

@@ -27,7 +27,8 @@ class ChromeCastAudioSink(Device):
         :param StringItem out_current_stream_item: the optional item to display the current music stream name
         :raise ValueError: if any parameter is invalid
         """
-        Device.__init__(self, pe.create_string_item(f'Chromecast-{sink_name}'))
+        Device.__init__(self, pe.create_string_item(f'Chromecast-{sink_name}'),
+                        [player_item, volume_item, title_item, idling_item])
 
         self._sink_name = sink_name
 
@@ -235,11 +236,3 @@ class ChromeCastAudioSink(Device):
 
     def _get_last_test_command(self):
         return self._testLastCommand
-
-    def contains_item(self, item):
-        """ Override. """
-        return super(ChromeCastAudioSink, self).contains_item(item) \
-               or pe.get_item_name(self._volume_item) == pe.get_item_name(item) \
-               or pe.get_item_name(self._player_item) == pe.get_item_name(item) \
-               or pe.get_item_name(self._idling_item) == pe.get_item_name(item) \
-               or pe.get_item_name(self._title_item) == pe.get_item_name(item)

@@ -21,7 +21,9 @@ class Computer(Device):
             value.
         :raise ValueError: if any parameter is invalid
         """
-        Device.__init__(self, pe.create_string_item(f'Computer: {name}'), False, False, always_on)
+        Device.__init__(self, pe.create_string_item(f'Computer: {name}'),
+                        [cpu_temperature_item, gpu_temperature_item, gpu_fan_speed_item],
+                        False, False, always_on)
 
         self._name = name
 
@@ -66,11 +68,3 @@ class Computer(Device):
             f", CPU Temp.: {self.get_cpu_temperature()} °C" if self.has_cpu_temperature() else "",
             f", GPU Temp.: {self.get_gpu_temperature()} °C" if self.has_gpu_temperature() else "",
             f", GPU Fan Speed: {self.get_gpu_fan_speed()} %" if self.has_gpu_fan_speed() else "")
-
-    def contains_item(self, item):
-        """ Override. """
-        item_name = pe.get_item_name(item)
-        return super(Computer, self).contains_item(item) \
-               or ((self._cpu_temperature_item is not None) and pe.get_item_name(self._cpu_temperature_item) == item_name) \
-               or ((self._gpu_temperature_item is not None) and pe.get_item_name(self._gpu_temperature_item) == item_name) \
-               or ((self._gpu_fan_speed_item is not None) and pe.get_item_name(self._gpu_fan_speed_item) == item_name)

@@ -6,6 +6,7 @@ from HABApp.core import Items
 from HABApp.core.events import ValueChangeEvent, ValueUpdateEvent
 from HABApp.core.items.base_item import BaseItem
 from HABApp.openhab.events import ItemCommandEvent
+from HABApp.openhab.events import ItemStateEvent
 from HABApp.openhab.items import ColorItem, DimmerItem, NumberItem, SwitchItem, StringItem
 
 from zone_api import platform_encapsulator as pe
@@ -524,10 +525,20 @@ def dispatch_event(zm: ImmutableZoneManager, zone_event: ZoneEvent, device: Devi
 
 def _configure_device(device: Device, zm: ImmutableZoneManager) -> Device:
     """
-    Set a few properties on the device. Note that each setter returns a new device instance, and as such, this method
-    should be called before configuring the event handler.
+    - Set a few properties on the device. Note that each setter returns a new device instance, and as such, this method
+      should be called before configuring the event handler.
+    - Also register the item state event for each item in the device to update the last activated timestamp.
     """
     device = device.set_channel(pe.get_channel(device.get_item()))
     device = device.set_zone_manager(zm)
+
+    # Can't rely on item changed even to determine last activated time, as sometimes the device may send the same value
+    # and that wouldn't trigger the item changed event.
+    # noinspection PyUnusedLocal
+    def handler_state_event(event):
+        device.update_last_activated_timestamp()
+
+    for item in device.get_all_items():
+        item.listen_event(handler_state_event, ItemStateEvent)
 
     return device

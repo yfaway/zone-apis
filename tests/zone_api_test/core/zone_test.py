@@ -204,7 +204,7 @@ class ZoneTest(DeviceTest):
         self.assertFalse(self.light.is_on())
 
         zone = Zone('ff', [self.light, self.motionSensor, self.illuminanceSensor])
-        self.motionSensor._update_last_activated_timestamp()
+        self.motionSensor.update_last_activated_timestamp()
         (occupied, device) = zone.is_occupied()
         self.assertTrue(occupied)
         self.assertEqual(self.motionSensor, device)

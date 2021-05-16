@@ -6,7 +6,7 @@ from zone_api.core.devices.vacation import Vacation
 class Thermostat(Device):
     """ Represents a thermostat. """
 
-    def __init__(self, name_item):
+    def __init__(self, name_item, other_items):
         """
         Ctor
 
@@ -14,7 +14,7 @@ class Thermostat(Device):
         :raise ValueError: if any parameter is invalid
         """
 
-        Device.__init__(self, name_item)
+        Device.__init__(self, name_item, other_items)
 
     def set_away_mode(self):
         """ Change the thermostat to the AWAY mode. """
@@ -37,7 +37,7 @@ class EcobeeThermostat(Thermostat, Vacation):
         :raise ValueError: if any parameter is invalid
         """
 
-        Thermostat.__init__(self, name_item)
+        Thermostat.__init__(self, name_item, [event_type_item])
 
         self.event_type_item = event_type_item
 
@@ -60,10 +60,6 @@ class EcobeeThermostat(Thermostat, Vacation):
     def is_in_vacation(self):
         """ @Override """
         return pe.get_string_value(self.event_type_item) == EcobeeThermostat.VACATION_EVENT_TYPE
-
-    def contains_item(self, item):
-        """ Override. """
-        return super(Thermostat, self).contains_item(item) or pe.get_item_name(self.event_type_item) == pe.get_item_name(item)
 
     def __str__(self):
         return f"{super(Thermostat, self).__str__()}, {pe.get_string_value(self.get_item())}, " \

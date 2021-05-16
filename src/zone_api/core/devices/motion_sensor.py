@@ -12,7 +12,7 @@ class MotionSensor(Device):
         :param SwitchItem switch_item:
         :raise ValueError: if any parameter is invalid
         """
-        Device.__init__(self, switch_item, battery_powered)
+        Device.__init__(self, switch_item, None, battery_powered)
 
         self._can_trigger_switches = can_trigger_switches
 
