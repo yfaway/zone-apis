@@ -352,7 +352,7 @@ def create_gas_sensor(cls):
         item.listen_event(value_change_handler, ValueChangeEvent)
         state_item.listen_event(state_change_handler, ValueChangeEvent)
 
-        return cls(item, state_item)
+        return sensor
 
     return inner_fcn
 
