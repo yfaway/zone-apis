@@ -22,7 +22,7 @@ class AlertOnInactiveDevices:
         AUTO_REPORT_WIFI_DEVICES = 2
 
     def __init__(self, battery_powered_period_in_hours: float = 3 * 24,
-                 auto_report_period_in_hours: float = 0.5):
+                 auto_report_period_in_hours: float = 0.25):
         """
         Ctor
 

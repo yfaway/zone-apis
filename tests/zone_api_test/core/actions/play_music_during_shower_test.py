@@ -22,7 +22,7 @@ class PlayMusicDuringShowerTest(DeviceTest):
         super(PlayMusicDuringShowerTest, self).setUp()
 
         self.fan = Fan(self.fan_item, 2)
-        self.action = PlayMusicDuringShower("anUrl")
+        self.action = PlayMusicDuringShower()
 
     def testOnAction_wrongEventType_returnsFalse(self):
         self.zone = Zone('innerZone').add_action(self.action)
