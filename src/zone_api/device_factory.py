@@ -573,11 +573,10 @@ def _configure_device(device: Device, zm: ImmutableZoneManager) -> Device:
 
     # Can't rely on item changed even to determine last activated time, as sometimes the device may send the same value
     # and that wouldn't trigger the item changed event.
-    # noinspection PyUnusedLocal
-    def handler_state_event(event):
-        device.update_last_activated_timestamp()
-
-    for item in device.get_all_items():
-        item.listen_event(handler_state_event, ItemStateEvent)
+    # However, we need to exclude motion sensor, as that would falsely flag occupancy (motion sensor's occupancy
+    # determination is based on the ON state in the last number of minutes.
+    if not isinstance(device, MotionSensor):
+        for item in device.get_all_items():
+            item.listen_event(lambda event: device.update_last_activated_timestamp(), ItemStateEvent)
 
     return device
