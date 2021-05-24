@@ -5,6 +5,7 @@ from zone_api.core.actions.announce_morning_weather_and_play_music import Announ
 from zone_api.core.devices.activity_times import ActivityTimes, ActivityType
 from zone_api.core.devices.contact import Door
 from zone_api.core.devices.motion_sensor import MotionSensor
+from zone_api.core.devices.weather import Weather
 
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 from zone_api.core.event_info import EventInfo
@@ -18,10 +19,11 @@ class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
     def setUp(self):
         self.sink, items = self.create_audio_sink()
 
-        items.append(pe.create_number_item('VT_Weather_Temperature'))
-        items.append(pe.create_number_item('VT_Weather_ForecastTempMin'))
-        items.append(pe.create_number_item('VT_Weather_ForecastTempMax'))
-        items.append(pe.create_string_item('VT_Weather_Condition'))
+        items.append(pe.create_number_item('Weather_Temperature'))
+        items.append(pe.create_number_item('Weather_Humidity'))
+        items.append(pe.create_string_item('Weather_Condition'))
+        items.append(pe.create_number_item('Weather_ForecastTempMin'))
+        items.append(pe.create_number_item('Weather_ForecastTempMax'))
         items.append(pe.create_switch_item('Door1'))
         items.append(pe.create_switch_item('Door2'))
         items.append(pe.create_switch_item('MotionSensor'))
@@ -33,6 +35,7 @@ class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
         self.set_items(items)
         super(AnnounceMorningWeatherAndPlayMusicTest, self).setUp()
 
+        self.weather = Weather(items[0], items[1], items[2], None, items[4], items[5])
         self.motion = MotionSensor(self.motion_item)
         self.internal_door = Door(self.internal_door_item)
         self.external_door = Door(self.external_door_item)
@@ -68,6 +71,7 @@ class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
     def testOnAction_audioSinkInZone_announceAndPlaysStreamAndReturnsTrue(self):
         zone1 = Zone('Kitchen').add_device(self.sink).add_device(self.motion) \
             .add_device(self.activity_times) \
+            .add_device(self.weather) \
             .add_action(self.action)
 
         event_info = EventInfo(ZoneEvent.MOTION, self.motion_item, zone1,
@@ -76,6 +80,18 @@ class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
         self.assertTrue(value)
         self.assertEqual('playStream', self.sink._get_last_test_command())
         self.assertTrue('Good morning' in self.sink.get_last_tts_message())
+
+    def testOnAction_audioSinkInZoneNoWeather_announceAndPlaysStreamAndReturnsTrue(self):
+        zone1 = Zone('Kitchen').add_device(self.sink).add_device(self.motion) \
+            .add_device(self.activity_times) \
+            .add_action(self.action)
+
+        event_info = EventInfo(ZoneEvent.MOTION, self.motion_item, zone1,
+                               create_zone_manager([zone1]), pe.get_event_dispatcher())
+        value = self.action.on_action(event_info)
+        self.assertTrue(value)
+        self.assertEqual('playStream', self.sink._get_last_test_command())
+        self.assertTrue(self.sink.get_last_tts_message() is None)
 
     def testOnAction_audioSinkInZone_stopAfterDoorClosed(self):
         zone1 = Zone('Kitchen').add_device(self.sink).add_device(self.motion) \

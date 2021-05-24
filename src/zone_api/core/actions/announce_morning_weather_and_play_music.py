@@ -1,8 +1,9 @@
 import random
 from threading import Timer
+from typing import Union
 
-from zone_api import platform_encapsulator as pe
 from zone_api.audio_manager import Genre, get_music_streams_by_genres, get_nearby_audio_sink
+from zone_api.core.devices.weather import Weather
 from zone_api.environment_canada import EnvCanada
 from zone_api.core.action import action
 from zone_api.core.devices.motion_sensor import MotionSensor
@@ -49,9 +50,9 @@ class AnnounceMorningWeatherAndPlayMusic:
         zone = event_info.get_zone()
         zone_manager = event_info.get_zone_manager()
 
-        activities = zone_manager.get_devices_by_type(ActivityTimes)
-        if len(activities) == 0:
-            self.log_warning("Missing ActivityTimes; can't determine if this is dinner time.")
+        activity = zone_manager.get_first_device_by_type(ActivityTimes)
+        if activity is None:
+            self.log_warning("Missing ActivityTimes; can't determine if this is morning time.")
             return False
 
         def stop_music_session():
@@ -72,15 +73,16 @@ class AnnounceMorningWeatherAndPlayMusic:
                 self.log_warning("Missing audio device; can't play music.")
                 return False
 
-            activity = activities[0]
             if activity.is_wakeup_time() and \
                     not self._in_session and \
                     self._start_count < self._max_start_count:
 
                 self._in_session = True
 
-                weather_msg = self.get_morning_announcement()
-                self._sink.play_message(weather_msg)
+                weather_msg = self.get_morning_announcement(zone_manager)
+                if weather_msg is not None:
+                    self._sink.play_message(weather_msg)
+
                 self._sink.play_stream(random.choice(self._music_streams), 40)
 
                 self._start_count += 1
@@ -99,15 +101,20 @@ class AnnounceMorningWeatherAndPlayMusic:
         return True
 
     # noinspection PyMethodMayBeStatic
-    def get_morning_announcement(self):
+    def get_morning_announcement(self, zone_manager) -> Union[None, str]:
         """ Returns a string containing the current's weather and today's forecast. """
+
+        weather = zone_manager.get_first_device_by_type(Weather)
+        if weather is None or not weather.support_forecast_min_temperature() \
+                or not weather.support_forecast_max_temperature():
+            return None
 
         message = u'Good morning. It is {} degree currently; the weather ' \
                   'condition is {}. Forecasted temperature range is between {} and {} ' \
-                  'degrees.'.format(pe.get_number_value('VT_Weather_Temperature'),
-                                    pe.get_string_value('VT_Weather_Condition'),
-                                    pe.get_number_value('VT_Weather_ForecastTempMin'),
-                                    pe.get_number_value('VT_Weather_ForecastTempMax'))
+                  'degrees.'.format(weather.get_temperature(),
+                                    weather.get_condition(),
+                                    weather.get_forecast_min_temperature(),
+                                    weather.get_forecast_max_temperature())
 
         forecasts = EnvCanada.retrieve_hourly_forecast('Ottawa', 12)
         rain_periods = [f for f in forecasts if
