@@ -62,7 +62,7 @@ def parse(activity_times: ActivityTimes) -> ImmutableZoneManager:
         '.*FanSwitch.*': df.create_switches,
         '.*Wled_MasterControls.*': df.create_switches,
         '[^g].*_Illuminance.*': df.create_illuminance_sensor,
-        '[^g].*Humidity$': df.create_humidity_sensor,
+        '[^g](?!.*Weather).*Humidity$': df.create_humidity_sensor,
         '[^g].*_NetworkPresence.*': df.create_network_presence_device,
         '[^g].*_Plug$': df.create_plug,
         '[^g].*_Co2$': df.create_gas_sensor(Co2GasSensor),
@@ -71,7 +71,7 @@ def parse(activity_times: ActivityTimes) -> ImmutableZoneManager:
         '.*_Tv$': df.create_television_device,
         '.*_Thermostat_EcobeeName$': df.create_ecobee_thermostat,
         # not matching "FF_Office_Computer_Dell_GpuTemperature"
-        '^(?!.*Computer).*Temperature$': df.create_temperature_sensor,
+        '[^g](?!.*Computer)(?!.*Weather).*Temperature$': df.create_temperature_sensor,
         '[^g].*WaterLeakState$': df.create_water_leak_sensor,
         '[^g].*_TimeOfDay$': df.create_astro_sensor,
         '.*_Computer_[^_]+$': df.create_computer,
