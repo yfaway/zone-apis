@@ -11,7 +11,7 @@ class SendWeatherAlert(HABApp.Rule):
     def __init__(self):
         super().__init__()
 
-        self.weather_item = StringItem.get_item('VT_Weather_Alert_Title')
+        self.weather_item = StringItem.get_item('FF_Virtual_Weather_Alert_Title')
         self.weather_item.listen_event(self.weather_alert_changed, ValueChangeEvent)
 
     # noinspection PyUnusedLocal
@@ -20,7 +20,7 @@ class SendWeatherAlert(HABApp.Rule):
 
         if alert_message is not None:
             subject = f"[Weather Alert] {self.weather_item.get_value()}"
-            date_item = DatetimeItem.get_item('VT_Weather_Alert_Date').get_value()
+            date_item = DatetimeItem.get_item('FF_Virtual_Weather_Alert_Date').get_value()
             body = f"{alert_message}\nLink: {url}\nPublished Date: {date_item}"
 
             alert = Alert.create_info_alert(subject, body)

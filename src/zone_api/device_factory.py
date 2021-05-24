@@ -29,6 +29,7 @@ from zone_api.core.devices.temperature_sensor import TemperatureSensor
 from zone_api.core.devices.thermostat import EcobeeThermostat
 from zone_api.core.devices.tv import Tv
 from zone_api.core.devices.water_leak_sensor import WaterLeakSensor
+from zone_api.core.devices.weather import Weather
 from zone_api.core.devices.wled import Wled
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 from zone_api.core.zone_event import ZoneEvent
@@ -338,7 +339,6 @@ def create_gas_sensor(cls):
     def inner_fcn(zm: ImmutableZoneManager, item) -> GasSensor:
         state_item = Items.get_item(item.name + 'State')
 
-        # noinspection PyTypeChecker
         sensor = _configure_device(cls(item, state_item), zm)
 
         # noinspection PyUnusedLocal
@@ -352,6 +352,7 @@ def create_gas_sensor(cls):
         item.listen_event(value_change_handler, ValueChangeEvent)
         state_item.listen_event(state_change_handler, ValueChangeEvent)
 
+        # noinspection PyTypeChecker
         return sensor
 
     return inner_fcn
@@ -508,6 +509,44 @@ def create_computer(zm: ImmutableZoneManager, item) -> Computer:
         gpu_fan_speed_item.listen_event(
             lambda event: dispatch_event(zm, ZoneEvent.COMPUTER_GPU_FAN_SPEED_CHANGED, device, gpu_fan_speed_item),
             ValueChangeEvent)
+
+    # noinspection PyTypeChecker
+    return device
+
+
+def create_weather(zm: ImmutableZoneManager, temperature_item: NumberItem) -> Union[None, Weather]:
+    """
+    Creates a weather device.
+    :param zm: the zone manager instance to dispatch the event.
+    :param temperature_item: the temperature weather item.
+    """
+    device_name_pattern = '(.*)_Temperature'
+    match = re.search(device_name_pattern, temperature_item.name)
+    if not match:
+        return None
+
+    device_name = match.group(1)
+    humidity_item = Items.get_item(f"{device_name}_Humidity")
+    condition_item = Items.get_item(f"{device_name}_Condition")
+    alert_item = Items.get_item(f"{device_name}_Alert_Title")
+
+    device = _configure_device(Weather(temperature_item, humidity_item, condition_item, alert_item), zm)
+
+    temperature_item.listen_event(
+        lambda event: dispatch_event(
+            zm, ZoneEvent.WEATHER_TEMPERATURE_CHANGED, device, temperature_item), ValueChangeEvent)
+
+    humidity_item.listen_event(
+        lambda event: dispatch_event(
+            zm, ZoneEvent.WEATHER_HUMIDITY_CHANGED, device, humidity_item), ValueChangeEvent)
+
+    condition_item.listen_event(
+        lambda event: dispatch_event(
+            zm, ZoneEvent.WEATHER_CONDITION_CHANGED, device, condition_item), ValueChangeEvent)
+
+    alert_item.listen_event(
+        lambda event: dispatch_event(
+            zm, ZoneEvent.WEATHER_ALERT_CHANGED, device, alert_item), ValueChangeEvent)
 
     # noinspection PyTypeChecker
     return device

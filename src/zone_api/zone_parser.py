@@ -70,10 +70,12 @@ def parse(activity_times: ActivityTimes) -> ImmutableZoneManager:
         '[^g].*_Smoke$': df.create_gas_sensor(SmokeSensor),
         '.*_Tv$': df.create_television_device,
         '.*_Thermostat_EcobeeName$': df.create_ecobee_thermostat,
+        # not matching "FF_Office_Computer_Dell_GpuTemperature"
         '^(?!.*Computer).*Temperature$': df.create_temperature_sensor,
         '[^g].*WaterLeakState$': df.create_water_leak_sensor,
         '[^g].*_TimeOfDay$': df.create_astro_sensor,
         '.*_Computer_[^_]+$': df.create_computer,
+        '.*_Weather_Temperature$': df.create_weather,
     }
 
     zm: ZoneManager = ZoneManager()
