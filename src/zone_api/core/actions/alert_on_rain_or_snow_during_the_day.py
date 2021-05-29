@@ -1,21 +1,34 @@
-import datetime
-
-import HABApp
-
 from zone_api.alert import Alert
+from zone_api.core.event_info import EventInfo
+from zone_api.core.zone_event import ZoneEvent
 from zone_api.environment_canada import EnvCanada
 from zone_api import platform_encapsulator as pe
+from zone_api.core.action import action
 
 
-class AlertRainOrSnowDuringTheDay(HABApp.Rule):
-    def __init__(self):
-        super().__init__()
+@action(events=[ZoneEvent.TIMER], devices=[], zone_name_pattern='.*Virtual.*')
+class AlertOnRainOrSnowDuringTheDay:
+    def on_startup(self, event_info: EventInfo):
 
-        self.run.on_workdays(datetime.time(6, 15), self.alert)
-        self.run.on_weekends(datetime.time(8), self.alert)
+        # start timer here. Main logic remains in on_action.
+        def timer_handler():
+            self.on_action(self.create_timer_event_info(event_info))
 
-    # noinspection PyMethodMayBeStatic
-    def alert(self):
+        weekday_time = '06:15'
+        weekend_time = '08:00'
+
+        scheduler = event_info.get_zone_manager().get_scheduler()
+        scheduler.every().monday.at(weekday_time).do(timer_handler)
+        scheduler.every().tuesday.at(weekday_time).do(timer_handler)
+        scheduler.every().wednesday.at(weekday_time).do(timer_handler)
+        scheduler.every().thursday.at(weekday_time).do(timer_handler)
+        scheduler.every().friday.at(weekday_time).do(timer_handler)
+
+        scheduler.every().saturday.at(weekend_time).do(timer_handler)
+        scheduler.every().sunday.at(weekend_time).do(timer_handler)
+
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
+    def on_action(self, event_info: EventInfo):
         forecasts = EnvCanada.retrieve_hourly_forecast('Ottawa', 12)
         rain_periods = [f for f in forecasts if
                         'High' == f.get_precipation_probability() or
@@ -42,6 +55,3 @@ class AlertRainOrSnowDuringTheDay(HABApp.Rule):
                 pe.log_info('Failed to send rain/snow alert')
         else:
             pe.log_info('There is no rain/snow today.')
-
-
-AlertRainOrSnowDuringTheDay()
