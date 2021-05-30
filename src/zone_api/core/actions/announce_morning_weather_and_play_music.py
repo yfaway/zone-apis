@@ -118,8 +118,8 @@ class AnnounceMorningWeatherAndPlayMusic:
 
         forecasts = EnvCanada.retrieve_hourly_forecast('Ottawa', 12)
         rain_periods = [f for f in forecasts if
-                        'High' == f.get_precipation_probability() or
-                        'Medium' == f.get_precipation_probability()]
+                        'High' == f.get_precipitation_probability() or
+                        'Medium' == f.get_precipitation_probability()]
         if len(rain_periods) > 0:
             if len(rain_periods) == 1:
                 message += u" There will be precipitation at {}.".format(

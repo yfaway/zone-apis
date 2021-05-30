@@ -8,6 +8,9 @@ from zone_api.core.action import action
 
 @action(events=[ZoneEvent.TIMER], devices=[], zone_name_pattern='.*Virtual.*')
 class AlertOnRainOrSnowDuringTheDay:
+    def __init__(self, city: str = 'Ottawa'):
+        self._city = city
+
     def on_startup(self, event_info: EventInfo):
 
         # start timer here. Main logic remains in on_action.
@@ -27,12 +30,11 @@ class AlertOnRainOrSnowDuringTheDay:
         scheduler.every().saturday.at(weekend_time).do(timer_handler)
         scheduler.every().sunday.at(weekend_time).do(timer_handler)
 
-    # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def on_action(self, event_info: EventInfo):
-        forecasts = EnvCanada.retrieve_hourly_forecast('Ottawa', 12)
+        forecasts = EnvCanada.retrieve_hourly_forecast(self._city, 12)
         rain_periods = [f for f in forecasts if
-                        'High' == f.get_precipation_probability() or
-                        'Medium' == f.get_precipation_probability()]
+                        'High' == f.get_precipitation_probability() or
+                        'Medium' == f.get_precipitation_probability()]
         if len(rain_periods) > 0:
             if len(rain_periods) == 1:
                 subject = u"Possible precipitation at {}".format(
@@ -49,9 +51,12 @@ class AlertOnRainOrSnowDuringTheDay:
                 body += str(f) + '\n'
 
             alert_message = Alert.create_info_alert(subject, body)
-            zm = pe.get_zone_manager_from_context()
+            zm = event_info.get_zone_manager()
             result = zm.get_alert_manager().process_alert(alert_message, zm)
             if not result:
                 pe.log_info('Failed to send rain/snow alert')
+
+            return True
         else:
             pe.log_info('There is no rain/snow today.')
+            return False

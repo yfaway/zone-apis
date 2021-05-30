@@ -16,8 +16,8 @@ class Forecast(object):
     Represent the weather forecast.
     """
 
-    def __init__(self, forecast_time, temperature, condition,
-                 precipitation_probability, wind):
+    def __init__(self, forecast_time: int, temperature: int, condition: str,
+                 precipitation_probability: str, wind: str):
         self._forecastTime = forecast_time
         self._temperature = temperature
         self._condition = condition
@@ -52,7 +52,7 @@ class Forecast(object):
 
     def get_temperature(self):
         """
-        Return the temperature in Celcius.
+        Return the temperature in Celsius.
 
         :rtype: int
         """
@@ -66,9 +66,9 @@ class Forecast(object):
         """
         return self._condition
 
-    def get_precipation_probability(self):
+    def get_precipitation_probability(self):
         """
-        Return the precipation probability.
+        Return the precipitation probability.
         Possible values: High (70%+), Medium (60% - 70%), Low (< 40%), or Nil (0%).
 
         :rtype: str
@@ -89,7 +89,7 @@ class Forecast(object):
         """
         value = u"{:5}: {:7} {:25} {:6} {:6}".format(self.get_forecast_time(),
                                                      self.get_temperature(), self.get_condition(),
-                                                     self.get_precipation_probability(), self.get_wind())
+                                                     self.get_precipitation_probability(), self.get_wind())
         return value
 
 
@@ -139,7 +139,7 @@ class EnvCanada(object):
 
         pattern = r"""header2.*?\>(-?\d+)<           # temp 
                       .*?<p>(.*?)</p>                # condition
-                      .*?header4.*?>(.+?)<           # precip probability
+                      .*?header4.*?>(.+?)<           # precipitation probability
                       .*?abbr.*?>(.+?)</abbr> (.*?)< # wind direction and speed
             """
         forecasts = []

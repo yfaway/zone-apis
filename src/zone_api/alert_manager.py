@@ -135,6 +135,7 @@ class AlertManager:
             pe.send_email(email_addresses, alert.get_subject(), body, alert.get_attachment_urls())
 
         self._lastEmailedSubject = alert.get_subject()
+        self._lastEmailedBody = alert.get_body()
 
     def _set_test_mode(self, mode):
         """
