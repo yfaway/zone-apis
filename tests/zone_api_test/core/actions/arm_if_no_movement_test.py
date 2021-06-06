@@ -1,5 +1,7 @@
+from unittest.mock import MagicMock
+
 from zone_api import platform_encapsulator as pe
-from zone_api.core.actions.arm_stay_if_no_movement import ArmStayIfNoMovement
+from zone_api.core.actions.arm_if_no_movement import ArmIfNoMovement
 from zone_api.core.devices.activity_times import ActivityTimes, ActivityType
 from zone_api.core.devices.motion_sensor import MotionSensor
 
@@ -9,23 +11,21 @@ from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 
 
-class ArmStayIfNoMovementTest(DeviceTest):
-    """ Unit tests for ArmStayIfNoMovement. """
+class ArmIfNoMovementTest(DeviceTest):
+    """ Unit tests for ArmIfNoMovement. """
 
     def setUp(self):
         self.alarmPartition, items = self.create_alarm_partition()
 
         items = items + [pe.create_switch_item('InternalMotionSensor')]
         self.set_items(items)
-        super(ArmStayIfNoMovementTest, self).setUp()
+        super(ArmIfNoMovementTest, self).setUp()
 
         self.alarmPartition.disarm(pe.get_event_dispatcher())
-
         self.motionSensor = MotionSensor(items[-1])
-
         self.activity_times = ActivityTimes({ActivityType.AUTO_ARM_STAY: self.create_outside_time_range()})
 
-        self.action = ArmStayIfNoMovement(0.1)
+        self.action = ArmIfNoMovement(0.1)
         self.zone1 = Zone('foyer', [self.alarmPartition, self.activity_times, self.motionSensor]) \
             .add_action(self.action)
 
@@ -37,6 +37,15 @@ class ArmStayIfNoMovementTest(DeviceTest):
         value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertTrue(self.alarmPartition.is_armed_stay())
+
+    def testOnAction_timerTriggeredWithNoOccupancyInVacationMode_armAway(self):
+        self.mockZoneManager.is_in_vacation = MagicMock(return_value=True)
+
+        event_info = EventInfo(ZoneEvent.TIMER, None,
+                               self.zone1, self.mockZoneManager, pe.get_event_dispatcher())
+        value = self.action.on_action(event_info)
+        self.assertTrue(value)
+        self.assertTrue(self.alarmPartition.is_armed_away())
 
     def testOnAction_withOccupancy_notArmStay(self):
         self.motionSensor.update_last_activated_timestamp()

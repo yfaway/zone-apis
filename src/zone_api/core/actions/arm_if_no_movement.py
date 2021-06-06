@@ -1,3 +1,5 @@
+import typing
+
 from zone_api import security_manager as sm
 from zone_api.core.devices.activity_times import ActivityTimes
 from zone_api.core.devices.motion_sensor import MotionSensor
@@ -7,13 +9,17 @@ from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.action import action
 from zone_api.core.devices.alarm_partition import AlarmPartition
 
+if typing.TYPE_CHECKING:
+    from zone_api.core.immutable_zone_manager import ImmutableZoneManager
+
 
 @action(events=[ZoneEvent.TIMER], devices=[AlarmPartition, MotionSensor])
-class ArmStayIfNoMovement:
+class ArmIfNoMovement:
     """
     Automatically arm-stay the house if there has been no occupancy event in the last x minutes.
     Use case: user is at home but perhaps taking a nap. Accompanied disarm rule will automatically
     disarm on internal motion sensor.
+    If the house is in vacation mode, arm away instead.
     """
 
     def __init__(self, unoccupied_duration_in_minutes=30):
@@ -25,7 +31,7 @@ class ArmStayIfNoMovement:
 
     def on_action(self, event_info):
         events = event_info.get_event_dispatcher()
-        zone_manager = event_info.get_zone_manager()
+        zone_manager: ImmutableZoneManager = event_info.get_zone_manager()
 
         if not sm.is_unarmed(zone_manager):
             return False
@@ -43,5 +49,9 @@ class ArmStayIfNoMovement:
             if occupied:
                 return False
 
-        sm.arm_stay(zone_manager, events)
+        if zone_manager.is_in_vacation():
+            sm.arm_away(zone_manager, events)
+        else:
+            sm.arm_stay(zone_manager, events)
+
         return True
