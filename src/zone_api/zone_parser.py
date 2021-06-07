@@ -118,9 +118,6 @@ def parse(activity_times: ActivityTimes) -> ImmutableZoneManager:
     for z in zone_mappings.values():
         zm.add_zone(z)
 
-    for z in zm.get_zones():
-        z.dispatch_event(ZoneEvent.STARTUP, pe.get_event_dispatcher(), None, None, immutable_zm)
-
     immutable_zm.start()
 
     return immutable_zm

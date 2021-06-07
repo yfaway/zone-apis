@@ -1,6 +1,12 @@
+import typing
 from typing import Any
 
 from zone_api.core.zone_event import ZoneEvent
+
+if typing.TYPE_CHECKING:
+    from zone_api.core.device import Device
+    from zone_api.core.zone import Zone
+    from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 
 
 class EventInfo(object):
@@ -9,8 +15,8 @@ class EventInfo(object):
     motion triggered.
     """
 
-    def __init__(self, event_type, item, zone, zone_manager, events, owning_zone=None,
-                 device=None, custom_parameter: Any = None):
+    def __init__(self, event_type: ZoneEvent, item, zone: 'Zone', zone_manager: 'ImmutableZoneManager', events,
+                 owning_zone: 'Zone' = None, device: 'Device' = None, custom_parameter: Any = None):
         """
         Creates a new EventInfo object.
 
@@ -47,11 +53,11 @@ class EventInfo(object):
         self._owning_zone = owning_zone
         self._custom_parameter = custom_parameter
 
-    def get_event_type(self):
+    def get_event_type(self) -> 'ZoneEvent':
         """ :rtype: ZoneEvent"""
         return self.eventType
 
-    def get_device(self):
+    def get_device(self) -> 'Device':
         """ :rtype: Device"""
         return self.device
 
@@ -59,11 +65,11 @@ class EventInfo(object):
         """ :rtype: Item"""
         return self.item
 
-    def get_zone(self):
+    def get_zone(self) -> 'Zone':
         """ :rtype: Zone"""
         return self.zone
 
-    def get_zone_manager(self):
+    def get_zone_manager(self) -> 'ImmutableZoneManager':
         """ :rtype: ImmutableZoneManager"""
         return self.zoneManager
 
@@ -71,7 +77,7 @@ class EventInfo(object):
         """ :rtype: Event"""
         return self.events
 
-    def get_owning_zone(self):
+    def get_owning_zone(self) -> 'Zone':
         """ Returns the zone that contains the item; returns None if it is the same at the dispatched zone."""
         return self._owning_zone
 

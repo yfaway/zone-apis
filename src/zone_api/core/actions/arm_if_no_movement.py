@@ -1,5 +1,3 @@
-import typing
-
 from zone_api import security_manager as sm
 from zone_api.core.devices.activity_times import ActivityTimes
 from zone_api.core.devices.motion_sensor import MotionSensor
@@ -8,9 +6,6 @@ from zone_api.core.event_info import EventInfo
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.action import action
 from zone_api.core.devices.alarm_partition import AlarmPartition
-
-if typing.TYPE_CHECKING:
-    from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 
 
 @action(events=[ZoneEvent.TIMER], devices=[AlarmPartition, MotionSensor])
@@ -31,7 +26,7 @@ class ArmIfNoMovement:
 
     def on_action(self, event_info):
         events = event_info.get_event_dispatcher()
-        zone_manager: ImmutableZoneManager = event_info.get_zone_manager()
+        zone_manager = event_info.get_zone_manager()
 
         if not sm.is_unarmed(zone_manager):
             return False

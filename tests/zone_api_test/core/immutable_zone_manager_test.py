@@ -60,7 +60,8 @@ class ImmutableZoneManagerTest(DeviceTest):
             def dispatch_event(self, zone_event, open_hab_events, device, item,
                                immutable_zone_manager, owning_zone=None):
 
-                self.dispatched_zones.append(self)
+                if zone_event != ZoneEvent.STARTUP:
+                    self.dispatched_zones.append(self)
                 return True
 
         self.zone1 = MyZone(self.dispatched_zones, 'Foyer', [self.fan, self.motionSensor, self.shared_light],

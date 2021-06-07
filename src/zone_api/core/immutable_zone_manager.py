@@ -48,6 +48,7 @@ class ImmutableZoneManager:
         Indicates that the zones are fully populated. The following actions will take place:
           1. Map device item name to zone.
           2. Start scheduler (if not in a unit test).
+          3. Send event ZoneEvent.STARTUP to each action.
         """
         for z in self.get_zones():
             for d in z.get_devices():
@@ -57,6 +58,9 @@ class ImmutableZoneManager:
             self._start_scheduler()
 
         self.fully_initialized = True
+
+        for z in self.get_zones():
+            z.dispatch_event(ZoneEvent.STARTUP, pe.get_event_dispatcher(), None, None, self)
 
     def stop(self):
         """
