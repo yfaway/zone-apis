@@ -145,15 +145,15 @@ class Action(object):
 
     def log_info(self, message: str):
         """ Log an info message with the action name prefix. """
-        pe.log_info(f"{self.__class__.__name__}: {message}.")
+        pe.log_info(f"{self.__class__.__name__}: {message}")
 
     def log_warning(self, message: str):
         """ Log a warning with the action name prefix. """
-        pe.log_warning(f"{self.__class__.__name__}: {message}.")
+        pe.log_warning(f"{self.__class__.__name__}: {message}")
 
     def log_error(self, message: str):
         """ Log an error message with the action name prefix. """
-        pe.log_error(f"{self.__class__.__name__}: {message}.")
+        pe.log_error(f"{self.__class__.__name__}: {message}")
 
 
 def action(devices=None, events=None, internal=True, external=False, levels=None,

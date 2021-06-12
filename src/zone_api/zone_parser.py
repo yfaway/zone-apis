@@ -8,6 +8,7 @@ import HABApp
 from HABApp.core import Items
 from HABApp.core.items.base_item import BaseItem
 
+import zone_api.core.actions as actions
 from zone_api import platform_encapsulator as pe
 from zone_api import device_factory as df
 from zone_api.alert_manager import AlertManager
@@ -16,7 +17,6 @@ from zone_api.core.devices.activity_times import ActivityTimes
 from zone_api.core.devices.gas_sensor import NaturalGasSensor, SmokeSensor, Co2GasSensor
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 from zone_api.core.zone import Zone, Level
-from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.zone_manager import ZoneManager
 from zone_api.core.neighbor import NeighborType, Neighbor
 
@@ -41,7 +41,8 @@ for the OpenHab items.
 """
 
 
-def parse(activity_times: ActivityTimes) -> ImmutableZoneManager:
+def parse(activity_times: ActivityTimes, actions_package: str = "zone_api.core.actions",
+          actions_path: List[str] = actions.__path__) -> ImmutableZoneManager:
     """
     - Parses the zones and devices from the remote OpenHab items (via the REST API).
     - Adds devices to the zones.
@@ -113,7 +114,8 @@ def parse(activity_times: ActivityTimes) -> ImmutableZoneManager:
         zone = zone.add_device(activity_times)
         zone_mappings[zone.get_id()] = zone
 
-    zone_mappings = _add_actions(zone_mappings)
+    action_classes = get_action_classes(actions_package, actions_path)
+    zone_mappings = add_actions(zone_mappings, action_classes)
 
     for z in zone_mappings.values():
         zm.add_zone(z)
@@ -171,39 +173,23 @@ def _parse_zones() -> List[Zone]:
     return zones
 
 
-def _add_actions(zone_mappings: Dict) -> Dict:
+def add_actions(zone_mappings: Dict, action_classes: List[Type]) -> Dict:
     """
-    Programmatically add default actions defined in 'core.actions' to each zone based on various criteria.
+    Create action instances from action_classes and add them to the zones.
+    A set of filters are applied to ensure that only the application actions are added to each zone.
+    As the Zone class is immutable, a new Zone instance is created after adding an action. As such, a zone_mappings
+    dictionary must be provided.
+
+    :param str zone_mappings: mappings from zone_id string to a Zone instance.
+    :param str action_classes: the list of action types.
     """
-    action_classes = _get_default_action_classes()
 
     for clazz in action_classes:
         action: Action = clazz()
 
         for zone in zone_mappings.values():
-            satisfied = True  # must have all devices
-            for device_type in action.get_required_devices():
-                if len(zone.get_devices_by_type(device_type)) == 0:
-                    satisfied = False
-                    break
-
-            if not satisfied:
+            if not _can_add_action_to_zone(zone, action):
                 continue
-
-            if zone.is_internal() and not action.is_applicable_to_internal_zone():
-                continue
-
-            if zone.is_external() and not action.is_applicable_to_external_zone():
-                continue
-
-            if len(action.get_applicable_levels()) > 0 and (zone.get_level() not in action.get_applicable_levels()):
-                continue
-
-            zone_name_pattern = action.get_applicable_zone_name_pattern()
-            if zone_name_pattern is not None:
-                match = re.search(zone_name_pattern, zone.get_name())
-                if not match:
-                    continue
 
             if action.must_be_unique_instance():
                 zone = zone.add_action(clazz())
@@ -215,16 +201,51 @@ def _add_actions(zone_mappings: Dict) -> Dict:
     return zone_mappings
 
 
-def _get_default_action_classes() -> List[Type]:
+def _can_add_action_to_zone(zone: Zone, action: Action) -> bool:
+    satisfied = True  # must have all devices
+    for device_type in action.get_required_devices():
+        if len(zone.get_devices_by_type(device_type)) == 0:
+            satisfied = False
+            break
+
+    if not satisfied:
+        return False
+
+    if zone.is_internal() and not action.is_applicable_to_internal_zone():
+        return False
+
+    if zone.is_external() and not action.is_applicable_to_external_zone():
+        return False
+
+    if len(action.get_applicable_levels()) > 0 and (zone.get_level() not in action.get_applicable_levels()):
+        return False
+
+    zone_name_pattern = action.get_applicable_zone_name_pattern()
+    if zone_name_pattern is not None:
+        match = re.search(zone_name_pattern, zone.get_name())
+        if not match:
+            return False
+
+    return True
+
+
+def get_action_classes(actions_package: str = "zone_api.core.actions",
+                       actions_path: List[str] = actions.__path__) -> List[Type]:
     """
-    Retrieve a list of action class types defined in "zone_api.core.actions".
+    Retrieve a list of action class types defined in the actions_path with the given actions_package.
+
+    To avoid loading the non-action classes (the package might contain helper modules), the following restrictions
+    are used:
+      1. The normalized action name must be the same as the normalized module name.
+         e.g. action 'ManagePlugs' is defined in the file 'manage_plugs.py'.
+      2. The class defined in the module must be an instance of 'Action'.
+
+    :param str actions_package: the package of the action classes.
+    :param str actions_path: the absolute path to the action classes.
     """
     classes = []
 
-    import zone_api.core.actions as actions
-
-    for importer, module_name, is_pkg in pkgutil.iter_modules(actions.__path__):
-        actions_package = "zone_api.core.actions"
+    for importer, module_name, is_pkg in pkgutil.iter_modules(actions_path):
         module = importlib.import_module(f"{actions_package}.{module_name}")
 
         for (name, value) in inspect.getmembers(module, lambda member: inspect.isclass(member)):
