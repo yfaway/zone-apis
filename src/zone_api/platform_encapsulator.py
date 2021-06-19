@@ -1,4 +1,4 @@
-from HABApp.openhab.exceptions import ItemNotFoundError
+from HABApp.openhab.errors import ItemNotFoundError
 
 try:
     import HABApp

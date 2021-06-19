@@ -10,3 +10,4 @@ habapp/config.yml
 *swo
 *swp
 pyvenv.cfg
+**/*.egg-info
