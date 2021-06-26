@@ -1,4 +1,42 @@
-# Quick introduction and setup instructions
+<!-- vim-markdown-toc GFM -->
+
+* [Quick intro and setup instructions](#quick-intro-and-setup-instructions)
+	* [1. Install the libraries](#1-install-the-libraries)
+	* [2. Configure HABapp](#2-configure-habapp)
+	* [3. Create a HABapp rule to integrate with ZoneApi.](#3-create-a-habapp-rule-to-integrate-with-zoneapi)
+	* [4. Change OpenHab item names to patterns recognized by the default Zone API parser](#4-change-openhab-item-names-to-patterns-recognized-by-the-default-zone-api-parser)
+	* [5. Start HABapp and observe the action via the log file](#5-start-habapp-and-observe-the-action-via-the-log-file)
+* [Zone API - an alternative approach to writing rules](#zone-api---an-alternative-approach-to-writing-rules)
+* [Core concepts and API](#core-concepts-and-api)
+	* [ZoneManager](#zonemanager)
+	* [Zone](#zone)
+	* [Devices](#devices)
+	* [Events](#events)
+	* [Actions](#actions)
+	* [ZoneParser and the default OpenHab item naming conventions](#zoneparser-and-the-default-openhab-item-naming-conventions)
+		* [OpenHab zone items](#openhab-zone-items)
+		* [OpenHab device items](#openhab-device-items)
+			* [Light switches](#light-switches)
+			* [Fan switches](#fan-switches)
+			* [Motion sensors](#motion-sensors)
+			* [Plugs](#plugs)
+			* [Security alarm](#security-alarm)
+			* [Google Chromecasts](#google-chromecasts)
+			* [Doors](#doors)
+			* [Windows](#windows)
+			* [Light sensors](#light-sensors)
+			* [Humidity sensors](#humidity-sensors)
+			* [Temperature sensors](#temperature-sensors)
+			* [Natural gas sensors](#natural-gas-sensors)
+			* [CO2 sensors](#co2-sensors)
+			* [Smoke sensors](#smoke-sensors)
+			* [Network presences](#network-presences)
+			* [Televisions](#televisions)
+			* [Water leak sensors](#water-leak-sensors)
+
+<!-- vim-markdown-toc -->
+
+# Quick intro and setup instructions
 This library contains a set of reusable rules for OpenHab. This is achieved with the following components:
 1. The item definitions and bindings in OpenHab.
 2. The [HABApp](https://habapp.readthedocs.io/en/latest/installation.html) process that communicates with OpenHab via
@@ -325,26 +363,201 @@ class DisarmOnInternalMotion:
 The decorator for the action above indicates that it is triggered by the motion event, and should
 only be added to a zone that contains both the AlarmPartition and the Motion devices.
 
-## ZoneParser
-The default parser uses this naming pattern for the OpenHab items.
+## ZoneParser and the default OpenHab item naming conventions
+This is the default parser that retrieves items from OpenHab and creates the appropriate zones and 
+devices based on specific naming conventions. Note that this is just a default parser, it is 
+possible to create zones and devices using a different naming convention, or even manually. The
+Zone API is not dependent on any specific naming pattern.
 
- 1. The zones are defined as a String item with this pattern Zone_{name}:
-    
-        String Zone_GreatRoom                                                           
-            { level="FF", displayIcon="player", displayOrder="1",                         
-              openSpaceSlaveNeighbors="FF_Kitchen" } 
-      - The levels are the reversed mapping of the enums in Zone::Level.
-      - Here are the list of supported attributes: level, external, openSpaceNeighbors,
-        openSpaceMasterNeighbors, openSpaceSlaveNeighbors, displayIcon, displayOrder.
+See [sample .items](https://github.com/yfaway/openhab-rules/blob/master/items/) files that is
+parsable by ZoneParser.
+
+### OpenHab zone items
+The zones are defined as a String items with this pattern Zone_{name}:
+```    
+String Zone_GreatRoom                                                           
+    { level="FF", displayIcon="player", displayOrder="1", openSpaceSlaveNeighbors="FF_Kitchen" } 
+```
+The levels are the reversed mapping of the enums in Zone::Level.
+
+Here are the list of supported attributes:
+* level: reversed mapping of the enums in Zone::Level. 'FF', 'SF', 'TF', 'BM' for first floor,
+  second floor, third floor, basement.
+* external: 'true' or 'false'
+* openSpaceNeighbors: a list of open space adjacent zone ids such as 'FF_Kitchen', where 'FF' is
+  the level and 'Kitchen' is the zone name.
+* openSpaceMasterNeighbors: a list of adjacent master zone ids. When a master zone's light is
+  turned on, all the slave zones' light will be turned off.
+* openSpaceSlaveNeighbors: a list of adjacent slave zone ids.
+* displayIcon: an OpenHab icon name.
+* displayOrder: an integer; the lower the value the higher the order.
        
- 2. The individual OpenHab items are named after this convention: ```{zone_id}_{device_type}_{device_name}```.
-    
-    Here's an example:
-    
-        Switch FF_Office_LightSwitch "Office Light" (gWallSwitch, gLightSwitch, gFirstFloorLightSwitch)
-            [shared-motion-sensor]                                                        
-            { channel="zwave:device:9e4ce05e:node8:switch_binary",                        
-              durationInMinutes="15" }                                                    
+### OpenHab device items
+The individual OpenHab items are named after this convention: ```{zone_id}_{device_type}_{device_name}```.
 
-See here for a [sample .items](https://github.com/yfaway/openhab-rules/blob/master/items/switch-and-plug.items)
-file that is parsable by ZoneParser.
+For the full list of supported devices, see [ZoneParser](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/zone_parser.py).
+    
+#### Light switches
+Pattern: `[^g].*LightSwitch.*`
+
+Supported attributes:
+* durationInMinutes: numeric value.
+* disableTriggeringFromMotionSensor: 'true' or 'false'; false if not present. 
+* noPrematureTurnOffTimeRange: time range string such as '7-9' or 7 AM to 9AM; don't turn of the
+  light on timer expires during these period.
+* dimmable: complex structure to map the lux with a time ranges.
+  E.g.: `dimmable="true" [level=2, timeRanges="20-8"]`
+
+Example:
+```    
+Switch FF_Office_LightSwitch "Office Light" (gWallSwitch, gLightSwitch, gFirstFloorLightSwitch)
+  [shared-motion-sensor]                                                        
+  { channel="zwave:device:9e4ce05e:node8:switch_binary",                        
+  durationInMinutes="15" }                                                    
+```
+
+#### Fan switches
+Pattern: `.*FanSwitch.*`
+
+Supported attributes: same as with the light switches.
+
+#### Motion sensors
+Pattern: `[^g].*MotionSensor$`
+
+Example:
+```
+Switch SF_Lobby_LightSwitch_MotionSensor "Second Floor Lobby Motion Sensor"                         
+  { channel="mqtt:topic:myBroker:xiaomiMotionSensors:SecondFloorLobbyMotionSensor"}
+```
+
+#### Plugs
+Pattern: `[^g].*_Plug$`
+
+Additional optional power reading item with the primary item name + "_Power".
+
+Example:
+```
+Switch FF_Office_Plug "Office Plug"                                                                 
+  { alwaysOn="true", channel="tplinksmarthome:hs110:office:switch"}                                 
+Number FF_Office_Plug_Power "Office Plug Power [%d Watts]" (gPlugPower)                             
+  { channel="tplinksmarthome:hs110:office:power"}
+```
+
+#### Security alarm
+Pattern: `.*AlarmPartition$`
+
+Additional arm mode item: via the primary item name + the suffix '_ArmMode'.
+
+Example:
+```
+Switch FF_Foyer_AlarmPartition                                                                      
+  {channel="dscalarm:partition:706cd89d:partition1:partition_in_alarm"}                             
+Number FF_Foyer_AlarmPartition_ArmMode                                                              
+  {channel="dscalarm:partition:706cd89d:partition1:partition_arm_mode"}
+```
+#### Google Chromecasts
+Pattern: `.*_ChromeCast$`
+
+Supported attributes:
+* sinkName: string value; additional items are retrieved via this name.
+
+Examples:
+```
+String FF_GreatRoom_ChromeCast { sinkName = "chromecast:audio:greatRoom" }                          
+                                                                                                    
+String FF_GreatRoom_ChromeCastStreamTitle "Stream [%s]"                                             
+Player FF_GreatRoom_ChromeCastPlayer "Player" (gCastPlayer)                                         
+  { channel="chromecast:audio:greatRoom:control" }                                                  
+Dimmer FF_GreatRoom_ChromeCastVolume "Volume" (gCastVolume)                                         
+  { channel="chromecast:audio:greatRoom:volume" }                                                   
+String FF_GreatRoom_ChromeCastPlayUri "Play URI [%s]"                                               
+  { channel="chromecast:audio:greatRoom:playuri" }                                                  
+Switch FF_GreatRoom_ChromeCastIdling "Idling"                                                       
+  { channel="chromecast:audio:greatRoom:idling" }     
+```
+
+#### Doors
+Pattern: `.*Door$`
+
+Examples:
+```
+Switch FF_Porch_Door {channel="dscalarm:zone:706cd89d:zone1:zone_tripped"}
+```
+
+#### Windows
+Pattern: `[^g].*_Window$`
+
+#### Light sensors
+Pattern: `[^g].*_Illuminance.*`
+
+Example: `Number SF_Lobby_LightSwitch_Illuminance { channel="..." }`
+
+#### Humidity sensors
+Pattern: `[^g](?!.*Weather).*Humidity$`
+
+Example:
+```
+Number SF_Bedroom2_Humidity "Bedroom2 Humidity [%d %%]"                                             
+  { channel="mqtt:topic:myBroker:bedroom2:humidity", wifi="true", autoReport="true" }  
+```
+
+#### Temperature sensors
+Pattern: `[^g](?!.*Computer)(?!.*Weather).*Temperature$`
+
+Example:
+```
+Number SF_Bedroom2_Temperature "Bedroom2 Temperature [%.1f °C]"                                     
+  { channel="mqtt:topic:myBroker:bedroom2:temperature", wifi="true", autoReport="true" }
+```
+
+#### Natural gas sensors
+Pattern: `[^g].*_NaturalGas$`
+
+Additional state item using the primary name + "State" suffix.
+
+Example:
+```
+Number BM_Utility_NaturalGas "Natural Gas Value [%d]"                                               
+  { channel="mqtt:topic:myBroker:utilityRoom:naturalGasValue", wifi="true", autoReport="true" }                                                                
+                                                                                                    
+Switch BM_Utility_NaturalGasState "Natural Gas Detected [%s]"                                       
+  { channel="mqtt:topic:myBroker:utilityRoom:naturalGasState", wifi="true", autoReport="true" }
+```
+
+#### CO2 sensors
+Pattern: `[^g].*_Co2$`
+
+Otherwise similar to Natural Gas Sensors.
+
+#### Smoke sensors
+Pattern: `[^g].*_Smoke$`
+
+Otherwise similar to Natural Gas Sensors.
+
+#### Network presences
+Pattern: `[^g].*_NetworkPresence.*`
+
+Example:
+```
+Switch FF_Virtual_NetworkPresenceOwner1Phone "Owner1's Phone"
+  { channel="network:pingdevice:192_168_0_100:online" } 
+```
+
+#### Televisions
+Pattern: `.*_Tv$`
+
+Only support determining if the TV is on.
+
+Example:
+```
+Switch FF_GreatRoom_Tv "TV" {channel="sony:scalar:15611113d7d2:system#powerstatus"}
+```
+
+#### Water leak sensors
+Pattern: `[^g].*WaterLeakState$`
+
+Example:
+```
+Switch BM_Utility_WaterLeakState "Water Leak Detected [%s]"
+  { channel="mqtt:topic:myBroker:utilityRoom:leakSensorState" }
+```
