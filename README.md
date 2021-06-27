@@ -1,38 +1,42 @@
 <!-- vim-markdown-toc GFM -->
 
 * [Quick intro and setup instructions](#quick-intro-and-setup-instructions)
-	* [1. Install the libraries](#1-install-the-libraries)
-	* [2. Configure HABapp](#2-configure-habapp)
-	* [3. Create a HABapp rule to integrate with ZoneApi.](#3-create-a-habapp-rule-to-integrate-with-zoneapi)
-	* [4. Change OpenHab item names to patterns recognized by the default Zone API parser](#4-change-openhab-item-names-to-patterns-recognized-by-the-default-zone-api-parser)
-	* [5. Start HABapp and observe the action via the log file](#5-start-habapp-and-observe-the-action-via-the-log-file)
+    * [1. Install the libraries](#1-install-the-libraries)
+    * [2. Configure HABapp](#2-configure-habapp)
+    * [3. Create a HABapp rule to integrate with ZoneApi.](#3-create-a-habapp-rule-to-integrate-with-zoneapi)
+    * [4. Change OpenHab item names to patterns recognized by the default Zone API parser](#4-change-openhab-item-names-to-patterns-recognized-by-the-default-zone-api-parser)
+    * [5. Start HABapp and observe the action via the log file](#5-start-habapp-and-observe-the-action-via-the-log-file)
 * [Zone API - an alternative approach to writing rules](#zone-api---an-alternative-approach-to-writing-rules)
 * [Core concepts and API](#core-concepts-and-api)
-	* [ZoneManager](#zonemanager)
-	* [Zone](#zone)
-	* [Devices](#devices)
-	* [Events](#events)
-	* [Actions](#actions)
-	* [ZoneParser and the default OpenHab item naming conventions](#zoneparser-and-the-default-openhab-item-naming-conventions)
-		* [OpenHab zone items](#openhab-zone-items)
-		* [OpenHab device items](#openhab-device-items)
-			* [Light switches](#light-switches)
-			* [Fan switches](#fan-switches)
-			* [Motion sensors](#motion-sensors)
-			* [Plugs](#plugs)
-			* [Security alarm](#security-alarm)
-			* [Google Chromecasts](#google-chromecasts)
-			* [Doors](#doors)
-			* [Windows](#windows)
-			* [Light sensors](#light-sensors)
-			* [Humidity sensors](#humidity-sensors)
-			* [Temperature sensors](#temperature-sensors)
-			* [Natural gas sensors](#natural-gas-sensors)
-			* [CO2 sensors](#co2-sensors)
-			* [Smoke sensors](#smoke-sensors)
-			* [Network presences](#network-presences)
-			* [Televisions](#televisions)
-			* [Water leak sensors](#water-leak-sensors)
+    * [ZoneManager](#zonemanager)
+    * [Zone](#zone)
+    * [Devices](#devices)
+    * [Events](#events)
+    * [Actions](#actions)
+    * [ZoneParser and the default OpenHab item naming conventions](#zoneparser-and-the-default-openhab-item-naming-conventions)
+        * [OpenHab zone items](#openhab-zone-items)
+        * [OpenHab device items](#openhab-device-items)
+            * [Astro sensor](#astro-sensor)
+            * [Computer](#computer)
+            * [Ecobee thermostat](#ecobee-thermostat)
+            * [Light switches](#light-switches)
+            * [Fan switches](#fan-switches)
+            * [Motion sensors](#motion-sensors)
+            * [Light sensors](#light-sensors)
+            * [Plugs](#plugs)
+            * [Security alarm](#security-alarm)
+            * [Doors](#doors)
+            * [Windows](#windows)
+            * [Humidity sensors](#humidity-sensors)
+            * [Temperature sensors](#temperature-sensors)
+            * [Natural gas sensors](#natural-gas-sensors)
+            * [CO2 sensors](#co2-sensors)
+            * [Smoke sensors](#smoke-sensors)
+            * [Google Chromecasts](#google-chromecasts)
+            * [Network presences](#network-presences)
+            * [Televisions](#televisions)
+            * [Water leak sensors](#water-leak-sensors)
+            * [Weather](#weather)
 
 <!-- vim-markdown-toc -->
 
@@ -41,10 +45,10 @@ This library contains a set of reusable rules for OpenHab. This is achieved with
 1. The item definitions and bindings in OpenHab.
 2. The [HABApp](https://habapp.readthedocs.io/en/latest/installation.html) process that communicates with OpenHab via
    the REST API. 
-3. This Zone API Python library integrated with HABapp via a HABApp rule.
+3. This Zone API Python library, integrated with HABapp via a single HABApp rule.
 
-It is a more complicated architecture compared to having everything running within OpenHab, but on the other hand,
-we can use Python 3 libraries. See [here](https://community.openhab.org/t/habapp-vs-jsr223-jython/112914)
+It is a more complicated architecture compared to having everything running within OpenHab process,
+but on the other hand, we can use Python 3 libraries. See [here](https://community.openhab.org/t/habapp-vs-jsr223-jython/112914)
 for the comparison between HABApp and JSR223 Jython.
 
 ## 1. Install the libraries
@@ -194,7 +198,7 @@ The usual OpenHab events are routed in this manner:
 OpenHab events --> ZoneManager --> Zones --> Actions
 ```
 
-The actions operate on the abstract devices and do not concern about the naming of the items or
+The actions operate on the abstract devices and do not concern about the specific naming of the items or
 the underlying hardware. They replace the traditional OpenHab rules. Actions can be unit-tested with
 various levels of mocking.
 
@@ -306,7 +310,7 @@ The action's life cycle is represented by the three functions:
    triggered (via ```ZoneEvent.TIMER```).
 3. ```on_destroy()``` - currently not invoked.
 
-The ```@action``` decorator provides execution rules for the action as well as basic validation.
+The ```@action``` decorator provides execution rules for the action as well as basic validations.
 If the condition (based on the execution rules) does not match, the action won't be executed.
 Below are the currently supported decorator parameters:
 1. *devices* - the list of devices the zone must have in order to invoke the action.
@@ -320,7 +324,7 @@ Below are the currently supported decorator parameters:
 9. *priority* - the action priority with respect to other actions within the same zone. Actions with lower priority values are executed first.
 
 These parameters are also available to the action and can be used as a filtering mechanism
-to make sure that the action is only added to the applicable zones.
+to ensure that the action is only added to the applicable zones. See [ZoneParser::add_actions](https://github.com/yfaway/zone-apis/blob/dc3894780a1715b8845460be87ffff5c0c219afa/src/zone_api/zone_parser.py#L176).
 
 Here is a simple action to disarm the security system when a motion sensor is triggered:
 
@@ -396,9 +400,61 @@ Here are the list of supported attributes:
 The individual OpenHab items are named after this convention: ```{zone_id}_{device_type}_{device_name}```.
 
 For the full list of supported devices, see [ZoneParser](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/zone_parser.py).
-    
+
+To see the functions supported by each device, view the [device classes](https://github.com/yfaway/zone-apis/tree/master/src/zone_api/core/devices).
+
+#### Astro sensor
+Pattern: `[^g].*_TimeOfDay$`
+
+This is a virtual device that rely on the Time of Day rule and the Astro binding.
+
+Example:
+```
+String FF_Virtual_TimeOfDay "Current Time of Day [%s]""]"
+```
+
+#### Computer
+Pattern: `.*_Computer_[^_]+$`
+
+Supported attributes:
+* name: the computer name.
+* alwaysOn: a 'true' or 'false' value that indicates if the computer is ON all the time.
+
+Additional items are derived from the primary item name with the following additional suffix:
+"_CpuTemperature", "_GpuTemperature", "_GpuFanSpeed".
+
+Example:
+```
+String FF_Office_Computer_Dell
+  { name="Dell G5", alwaysOn="true" }
+Number FF_Office_Computer_Dell_GpuFanSpeed "Dell GPU Fan Speed [%d %%]"
+  { channel="mqtt:topic:myBroker:office:dellG5GfxFanSpeed", autoReport="true" }
+Number FF_Office_Computer_Dell_GpuTemperature "Dell GPU Temperature [%d °C]"
+  { channel="mqtt:topic:myBroker:office:dellG5GfxTemperature", autoReport="true" }
+DateTime FF_Office_Computer_Dell_UpdatedTimestamp "Dell Last Updated [%1tb %1$td %1$tY %1$tH:%1$tM]"
+  { channel="mqtt:topic:myBroker:office:dellUpdatedTimestamp", autoReport="true" }
+```
+
+#### Ecobee thermostat
+Pattern: `.*_Thermostat_EcobeeName$`
+
+Example:
+```
+```
+
 #### Light switches
 Pattern: `[^g].*LightSwitch.*`
+
+Additional firstEvent item is retrieved by replacing the word "EcobeeName" by "FirstEvent_Type"
+in the primary item name.
+
+Example:
+```
+String FF_GreatRoom_Thermostat_EcobeeName "Name [%s]"                                               
+  { channel="ecobee:thermostat:account:411222197263:info#name" }
+String FF_GreatRoom_Thermostat_FirstEvent_Type "First Event Type [%s]"                              
+  { channel="ecobee:thermostat:account:411222197263:events#type" }
+```
 
 Supported attributes:
 * durationInMinutes: numeric value.
@@ -430,6 +486,11 @@ Switch SF_Lobby_LightSwitch_MotionSensor "Second Floor Lobby Motion Sensor"
   { channel="mqtt:topic:myBroker:xiaomiMotionSensors:SecondFloorLobbyMotionSensor"}
 ```
 
+#### Light sensors
+Pattern: `[^g].*_Illuminance.*`
+
+Example: `Number SF_Lobby_LightSwitch_Illuminance { channel="..." }`
+
 #### Plugs
 Pattern: `[^g].*_Plug$`
 
@@ -455,27 +516,6 @@ Switch FF_Foyer_AlarmPartition
 Number FF_Foyer_AlarmPartition_ArmMode                                                              
   {channel="dscalarm:partition:706cd89d:partition1:partition_arm_mode"}
 ```
-#### Google Chromecasts
-Pattern: `.*_ChromeCast$`
-
-Supported attributes:
-* sinkName: string value; additional items are retrieved via this name.
-
-Examples:
-```
-String FF_GreatRoom_ChromeCast { sinkName = "chromecast:audio:greatRoom" }                          
-                                                                                                    
-String FF_GreatRoom_ChromeCastStreamTitle "Stream [%s]"                                             
-Player FF_GreatRoom_ChromeCastPlayer "Player" (gCastPlayer)                                         
-  { channel="chromecast:audio:greatRoom:control" }                                                  
-Dimmer FF_GreatRoom_ChromeCastVolume "Volume" (gCastVolume)                                         
-  { channel="chromecast:audio:greatRoom:volume" }                                                   
-String FF_GreatRoom_ChromeCastPlayUri "Play URI [%s]"                                               
-  { channel="chromecast:audio:greatRoom:playuri" }                                                  
-Switch FF_GreatRoom_ChromeCastIdling "Idling"                                                       
-  { channel="chromecast:audio:greatRoom:idling" }     
-```
-
 #### Doors
 Pattern: `.*Door$`
 
@@ -486,11 +526,6 @@ Switch FF_Porch_Door {channel="dscalarm:zone:706cd89d:zone1:zone_tripped"}
 
 #### Windows
 Pattern: `[^g].*_Window$`
-
-#### Light sensors
-Pattern: `[^g].*_Illuminance.*`
-
-Example: `Number SF_Lobby_LightSwitch_Illuminance { channel="..." }`
 
 #### Humidity sensors
 Pattern: `[^g](?!.*Weather).*Humidity$`
@@ -534,6 +569,29 @@ Pattern: `[^g].*_Smoke$`
 
 Otherwise similar to Natural Gas Sensors.
 
+#### Google Chromecasts
+Pattern: `.*_ChromeCast$`
+
+Supported attributes:
+* sinkName: string value; additional items are retrieved via this name.
+
+Examples:
+```
+String FF_GreatRoom_ChromeCast { sinkName = "chromecast:audio:greatRoom" }                          
+                                                                                                    
+String FF_GreatRoom_ChromeCastStreamTitle "Stream [%s]"                                             
+Player FF_GreatRoom_ChromeCastPlayer "Player" (gCastPlayer)                                         
+  { channel="chromecast:audio:greatRoom:control" }                                                  
+Dimmer FF_GreatRoom_ChromeCastVolume "Volume" (gCastVolume)                                         
+  { channel="chromecast:audio:greatRoom:volume" }                                                   
+String FF_GreatRoom_ChromeCastPlayUri "Play URI [%s]"                                               
+  { channel="chromecast:audio:greatRoom:playuri" }                                                  
+Switch FF_GreatRoom_ChromeCastIdling "Idling"                                                       
+  { channel="chromecast:audio:greatRoom:idling" }     
+```
+
+
+
 #### Network presences
 Pattern: `[^g].*_NetworkPresence.*`
 
@@ -560,4 +618,28 @@ Example:
 ```
 Switch BM_Utility_WaterLeakState "Water Leak Detected [%s]"
   { channel="mqtt:topic:myBroker:utilityRoom:leakSensorState" }
+```
+
+#### Weather
+
+Pattern: `.*_Weather_Temperature$`
+
+Additional items are retrieved using the various suffixes.
+
+Example:
+```
+Number:Temperature FF_Virtual_Weather_Temperature "Temperature [%.1f %unit%]" (gWeather)            
+  { channel="ecobee:thermostat:account:411222197263:forecast0#temperature" }                        
+String FF_Virtual_Weather_Condition "Condition [%s]" (gWeather)                                     
+  { channel="ecobee:thermostat:account:411222197263:forecast0#condition" }                          
+Number FF_Virtual_Weather_Humidity "Relative Humidity [%d %%]" (gWeather)                           
+  { channel="ecobee:thermostat:account:411222197263:forecast0#relativeHumidity" }                   
+DateTime FF_Virtual_Weather_LastUpdate "Last update [%1$tA, %1$tm/%1$td/%1$tY %1$tl:%1$tM %1$tp]"
+  { channel="ecobee:thermostat:account:411222197263:weather#timestamp" }
+Number:Temperature FF_Virtual_Weather_ForecastTempMin "Forecast Min Temperature [%.1f %unit%]"      
+  { channel="ecobee:thermostat:account:411222197263:forecast0#tempLow" }                            
+Number:Temperature FF_Virtual_Weather_ForecastTempMax "Forecast Max Temperature [%.1f %unit%]"      
+  { channel="ecobee:thermostat:account:411222197263:forecast0#tempHigh" }
+String FF_Virtual_Weather_Alert_Title "Alert [%s]"                                                
+  {channel="feed:feed:envCanada:latest-title"}
 ```

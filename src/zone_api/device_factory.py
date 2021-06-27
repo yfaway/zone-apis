@@ -416,7 +416,7 @@ def create_illuminance_sensor(zm: ImmutableZoneManager, item) -> IlluminanceSens
     return _configure_device(IlluminanceSensor(item), zm)
 
 
-def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> IlluminanceSensor:
+def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> EcobeeThermostat:
     """
     Create an Ecobee thermostat and set up the event listener to trap the vacation setting via the Ecobee
     application.
