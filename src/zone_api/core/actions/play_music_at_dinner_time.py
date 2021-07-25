@@ -4,6 +4,7 @@ from threading import Timer
 from zone_api.audio_manager import Genre, get_music_streams_by_genres, get_nearby_audio_sink
 from zone_api.core.action import action
 from zone_api.core.devices.motion_sensor import MotionSensor
+from zone_api.core.event_info import EventInfo
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.devices.activity_times import ActivityTimes
 
@@ -36,12 +37,12 @@ class PlayMusicAtDinnerTime:
         self._in_session = False
         self._timer = None
 
-    def on_action(self, event_info):
+    def on_action(self, event_info: EventInfo):
         zone = event_info.get_zone()
         zone_manager = event_info.get_zone_manager()
 
-        activities = zone_manager.get_devices_by_type(ActivityTimes)
-        if len(activities) == 0:
+        activity = zone_manager.get_first_device_by_type(ActivityTimes)
+        if activity is None:
             self.log_warning("Missing ActivityTimes; can't determine if this is dinner time.")
             return False
 
@@ -50,7 +51,6 @@ class PlayMusicAtDinnerTime:
             self.log_warning("Missing audio device; can't play music.")
             return False
 
-        activity = activities[0]
         if activity.is_dinner_time():
             if not self._in_session:
                 sink.play_stream(random.choice(self._music_streams), 40)
