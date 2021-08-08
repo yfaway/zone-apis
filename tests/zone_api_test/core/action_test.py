@@ -5,150 +5,242 @@ from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.event_info import EventInfo
 from zone_api.core.zone import Level
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import validate
+from zone_api.core.action import validate, action
 
 
 class ActionTest(unittest.TestCase):
     """ Unit tests for action.py. """
 
     def testValidate_isFilteringDisabled_alwaysInvokeAction(self):
-        action = self.create_action()
-        action.is_filtering_disabled = MagicMock(return_value=True)
-        self.assertTrue(validate(action.on_action)(action, MagicMock()))
+        test_action = self.create_action()
+        test_action.is_filtering_disabled = MagicMock(return_value=True)
+        self.assertTrue(validate(test_action.on_action)(test_action, MagicMock()))
 
     def testValidate_timerEvent_alwaysInvokeAction(self):
-        action = self.create_action()
+        test_action = self.create_action()
         event_info = MagicMock()
         event_info.get_event_type = MagicMock(return_value=ZoneEvent.TIMER)
-        self.assertTrue(validate(action.on_action)(action, event_info))
+        self.assertTrue(validate(test_action.on_action)(test_action, event_info))
 
     def testValidate_externalEventInList_invokeAction(self):
-        action = self.create_action()
-        action.get_external_events = MagicMock(return_value=[ZoneEvent.MOTION])
-        self.assertTrue(validate(action.on_action)(
-            action, self.create_event_info_for_external_event(ZoneEvent.MOTION)))
+        test_action = self.create_action()
+        test_action.get_external_events = MagicMock(return_value=[ZoneEvent.MOTION])
+        self.assertTrue(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_external_event(ZoneEvent.MOTION)))
 
     def testValidate_externalEventNotInList_notInvokeAction(self):
-        action = self.create_action()
-        action.get_external_events = MagicMock(return_value=[])
-        self.assertFalse(validate(action.on_action)(action, self.create_event_info_for_external_event()))
+        test_action = self.create_action()
+        test_action.get_external_events = MagicMock(return_value=[])
+        self.assertFalse(validate(test_action.on_action)(test_action, self.create_event_info_for_external_event()))
 
     def testValidate_eventNotInList_notInvokeAction(self):
-        action = self.create_action()
-        action.get_required_events = MagicMock(return_value=[ZoneEvent.WEATHER_ALERT_CHANGED])
-        self.assertFalse(validate(action.on_action)(
-            action, self.create_event_info_for_internal_event(ZoneEvent.MOTION)))
+        test_action = self.create_action()
+        test_action.get_required_events = MagicMock(return_value=[ZoneEvent.WEATHER_ALERT_CHANGED])
+        self.assertFalse(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_internal_event(ZoneEvent.MOTION)))
 
     def testValidate_eventInList_invokeAction(self):
-        action = self.create_action()
-        action.get_required_events = MagicMock(return_value=[ZoneEvent.MOTION])
-        self.assertTrue(validate(action.on_action)(
-            action, self.create_event_info_for_internal_event(ZoneEvent.MOTION)))
+        test_action = self.create_action()
+        test_action.get_required_events = MagicMock(return_value=[ZoneEvent.MOTION])
+        self.assertTrue(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_internal_event(ZoneEvent.MOTION)))
 
     def testValidate_noRequiredEvent_invokeAction(self):
-        action = self.create_action()
-        action.get_required_events = MagicMock(return_value=[])
-        self.assertTrue(validate(action.on_action)(
-            action, self.create_event_info_for_internal_event(ZoneEvent.MOTION)))
+        test_action = self.create_action()
+        test_action.get_required_events = MagicMock(return_value=[])
+        self.assertTrue(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_internal_event(ZoneEvent.MOTION)))
 
     def testValidate_deviceNotInList_notInvokeAction(self):
-        action = self.create_action()
-        action.get_required_events = MagicMock(return_value=[ZoneEvent.MOTION])
-        action.get_required_devices = MagicMock(return_value=[MotionSensor])
-        self.assertFalse(validate(action.on_action)(
-            action, self.create_event_info_for_internal_event(ZoneEvent.MOTION)))
+        test_action = self.create_action()
+        test_action.get_required_events = MagicMock(return_value=[ZoneEvent.MOTION])
+        test_action.get_required_devices = MagicMock(return_value=[MotionSensor])
+        self.assertFalse(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_internal_event(ZoneEvent.MOTION)))
 
     def testValidate_deviceInList_invokeAction(self):
-        action = self.create_action()
-        action.get_required_events = MagicMock(return_value=[ZoneEvent.MOTION])
-        action.get_required_devices = MagicMock(return_value=[MotionSensor])
-        self.assertTrue(validate(action.on_action)(
-            action, self.create_event_info_for_internal_event(ZoneEvent.MOTION, MagicMock())))
+        test_action = self.create_action()
+        test_action.get_required_events = MagicMock(return_value=[ZoneEvent.MOTION])
+        test_action.get_required_devices = MagicMock(return_value=[MotionSensor])
+        self.assertTrue(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_internal_event(ZoneEvent.MOTION, MagicMock())))
 
     def testValidate_noRequiredDevice_invokeAction(self):
-        action = self.create_action()
-        action.get_required_devices = MagicMock(return_value=[])
-        self.assertTrue(validate(action.on_action)(
-            action, self.create_event_info_for_internal_event(ZoneEvent.MOTION, MagicMock())))
+        test_action = self.create_action()
+        test_action.get_required_devices = MagicMock(return_value=[])
+        self.assertTrue(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_internal_event(ZoneEvent.MOTION, MagicMock())))
 
     def testValidate_internalZoneOnActionForExternalZone_notInvokeAction(self):
-        action = self.create_action()
-        action.is_applicable_to_internal_zone = MagicMock(return_value=False)
-        self.assertFalse(validate(action.on_action)(
-            action, self.create_event_info_for_internal_event(internal=True)))
+        test_action = self.create_action()
+        test_action.is_applicable_to_internal_zone = MagicMock(return_value=False)
+        self.assertFalse(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_internal_event(internal=True)))
 
     def testValidate_internalZoneOnActionForInternalZone_invokeAction(self):
-        action = self.create_action()
-        action.is_applicable_to_internal_zone = MagicMock(return_value=True)
-        self.assertTrue(validate(action.on_action)(
-            action, self.create_event_info_for_internal_event(internal=True)))
+        test_action = self.create_action()
+        test_action.is_applicable_to_internal_zone = MagicMock(return_value=True)
+        self.assertTrue(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_internal_event(internal=True)))
 
     def testValidate_externalZoneOnActionForInternalZone_notInvokeAction(self):
-        action = self.create_action()
-        action.is_applicable_to_internal_zone = MagicMock(return_value=True)
-        action.is_applicable_to_external_zone = MagicMock(return_value=False)
-        self.assertFalse(validate(action.on_action)(
-            action, self.create_event_info_for_internal_event(internal=False)))
+        test_action = self.create_action()
+        test_action.is_applicable_to_internal_zone = MagicMock(return_value=True)
+        test_action.is_applicable_to_external_zone = MagicMock(return_value=False)
+        self.assertFalse(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_internal_event(internal=False)))
 
     def testValidate_externalZoneOnActionForExternalZone_invokeAction(self):
-        action = self.create_action()
-        action.is_applicable_to_external_zone = MagicMock(return_value=True)
-        self.assertTrue(validate(action.on_action)(
-            action, self.create_event_info_for_internal_event(internal=False)))
+        test_action = self.create_action()
+        test_action.is_applicable_to_external_zone = MagicMock(return_value=True)
+        self.assertTrue(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_internal_event(internal=False)))
 
     def testValidate_wrongLevel_notInvokeAction(self):
-        action = self.create_action()
-        action.get_applicable_levels = MagicMock(return_value=[Level.SECOND_FLOOR])
-        self.assertFalse(validate(action.on_action)(
-            action, self.create_event_info_for_internal_event(level=Level.FIRST_FLOOR)))
+        test_action = self.create_action()
+        test_action.get_applicable_levels = MagicMock(return_value=[Level.SECOND_FLOOR])
+        self.assertFalse(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_internal_event(level=Level.FIRST_FLOOR)))
 
     def testValidate_correctLevel_invokeAction(self):
-        action = self.create_action()
-        action.get_applicable_levels = MagicMock(return_value=[Level.FIRST_FLOOR])
-        self.assertTrue(validate(action.on_action)(
-            action, self.create_event_info_for_internal_event(level=Level.FIRST_FLOOR)))
+        test_action = self.create_action()
+        test_action.get_applicable_levels = MagicMock(return_value=[Level.FIRST_FLOOR])
+        self.assertTrue(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_internal_event(level=Level.FIRST_FLOOR)))
 
     def testValidate_zoneNameNotMatched_notInvokeAction(self):
-        action = self.create_action()
-        action.get_applicable_zone_name_pattern = MagicMock(return_value="Foy.*")
+        test_action = self.create_action()
+        test_action.get_applicable_zone_name_pattern = MagicMock(return_value="Foy.*")
 
-        self.assertFalse(validate(action.on_action)(
-            action, self.create_event_info_for_internal_event(name='Office')))
+        self.assertFalse(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_internal_event(name='Office')))
 
     def testValidate_actionNotSpecifyingZoneName_invokeAction(self):
-        action = self.create_action()
+        test_action = self.create_action()
 
-        self.assertTrue(validate(action.on_action)(
-            action, self.create_event_info_for_internal_event(name='Office')))
+        self.assertTrue(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_internal_event(name='Office')))
 
     def testValidate_zoneNameMatched_invokeAction(self):
-        action = self.create_action()
-        action.get_applicable_zone_name_pattern = MagicMock(return_value="Foy.*")
+        test_action = self.create_action()
+        test_action.get_applicable_zone_name_pattern = MagicMock(return_value="Foy.*")
 
-        self.assertTrue(validate(action.on_action)(
-            action, self.create_event_info_for_internal_event(name='Foyer')))
+        self.assertTrue(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_internal_event(name='Foyer')))
 
     def testValidate_comprehensiveTestWithAllCriteriaMatched_invokeAction(self):
-        action = self.create_action()
-        action.get_required_events = MagicMock(return_value=[ZoneEvent.MOTION, ZoneEvent.DOOR_OPEN])
-        action.get_required_devices = MagicMock(return_value=[MotionSensor])
-        action.is_applicable_to_internal_zone = MagicMock(return_value=True)
-        action.get_applicable_zone_name_pattern = MagicMock(return_value="Foy.*")
-        action.get_applicable_levels = MagicMock(return_value=[Level.FIRST_FLOOR, Level.SECOND_FLOOR])
+        test_action = self.create_action()
+        test_action.get_required_events = MagicMock(return_value=[ZoneEvent.MOTION, ZoneEvent.DOOR_OPEN])
+        test_action.get_required_devices = MagicMock(return_value=[MotionSensor])
+        test_action.is_applicable_to_internal_zone = MagicMock(return_value=True)
+        test_action.get_applicable_zone_name_pattern = MagicMock(return_value="Foy.*")
+        test_action.get_applicable_levels = MagicMock(return_value=[Level.FIRST_FLOOR, Level.SECOND_FLOOR])
 
-        self.assertTrue(validate(action.on_action)(
-            action, self.create_event_info_for_internal_event(
+        self.assertTrue(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_internal_event(
                 event=ZoneEvent.MOTION, device=MagicMock(), internal=True, level=Level.FIRST_FLOOR, name='Foyer')))
+
+    def testDecorator_defaultSettings_returnsActionWithCorrectAttribute(self):
+        @action()
+        class TestAction:
+            def on_action(self):
+                pass
+
+        self.assertTrue(TestAction().is_applicable_to_internal_zone())
+        self.assertFalse(TestAction().is_applicable_to_external_zone())
+        self.assertEqual(TestAction().get_required_events(), [])
+        self.assertEqual(TestAction().get_external_events(), [])
+        self.assertEqual(TestAction().get_required_events(), [])
+        self.assertEqual(TestAction().get_applicable_levels(), [])
+        self.assertEqual(TestAction().get_applicable_zone_name_pattern(), None)
+        self.assertFalse(TestAction().must_be_unique_instance())
+        self.assertEqual(TestAction().get_priority(), 10)
+
+    def testDecorator_events_returnsActionWithCorrectAttribute(self):
+        @action(events=[ZoneEvent.COMPUTER_CPU_TEMPERATURE_CHANGED, ZoneEvent.COMPUTER_GPU_TEMPERATURE_CHANGED])
+        class TestAction:
+            def on_action(self):
+                pass
+
+        self.assertEqual(TestAction().get_required_events(),
+                         [ZoneEvent.COMPUTER_CPU_TEMPERATURE_CHANGED, ZoneEvent.COMPUTER_GPU_TEMPERATURE_CHANGED])
+
+    def testDecorator_externalEvents_returnsActionWithCorrectAttribute(self):
+        @action(external_events=[ZoneEvent.COMPUTER_CPU_TEMPERATURE_CHANGED])
+        class TestAction:
+            def on_action(self):
+                pass
+
+        self.assertEqual(TestAction().get_external_events(), [ZoneEvent.COMPUTER_CPU_TEMPERATURE_CHANGED])
+        self.assertEqual(TestAction().get_required_events(), [])
+
+    def testDecorator_devices_returnsActionWithCorrectAttribute(self):
+        @action(devices=[MotionSensor])
+        class TestAction:
+            def on_action(self):
+                pass
+
+        self.assertEqual(TestAction().get_required_devices(), [MotionSensor])
+
+    def testDecorator_internal_returnsActionWithCorrectAttribute(self):
+        @action(internal=True)
+        class TestAction:
+            def on_action(self):
+                pass
+
+        self.assertTrue(TestAction().is_applicable_to_internal_zone())
+        self.assertFalse(TestAction().is_applicable_to_external_zone())
+
+    def testDecorator_external_returnsActionWithCorrectAttribute(self):
+        @action(internal=False, external=True)
+        class TestAction:
+            def on_action(self):
+                pass
+
+        self.assertFalse(TestAction().is_applicable_to_internal_zone())
+        self.assertTrue(TestAction().is_applicable_to_external_zone())
+
+    def testDecorator_levels_returnsActionWithCorrectAttribute(self):
+        @action(levels=[Level.FIRST_FLOOR, Level.SECOND_FLOOR])
+        class TestAction:
+            def on_action(self):
+                pass
+
+        self.assertEqual(TestAction().get_applicable_levels(), [Level.FIRST_FLOOR, Level.SECOND_FLOOR])
+
+    def testDecorator_uniqueInstance_returnsActionWithCorrectAttribute(self):
+        @action(unique_instance=True)
+        class TestAction:
+            def on_action(self):
+                pass
+
+        self.assertTrue(TestAction().must_be_unique_instance())
+
+    def testDecorator_zoneNamePattern_returnsActionWithCorrectAttribute(self):
+        @action(zone_name_pattern="aName")
+        class TestAction:
+            def on_action(self):
+                pass
+
+        self.assertEqual(TestAction().get_applicable_zone_name_pattern(), "aName")
+
+    def testDecorator_priority_returnsActionWithCorrectAttribute(self):
+        @action(priority=100)
+        class TestAction:
+            def on_action(self):
+                pass
+
+        self.assertEqual(TestAction().get_priority(), 100)
 
     @staticmethod
     def create_action():
         """ Creates a mocked action that enables filtering and having no specified zone name pattern. """
-        action = MagicMock()
-        action.on_action = MagicMock(return_value=True)
-        action.is_filtering_disabled = MagicMock(return_value=False)
-        action.get_applicable_zone_name_pattern = MagicMock(return_value=None)
+        test_action = MagicMock()
+        test_action.on_action = MagicMock(return_value=True)
+        test_action.is_filtering_disabled = MagicMock(return_value=False)
+        test_action.get_applicable_zone_name_pattern = MagicMock(return_value=None)
 
-        return action
+        return test_action
 
     @staticmethod
     def create_event_info_for_internal_event(
