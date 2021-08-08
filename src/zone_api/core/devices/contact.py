@@ -1,21 +1,25 @@
 from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
+from zone_api.core.devices.security_aware_mixin import SecurityAwareMixin
 
 
-class Contact(Device):
+class Contact(SecurityAwareMixin, Device):
     """
     Represents a contact such as a door or windows.
     """
 
-    def __init__(self, contact_item):
+    def __init__(self, contact_item, security_tripped_item=None):
         """
         Ctor
 
         :param SwitchItem contact_item:
+        :param SwitchItem security_tripped_item: optional item to indicate if this sensor triggered the security system.
         :raise ValueError: if any parameter is invalid
         """
 
-        Device.__init__(self, contact_item)
+        additional_devices = [security_tripped_item] if security_tripped_item is not None else None
+        super().__init__(openhab_item=contact_item, additional_items=additional_devices,
+                         security_tripped_item=security_tripped_item)
 
     def is_open(self):
         """

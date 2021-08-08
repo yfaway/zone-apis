@@ -240,12 +240,17 @@ def create_motion_sensor(zm: ImmutableZoneManager, item) -> MotionSensor:
     :param item: SwitchItem
     :return: MotionSensor
     """
+    in_alarm_name = item.name + "_InAlarm"
+    in_alarm_item = None
+    if pe.has_item(in_alarm_name):
+        in_alarm_item = Items.get_item(in_alarm_name)
+
     key_disable_triggering_switches = "disableTriggeringSwitches"
     item_def = HABApp.openhab.interface.get_item(item.name, f"{key_disable_triggering_switches}")
     metadata = item_def.metadata
     can_trigger_switches = False if "true" == get_meta_value(metadata, key_disable_triggering_switches) else True
 
-    sensor = _configure_device(MotionSensor(item, True, can_trigger_switches), zm)
+    sensor = _configure_device(MotionSensor(item, True, can_trigger_switches, in_alarm_item), zm)
 
     # noinspection PyUnusedLocal
     def handler(event: ValueChangeEvent):
@@ -359,10 +364,15 @@ def create_gas_sensor(cls):
 
 
 def create_door(zm: ImmutableZoneManager, item) -> Door:
+    in_alarm_name = item.name + "_InAlarm"
+    in_alarm_item = None
+    if pe.has_item(in_alarm_name):
+        in_alarm_item = Items.get_item(in_alarm_name)
+
     if 'garage' in pe.get_item_name(item).lower():
-        sensor = GarageDoor(item)
+        sensor = GarageDoor(item, in_alarm_item)
     else:
-        sensor = Door(item)
+        sensor = Door(item, in_alarm_item)
 
     sensor = _configure_device(sensor, zm)
 
@@ -380,7 +390,12 @@ def create_door(zm: ImmutableZoneManager, item) -> Door:
 
 
 def create_window(zm: ImmutableZoneManager, item) -> Window:
-    sensor = _configure_device(Window(item), zm)
+    in_alarm_name = item.name + "_InAlarm"
+    in_alarm_item = None
+    if pe.has_item(in_alarm_name):
+        in_alarm_item = Items.get_item(in_alarm_name)
+
+    sensor = _configure_device(Window(item, in_alarm_item), zm)
 
     # noinspection PyUnusedLocal
     def handler(event: ValueChangeEvent):

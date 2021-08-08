@@ -1,20 +1,25 @@
 from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
+from zone_api.core.devices.security_aware_mixin import SecurityAwareMixin
 
 
-class MotionSensor(Device):
+class MotionSensor(SecurityAwareMixin, Device):
     """
     Represents a motion sensor; the underlying OpenHab object is a SwitchItem.
     """
 
-    def __init__(self, switch_item, battery_powered=True, can_trigger_switches=True):
+    def __init__(self, switch_item, battery_powered=True, can_trigger_switches=True, security_tripped_item=None):
         """
         :param SwitchItem switch_item:
+        :param SwitchItem security_tripped_item: optional item to indicate if this sensor triggered the security system.
         :raise ValueError: if any parameter is invalid
         """
-        Device.__init__(self, switch_item, None, battery_powered)
+        additional_devices = [security_tripped_item] if security_tripped_item is not None else None
+        super().__init__(openhab_item=switch_item, additional_items=additional_devices,
+                         battery_powered=battery_powered, security_tripped_item=security_tripped_item)
 
         self._can_trigger_switches = can_trigger_switches
+        self._security_tripped_item = security_tripped_item
 
     def is_on(self):
         """
