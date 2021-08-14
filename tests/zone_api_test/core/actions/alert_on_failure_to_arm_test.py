@@ -13,12 +13,13 @@ class AlertOnFailureToArmTest(DeviceTest):
     def setUp(self):
         self.alarmPartition, items = self.create_alarm_partition()
 
-        items = items + [pe.create_switch_item('door'), pe.create_switch_item('window')]
+        items = items + [pe.create_switch_item('door'), pe.create_switch_item('door-tripped'),
+                         pe.create_switch_item('window'), pe.create_switch_item('window-tripped')]
         self.set_items(items)
         super(AlertOnFailureToArmTest, self).setUp()
 
-        self.door = Door(items[-2])
-        self.window = Window(items[-1])
+        self.door = Door(items[-4], items[-3])
+        self.window = Window(items[-2], items[-1])
 
         self.action = AlertOnFailureToArm()
 
@@ -36,10 +37,12 @@ class AlertOnFailureToArmTest(DeviceTest):
 
     def testOnAction_doorIsOpen_returnsTrueAndSendsInfoAlert(self):
         pe.set_switch_state(self.door.get_item(), True)
+        pe.set_switch_state(self.door.get_tripped_item(), True)
         self.sendEventAndAssertAlertContainMessage(ZoneEvent.PARTITION_RECEIVE_ARM_AWAY, 'a door is open')
 
     def testOnAction_windowIsOpen_returnsTrueAndSendsInfoAlert(self):
         pe.set_switch_state(self.window.get_item(), True)
+        pe.set_switch_state(self.window.get_tripped_item(), True)
         self.sendEventAndAssertAlertContainMessage(ZoneEvent.PARTITION_RECEIVE_ARM_STAY, 'a window is open')
 
     def sendEventAndAssertAlertContainMessage(self, event: ZoneEvent, message):

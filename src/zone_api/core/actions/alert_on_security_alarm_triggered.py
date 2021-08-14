@@ -1,5 +1,8 @@
 from zone_api.alert import Alert
+from zone_api.core.device import Device
 from zone_api.core.devices.alarm_partition import AlarmPartition
+from zone_api.core.devices.security_aware_mixin import SecurityAwareMixin
+from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.action import action
 
@@ -17,7 +20,15 @@ class AlertOnSecurityAlarmTriggered:
 
         if event_info.get_device().is_in_alarm():
             self._notified = True
-            alert_message = f'Security system is on alarm.'
+
+            description = ''
+            for z in zone_manager.get_zones(): # type: Zone
+                devices = [d for d in z.get_devices_by_type(SecurityAwareMixin) if d.is_tripped()]
+                if len(devices) > 0:
+                    description = f" ({z.get_name()} {type(devices[0]).__name__})"
+                    break
+
+            alert_message = f'Security system is on alarm{description}.'
             alert = Alert.create_critical_alert(alert_message)
             zone_manager.get_alert_manager().process_alert(alert, zone_manager)
 

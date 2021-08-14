@@ -19,14 +19,13 @@ class AlertOnFailureToArm:
 
         alert_message = None
 
-        external_zones = [z for z in zone_manager.get_zones() if z.is_external() or z == zone]
-        for z in external_zones:
-            doors = [d for d in z.get_devices_by_type(Door) if d.is_open()]
+        for z in zone_manager.get_zones():
+            doors = [d for d in z.get_devices_by_type(Door) if d.is_connected_to_security_system() and d.is_open()]
             if len(doors) > 0:
                 alert_message = f'Cannot arm; a door is open in the {zone.get_name()} area.'
                 break
 
-            windows = [w for w in z.get_devices_by_type(Window) if w.is_open()]
+            windows = [w for w in z.get_devices_by_type(Window) if w.is_connected_to_security_system() and w.is_open()]
             if len(windows) > 0:
                 alert_message = f'Cannot arm; a window is open in the {zone.get_name()} area.'
                 break

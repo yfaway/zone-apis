@@ -23,6 +23,9 @@ class SecurityAwareMixin:
 
         return pe.is_in_on_state(self._security_tripped_item)
 
+    def get_tripped_item(self):
+        return self._security_tripped_item
+
     def __str__(self):
         """ @override """
         return u"{}{}".format(

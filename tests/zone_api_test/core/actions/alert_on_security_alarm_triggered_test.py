@@ -1,5 +1,6 @@
 from zone_api import platform_encapsulator as pe
 from zone_api.core.actions.alert_on_security_alarm_triggered import AlertOnSecurityAlarmTriggered
+from zone_api.core.devices.contact import Door
 from zone_api.core.event_info import EventInfo
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
@@ -11,21 +12,26 @@ class AlertOnSecurityAlarmTriggeredTest(DeviceTest):
 
     def setUp(self):
         self.alarmPartition, items = self.create_alarm_partition()
+        items = items + [pe.create_switch_item('Door'), pe.create_switch_item('Tripped')]
+
         self.set_items(items)
         super(AlertOnSecurityAlarmTriggeredTest, self).setUp()
 
         self.action = AlertOnSecurityAlarmTriggered()
-        self.zone1 = Zone('foyer', [self.alarmPartition]).add_action(self.action)
+
+        self.door = Door(items[-2], items[-1])
+        self.zone1 = Zone('Foyer', [self.alarmPartition, self.door]).add_action(self.action)
         self.zm = create_zone_manager([self.zone1])
 
     def testOnAction_triggered_returnsTrueAndSendAlert(self):
-        pe.set_switch_state(self.get_items()[0], True)
-        self.sendEventAndAssertAlertContainMessage('Security system is on alarm.')
+        pe.set_switch_state(self.get_items()[0], True)  # alarm
+        pe.set_switch_state(self.get_items()[-1], True)  # tripped
+        self.sendEventAndAssertAlertContainMessage('Security system is on alarm (Foyer Door).')
 
     def testOnAction_noLongerTriggered_returnsTrueAndSendsInfoAlert(self):
         # initially below threshold
         pe.set_switch_state(self.get_items()[0], True)
-        self.sendEventAndAssertAlertContainMessage('Security system is on alarm.')
+        self.sendEventAndAssertAlertContainMessage('Security system is on alarm.')  # no info on where triggered
 
         # now back to normal
         pe.set_switch_state(self.get_items()[0], False)
