@@ -14,6 +14,16 @@ class Switch(Device):
     switch is turned off not by the timer, the timer is cancelled.
     """
 
+    # The maximum duration between the last turned-off time and the current turned-on time, during which the
+    # turned-off timer will be set to 1.5 times longer than the initial value. This simulates the scenario when the
+    # user is relatively immobile and thus no motion event was triggered to renew the timer. Once the previous timer is
+    # triggered and turn off the light, the user manually reaches out to turn on the light again. This indicates that
+    # the user is in the middle of something and as such we will increase the timer duration.
+    STICKY_SWITCH_DURATION_IN_SECS = 30
+
+    # Related to STICKY_SWITCH_DURATION_IN_SECS, how long should the default timer duration be extended.
+    EXTENDED_TIMER_DURATION_FACTOR = 1.5
+
     def __init__(self, switch_item, duration_in_minutes: float):
         """
         Ctor
@@ -51,7 +61,11 @@ class Switch(Device):
 
         self._cancel_timer()  # cancel the previous timer, if any.
 
-        self.timer = Timer(self.duration_in_minutes * 60, turn_off_switch)
+        duration = self.duration_in_minutes * 60
+        if (time.time() - self.get_last_off_timestamp_in_seconds()) <= Switch.STICKY_SWITCH_DURATION_IN_SECS:
+            duration = duration * Switch.EXTENDED_TIMER_DURATION_FACTOR
+
+        self.timer = Timer(duration, turn_off_switch)
         self.timer.start()
 
     def _cancel_timer(self):
@@ -139,8 +153,6 @@ class Switch(Device):
 
     # Misc common things to do when a switch is turned on.
     def _handle_common_on_action(self, events):
-        self.lastLightOnSecondSinceEpoch = time.time()
-
         self._start_timer(events)  # start or renew timer
 
     def is_low_illuminance(self, current_illuminance):
