@@ -2,6 +2,7 @@ from threading import Timer
 
 from zone_api.alert import Alert
 from zone_api.core.devices.plug import Plug
+from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.action import action
 from zone_api.core.devices.alarm_partition import AlarmPartition
@@ -37,16 +38,16 @@ class ArmAfterFrontDoorClosed:
     def on_action(self, event_info):
         events = event_info.get_event_dispatcher()
         zone = event_info.get_zone()
-        zone_manager = event_info.get_zone_manager()
+        zone_manager: ImmutableZoneManager = event_info.get_zone_manager()
 
         if zone.get_name() == "Patio":  # todo: add Zone::isBack()
             return False
 
-        security_partitions = zone_manager.get_devices_by_type(AlarmPartition)
-        if len(security_partitions) == 0:
+        security_partition = zone_manager.get_first_device_by_type(AlarmPartition)
+        if security_partition is None:
             return False
 
-        if not security_partitions[0].is_unarmed():
+        if not security_partition.is_unarmed():
             return False
 
         for door in zone.get_devices_by_type(Door):
@@ -69,8 +70,10 @@ class ArmAfterFrontDoorClosed:
                     if occupied:
                         pe.log_info('Auto-arm cancelled (activities detected @ {}).'.format(
                             active_device))
+                    elif not security_partition.is_unarmed():
+                        pe.log_info('Auto-arm cancelled (already armed).')
                     else:
-                        security_partitions[0].arm_away(events)
+                        security_partition.arm_away(events)
 
                         msg = 'The house has been automatically armed-away (front door closed and no activity)'
                         alert = Alert.create_warning_alert(msg)
