@@ -21,7 +21,7 @@ class AlertOnHighGasLevel:
             raise ValueError('intervalBetweenAlertsInMinutes must be positive')
 
         self._interval_between_alerts_in_minutes = interval_between_alerts_in_minutes
-        self._notified = False
+        self._alert = None
 
     def on_action(self, event_info):
         zone = event_info.get_zone()
@@ -31,16 +31,15 @@ class AlertOnHighGasLevel:
         gas_type = gas_sensor.__class__.__name__
 
         if gas_sensor.is_triggered():
-            self._notified = True
             alert_message = f'The {zone.get_name()} {gas_type} at {gas_sensor.get_value()} is above normal level.'
-            alert = Alert.create_critical_alert(alert_message, None, [],
-                                                gas_type, self._interval_between_alerts_in_minutes)
-            zone_manager.get_alert_manager().process_alert(alert, zone_manager)
+            self._alert = Alert.create_warning_alert(alert_message, None, [],
+                                                     gas_type, self._interval_between_alerts_in_minutes)
+            zone_manager.get_alert_manager().process_alert(self._alert, zone_manager)
 
-        elif self._notified:
+        elif self._alert is not None:
             alert_message = f'The {zone.get_name()} {gas_type} is back to normal.'
             alert = Alert.create_info_alert(alert_message)
             zone_manager.get_alert_manager().process_alert(alert, zone_manager)
-            self._notified = False
+            self._alert.cancel()
 
         return True

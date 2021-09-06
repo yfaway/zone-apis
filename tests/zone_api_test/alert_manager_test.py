@@ -1,4 +1,5 @@
 from typing import List
+from unittest.mock import MagicMock
 
 from zone_api.alert import Alert
 # noinspection PyProtectedMember
@@ -70,23 +71,26 @@ class AlertManagerTest(DeviceTest):
         self.assertEqual(None, self._fixture._lastEmailedSubject)
 
     def testProcessAlert_criticalAlert_returnsTrue(self):
+        self._fixture._process_further_actions_for_critical_alert = MagicMock()
+
         alert = Alert.create_critical_alert(SUBJECT)
         result = self._fixture.process_alert(alert, self._zm)
         self.assertTrue(result)
+        self._fixture._process_further_actions_for_critical_alert.assert_called()
 
         casts = self._get_all_casts()
         for cast in casts:
             self.assertEqual(SUBJECT, cast.get_last_tts_message())
 
     def testProcessAlert_withinInterval_returnsFalse(self):
-        alert = Alert.create_critical_alert(SUBJECT, None, [], MODULE, 1)
+        alert = Alert.create_warning_alert(SUBJECT, None, [], MODULE, 1)
         self.assertTrue(self._fixture.process_alert(alert, self._zm))
 
         # send alert would be ignored due to interval threshold
         self.assertFalse(self._fixture.process_alert(alert, self._zm))
 
         # but another alert with module would go through
-        self.assertTrue(self._fixture.process_alert(Alert.create_critical_alert(SUBJECT), self._zm))
+        self.assertTrue(self._fixture.process_alert(Alert.create_warning_alert(SUBJECT), self._zm))
 
     def testProcessAdminAlert_warningAlert_returnsTrue(self):
         alert = Alert.create_warning_alert(SUBJECT)
@@ -97,6 +101,36 @@ class AlertManagerTest(DeviceTest):
     def testGetEmailAddresses_noParams_returnsNonEmptyList(self):
         emails = _get_owner_email_addresses(self._properties_file)
         self.assertTrue(len(emails) > 0)
+
+    def testTurnOnLight_notLightOnTime_notTurnOnLights(self):
+        light = MagicMock()
+        astro = MagicMock()
+        astro.is_light_on_time = MagicMock(return_value=False)
+
+        zm = MagicMock()
+        zm.get_devices_by_type = MagicMock(return_value=[light])
+        zm.get_first_devices_by_type = MagicMock(return_value=astro)
+
+        self._fixture._turn_on_lights(Alert.create_critical_alert("an alert"), zm)
+        light.turn_on.assert_not_called()
+
+    def testTurnOnLight_lightOnTime_turnOnLights(self):
+        alert = Alert.create_critical_alert("an alert")
+        light = MagicMock()
+        light.is_on = MagicMock(return_value=False)
+
+        astro = MagicMock()
+        astro.is_light_on_time = MagicMock(return_value=True)
+
+        zm = MagicMock()
+        zm.get_devices_by_type = MagicMock(return_value=[light])
+        zm.get_first_devices_by_type = MagicMock(return_value=astro)
+
+        self._fixture._turn_on_lights(alert, zm)
+        light.turn_on.assert_called()
+
+        alert.cancel()
+        light.turn_off.assert_called()
 
     def _get_all_casts(self) -> List[ChromeCastAudioSink]:
         return [self._cast]

@@ -20,7 +20,7 @@ class AlertOnWaterLeak:
             raise ValueError('intervalBetweenAlertsInMinutes must be positive')
 
         self._interval_between_alerts_in_minutes = interval_between_alerts_in_minutes
-        self._notified = False
+        self._alert = None
 
     def on_action(self, event_info):
         zone = event_info.get_zone()
@@ -29,17 +29,16 @@ class AlertOnWaterLeak:
         sensor = zone.get_device_by_event(event_info)
 
         if sensor.is_water_detected():
-            self._notified = True
             alert_message = f'Water leak detected in {zone.get_name()}.'
             alert_module = alert_message
-            alert = Alert.create_critical_alert(alert_message, None, [],
-                                                alert_module, self._interval_between_alerts_in_minutes)
-            zone_manager.get_alert_manager().process_alert(alert, zone_manager)
+            self._alert = Alert.create_critical_alert(alert_message, None, [],
+                                                      alert_module, self._interval_between_alerts_in_minutes)
+            zone_manager.get_alert_manager().process_alert(self._alert, zone_manager)
 
-        elif self._notified:
+        elif self._alert is not None:
             alert_message = f'No more water leak detected in {zone.get_name()}.'
             alert = Alert.create_info_alert(alert_message)
             zone_manager.get_alert_manager().process_alert(alert, zone_manager)
-            self._notified = False
+            self._alert.cancel()
 
         return True

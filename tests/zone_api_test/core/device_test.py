@@ -1,6 +1,7 @@
 import unittest
 from datetime import datetime
 from typing import List, Tuple
+from unittest.mock import MagicMock
 
 from HABApp.core.Items import ItemAlreadyExistsError
 
@@ -21,6 +22,7 @@ def create_zone_manager(zones: List[Zone]) -> ImmutableZoneManager:
 
     alert_manager = AlertManager()
     alert_manager._set_test_mode(True)
+    alert_manager._process_further_actions_for_critical_alert = MagicMock()
 
     immutable_zm = zm.get_immutable_instance().set_alert_manager(alert_manager)
 

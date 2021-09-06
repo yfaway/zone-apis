@@ -20,7 +20,8 @@ class AlertLevel(Enum):
 
 class Alert:
     """
-    Contains information about the alert.
+    Contains information about the alert. An alert is cancellable if the original triggering condition is no longer
+    applicable. Otherwise, once created, an alert object is immutable.
     """
 
     @classmethod
@@ -153,6 +154,26 @@ class Alert:
         self.interval_between_alerts_in_minutes = interval_between_alerts_in_minutes
         self.emailAddresses = email_addresses
         self.audioAlertOnly = audio_alert_only
+
+        self._canceled = False
+        self._cancel_hook = []
+
+    def cancel(self):
+        """
+        Cancel the alert (The original condition that triggered the alert is no longer applicable). If any hook
+        was registered via `add_cancel_hook`, they will be invoked at this point.
+        """
+        self._canceled = True
+
+        for hook in self._cancel_hook:
+            hook()
+
+    def add_cancel_hook(self, function):
+        self._cancel_hook.append(function)
+
+    def is_canceled(self):
+        """ Returns true if this alert has been canceled. """
+        return self._canceled
 
     def get_subject(self):
         """

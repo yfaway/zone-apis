@@ -1,10 +1,13 @@
 import time
+from threading import Timer
 from typing import List
 
 from zone_api.alert import Alert
 from zone_api import platform_encapsulator as pe
 from zone_api.core.devices.activity_times import ActivityTimes
+from zone_api.core.devices.astro_sensor import AstroSensor
 from zone_api.core.devices.chromecast_audio_sink import ChromeCastAudioSink
+from zone_api.core.devices.switch import Light
 
 _ADMIN_EMAIL_KEY = 'admin-email-address'
 _OWNER_EMAIL_KEY = 'owner-email-address'
@@ -79,6 +82,9 @@ class AlertManager:
             for cast in casts:
                 cast.play_message(alert.get_subject(), volume)
 
+        if alert.is_critical_level():
+            self._process_further_actions_for_critical_alert(alert, zone_manager, volume)
+
         return True
 
     def process_admin_alert(self, alert):
@@ -143,6 +149,45 @@ class AlertManager:
         @param mode boolean
         """
         self._testMode = mode
+
+    # noinspection PyMethodMayBeStatic
+    def _process_further_actions_for_critical_alert(self, alert: Alert, zone_manager, volume: int):
+        """ Plays the alert message on the speaker two more times in a 30 seconds interval. """
+        self._replay_tts_message(alert, zone_manager, volume)
+        self._turn_on_lights(alert, zone_manager)
+
+    @staticmethod
+    def _replay_tts_message(alert: Alert, zone_manager, volume: int):
+        def send_alert():
+            if not alert.is_canceled():
+                casts: List[ChromeCastAudioSink] = zone_manager.get_devices_by_type(ChromeCastAudioSink)
+                for cast in casts:
+                    cast.play_message(alert.get_subject(), volume)
+
+        timer1 = Timer(30, send_alert)
+        timer1.start()
+
+        timer2 = Timer(60, send_alert)
+        timer2.start()
+
+    @staticmethod
+    def _turn_on_lights(alert: Alert, zone_manager):
+        """
+        Turns on all the lights, and register an alert cancellation hook to turn off those lights when the alert is
+        canceled.
+        """
+        astro_sensor: AstroSensor = zone_manager.get_first_devices_by_type(AstroSensor)
+
+        if astro_sensor.is_light_on_time():
+            lights = [light for light in zone_manager.get_devices_by_type(Light) if not light.is_on()]
+            for light in lights:
+                light.turn_on(pe.get_event_dispatcher())
+
+            def turn_off_light():
+                for light in lights:
+                    light.turn_off(pe.get_event_dispatcher())
+
+            alert.add_cancel_hook(turn_off_light)
 
 
 def _load_properties(filepath, sep='=', comment_char='#'):

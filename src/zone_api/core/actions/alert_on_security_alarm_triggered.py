@@ -13,29 +13,27 @@ class AlertOnSecurityAlarmTriggered:
 
     def __init__(self):
         """ Ctor """
-        self._notified = False
+        self._alert = None
 
     def on_action(self, event_info):
         zone_manager = event_info.get_zone_manager()
 
         if event_info.get_device().is_in_alarm():
-            self._notified = True
-
             description = ''
-            for z in zone_manager.get_zones(): # type: Zone
+            for z in zone_manager.get_zones():  # type: Zone
                 devices = [d for d in z.get_devices_by_type(SecurityAwareMixin) if d.is_tripped()]
                 if len(devices) > 0:
                     description = f" ({z.get_name()} {type(devices[0]).__name__})"
                     break
 
             alert_message = f'Security system is on alarm{description}.'
-            alert = Alert.create_critical_alert(alert_message)
-            zone_manager.get_alert_manager().process_alert(alert, zone_manager)
+            self._alert = Alert.create_critical_alert(alert_message)
+            zone_manager.get_alert_manager().process_alert(self._alert, zone_manager)
 
-        elif self._notified:
+        elif self._alert is not None:
             alert_message = "Security system is NO LONGER in alarm"
             alert = Alert.create_info_alert(alert_message)
             zone_manager.get_alert_manager().process_alert(alert, zone_manager)
-            self._notified = False
+            self._alert.cancel()
 
         return True
