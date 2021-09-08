@@ -17,7 +17,7 @@ class ConfigureZoneManagerRule(HABApp.Rule):
     # noinspection PyMethodMayBeStatic
     def configure_zone_manager(self):
         time_map = {
-            ActivityType.WAKE_UP: '6 - 9',
+            ActivityType.WAKE_UP: '6:35 - 9',
             ActivityType.LUNCH: '12:00 - 13:30',
             ActivityType.QUIET: '14:00 - 16:00, 20:00 - 22:59',
             ActivityType.DINNER: '17:50 - 20:00',
