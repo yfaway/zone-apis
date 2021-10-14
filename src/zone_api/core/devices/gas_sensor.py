@@ -65,3 +65,10 @@ class SmokeSensor(GasSensor):
 
     def __init__(self, value_item, state_item):
         GasSensor.__init__(self, value_item, state_item)
+
+
+class RadonGasSensor(GasSensor):
+    """ Represents a radon gas sensor.  """
+
+    def __init__(self, value_item, state_item):
+        GasSensor.__init__(self, value_item, state_item)

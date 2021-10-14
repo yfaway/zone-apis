@@ -188,11 +188,7 @@ class ChromeCastAudioSink(Device):
             self._testLastCommand = 'resume'
             return
 
-        if pe.is_in_on_state(self._idling_item):
-            pe.play_stream_url(self.get_sink_name(), self.get_stream_url())
-        else:
-            pe.play_stream_url(self.get_sink_name(), self.get_stream_url())
-
+        pe.play_stream_url(self.get_sink_name(), self.get_stream_url())
         pe.change_player_state_to_play(self._player_item)
 
     def is_active(self):

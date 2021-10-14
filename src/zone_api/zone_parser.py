@@ -14,7 +14,7 @@ from zone_api import device_factory as df
 from zone_api.alert_manager import AlertManager
 from zone_api.core.action import Action
 from zone_api.core.devices.activity_times import ActivityTimes
-from zone_api.core.devices.gas_sensor import NaturalGasSensor, SmokeSensor, Co2GasSensor
+from zone_api.core.devices.gas_sensor import NaturalGasSensor, SmokeSensor, Co2GasSensor, RadonGasSensor
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_manager import ZoneManager
@@ -68,6 +68,7 @@ def parse(activity_times: ActivityTimes, actions_package: str = "zone_api.core.a
         '[^g].*_Plug$': df.create_plug,
         '[^g].*_Co2$': df.create_gas_sensor(Co2GasSensor),
         '[^g].*_NaturalGas$': df.create_gas_sensor(NaturalGasSensor),
+        '[^g].*_RadonGas$': df.create_gas_sensor(RadonGasSensor),
         '[^g].*_Smoke$': df.create_gas_sensor(SmokeSensor),
         '.*_Tv$': df.create_television_device,
         '.*_Thermostat_EcobeeName$': df.create_ecobee_thermostat,
