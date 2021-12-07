@@ -13,8 +13,8 @@ from zone_api.core.devices.alarm_partition import AlarmPartition
 class ManagePlugs:
     """
     Turns off the plugs if the house is armed-away or if it is evening time (via ActivityTimes).
-    Turn on the plug on the first motion sensor trigger during wake-up time period, or when the
-    house is disarmed (from armed-away) NOT during the turn-off-plugs time period.
+    Turn on the internal plugs on the first motion sensor trigger during wake-up time period, or when
+    the house is disarmed (from armed-away) NOT during the turn-off-plugs time period.
     """
 
     def on_startup(self, event_info: EventInfo):
@@ -53,8 +53,10 @@ class ManagePlugs:
             return True
         elif zone_event == ZoneEvent.MOTION:
             if activity.is_wakeup_time():
-                for p in zm.get_devices_by_type(Plug):
-                    p.turn_on(events)
+                for z in zm.get_zones():
+                    if z.is_internal():
+                        for p in z.get_devices_by_type(Plug):
+                            p.turn_on(events)
 
             return True
 
@@ -67,8 +69,10 @@ class ManagePlugs:
 
         elif zone_event == ZoneEvent.PARTITION_DISARMED_FROM_AWAY:
             if not activity.is_turn_off_plugs_time():
-                for p in zm.get_devices_by_type(Plug):
-                    p.turn_on(events)
+                for z in zm.get_zones():
+                    if z.is_internal():
+                        for p in z.get_devices_by_type(Plug):
+                            p.turn_on(events)
 
             return True
 
