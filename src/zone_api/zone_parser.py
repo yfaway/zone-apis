@@ -65,7 +65,7 @@ def parse(activity_times: ActivityTimes, actions_package: str = "zone_api.core.a
         '[^g].*_Illuminance.*': df.create_illuminance_sensor,
         '[^g](?!.*Weather).*Humidity$': df.create_humidity_sensor,
         '[^g].*_NetworkPresence.*': df.create_network_presence_device,
-        '[^g].*_Plug$': df.create_plug,
+        '[^g].*_Plug(\\d*)$': df.create_plug,
         '[^g].*_Co2$': df.create_gas_sensor(Co2GasSensor),
         '[^g].*_NaturalGas$': df.create_gas_sensor(NaturalGasSensor),
         '[^g].*_RadonGas$': df.create_gas_sensor(RadonGasSensor),
