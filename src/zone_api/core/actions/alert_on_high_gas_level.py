@@ -34,12 +34,12 @@ class AlertOnHighGasLevel:
             alert_message = f'The {zone.get_name()} {gas_type} at {gas_sensor.get_value()} is above normal level.'
             self._alert = Alert.create_warning_alert(alert_message, None, [],
                                                      gas_type, self._interval_between_alerts_in_minutes)
-            zone_manager.get_alert_manager().process_alert(self._alert, zone_manager)
+            zone_manager.get_alert_manager().process_admin_alert(self._alert)
 
         elif self._alert is not None:
             alert_message = f'The {zone.get_name()} {gas_type} is back to normal.'
             alert = Alert.create_info_alert(alert_message)
-            zone_manager.get_alert_manager().process_alert(alert, zone_manager)
+            zone_manager.get_alert_manager().process_admin_alert(alert)
             self._alert.cancel()
 
         return True

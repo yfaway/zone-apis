@@ -9,7 +9,7 @@ from zone_api.core.zone_event import ZoneEvent
 ON_EVENTS = [ZoneEvent.ASTRO_LIGHT_ON]
 
 
-@action(events=ON_EVENTS + [ZoneEvent.ASTRO_BED_TIME], devices=[Plug], external=True, internal=False)
+@action(events=ON_EVENTS + [ZoneEvent.ASTRO_BED_TIME], external_events=ON_EVENTS + [ZoneEvent.ASTRO_BED_TIME], devices=[Plug], external=True, internal=False)
 class TurnOnOutdoorXmasPlugs:
     """ Turn on the outdoor XMAS plugs in December. """
 
