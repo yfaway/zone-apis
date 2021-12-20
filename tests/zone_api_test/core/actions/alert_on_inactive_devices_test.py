@@ -19,7 +19,7 @@ class AlertOnInactiveDevicesTest(DeviceTest):
         self.set_items(items)
         super(AlertOnInactiveDevicesTest, self).setUp()
 
-        self.motion1 = MotionSensor(items[0], True)
+        self.motion1 = MotionSensor(items[0])
         self.motion2 = MotionSensor(items[1]).set_use_wifi(True).set_auto_report(True)
 
         self.action = AlertOnInactiveDevices(1, 1)

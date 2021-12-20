@@ -26,3 +26,6 @@ class MotionSensorTest(DeviceTest):
 
         pe.set_switch_state(self.get_items()[0], True)
         self.assertTrue(self.motionSensor.is_occupied())
+
+    def testGetBatteryPercentage_none_returnsExpected(self):
+        self.assertTrue(self.motionSensor.get_battery_percentage() is None)

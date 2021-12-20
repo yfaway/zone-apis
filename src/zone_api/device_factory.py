@@ -245,12 +245,18 @@ def create_motion_sensor(zm: ImmutableZoneManager, item) -> MotionSensor:
     if pe.has_item(in_alarm_name):
         in_alarm_item = Items.get_item(in_alarm_name)
 
+    battery_percentage_name = item.name + "_BatteryPercentage"
+    battery_percentage_item = None
+    if pe.has_item(battery_percentage_name):
+        battery_percentage_item = Items.get_item(battery_percentage_name)
+
     key_disable_triggering_switches = "disableTriggeringSwitches"
     item_def = HABApp.openhab.interface.get_item(item.name, f"{key_disable_triggering_switches}")
     metadata = item_def.metadata
     can_trigger_switches = False if "true" == get_meta_value(metadata, key_disable_triggering_switches) else True
 
-    sensor = _configure_device(MotionSensor(item, True, can_trigger_switches, in_alarm_item), zm)
+    sensor = _configure_device(
+        MotionSensor(item, can_trigger_switches, in_alarm_item, battery_percentage_item), zm)
 
     # noinspection PyUnusedLocal
     def handler(event: ValueChangeEvent):

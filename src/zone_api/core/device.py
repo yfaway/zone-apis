@@ -1,6 +1,7 @@
 import datetime
 from copy import copy
 import time
+from typing import Union
 
 from zone_api import platform_encapsulator as pe
 
@@ -10,7 +11,8 @@ class Device(object):
     The base class that all other sensors and switches derive from.
     """
 
-    def __init__(self, openhab_item, additional_items=None, battery_powered=False, wifi=False, auto_report=False):
+    def __init__(self, openhab_item, additional_items=None, battery_powered=False, wifi=False, auto_report=False,
+                 battery_percentage_item=None):
         """
         Ctor
 
@@ -18,6 +20,7 @@ class Device(object):
         :param bool battery_powered: indicates if the device is powered by battery.
         :param bool wifi: indicates if the device communicates by WiFi.
         :param bool auto_report: indicates if the device periodically reports its value.
+        :param int battery_percentage_item: the remaining battery percentage or None if not applicable
         :raise ValueError: if any parameter is invalid
         """
         if additional_items is None:
@@ -28,12 +31,16 @@ class Device(object):
 
         self.item = openhab_item
         self.battery_powered = battery_powered
+        self.battery_percentage_item = battery_percentage_item
         self.wifi = wifi
         self.auto_report = auto_report
         self.last_activated_timestamp = None
         self.zone_manager = None
         self.channel = None
         self._additional_items = [i for i in additional_items if i is not None]
+
+        if battery_percentage_item is not None and battery_percentage_item not in self._additional_items:
+            self._additional_items.append(battery_percentage_item)
 
     def contains_item(self, item):
         """
@@ -103,6 +110,14 @@ class Device(object):
         """
 
         return self.battery_powered
+
+    def get_battery_percentage(self) -> Union[float, None]:
+        """ Returns the remaining battery percentage, or None if the device is not powered by battery. """
+        if self.battery_percentage_item is None:
+            return None
+        else:
+            # noinspection PyTypeChecker
+            return pe.get_number_value(self.battery_percentage_item)
 
     def set_use_wifi(self, bool_value):
         """
@@ -211,6 +226,8 @@ class Device(object):
 
         if self.is_battery_powered():
             value += ", battery powered"
+            if self.get_battery_percentage() is not None:
+                value += u" ({}%)".format(self.get_battery_percentage())
 
         if self.use_wifi():
             value += ", wifi"

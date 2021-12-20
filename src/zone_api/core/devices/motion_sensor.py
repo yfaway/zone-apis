@@ -8,15 +8,18 @@ class MotionSensor(SecurityAwareMixin, Device):
     Represents a motion sensor; the underlying OpenHab object is a SwitchItem.
     """
 
-    def __init__(self, switch_item, battery_powered=True, can_trigger_switches=True, security_tripped_item=None):
+    def __init__(self, switch_item, can_trigger_switches=True, security_tripped_item=None,
+                 battery_percentage_item=None):
         """
         :param SwitchItem switch_item:
         :param SwitchItem security_tripped_item: optional item to indicate if this sensor triggered the security system.
+        :param NumberItem battery_percentage_item: optional item to indicate the remaining battery percentage.
         :raise ValueError: if any parameter is invalid
         """
         additional_devices = [security_tripped_item] if security_tripped_item is not None else None
         super().__init__(openhab_item=switch_item, additional_items=additional_devices,
-                         battery_powered=battery_powered, security_tripped_item=security_tripped_item)
+                         battery_powered=True, battery_percentage_item=battery_percentage_item,
+                         security_tripped_item=security_tripped_item)
 
         self._can_trigger_switches = can_trigger_switches
         self._security_tripped_item = security_tripped_item
