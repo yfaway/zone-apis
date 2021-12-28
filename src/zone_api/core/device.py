@@ -224,6 +224,9 @@ class Device(object):
     def __str__(self):
         value = u"{}: {}".format(self.__class__.__name__, self.get_item_name())
 
+        if len(self._additional_items) > 0:
+            value += " ({} additional items)".format(len(self._additional_items))
+
         if self.is_battery_powered():
             value += ", battery powered"
             if self.get_battery_percentage() is not None:
