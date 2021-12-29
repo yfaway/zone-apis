@@ -301,6 +301,8 @@ def get_event_dispatcher():
                     item.post_value(int(command))
                 elif isinstance(item, NumberItem):
                     item.post_value(command)
+                elif isinstance(item, StringItem):
+                    item.post_value(command)
                 else:
                     log_error("type: {}".format(type(item)))
                     raise ValueError("Unsupported type for item '{}'".format(item_name))

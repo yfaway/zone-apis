@@ -8,11 +8,10 @@ class AlarmPartitionTest(DeviceTest):
     """ Unit tests for alarm_partition.py. """
 
     def setUp(self):
-        items = [pe.create_switch_item('_Plug'), pe.create_number_item('_Power')]
+        self.alarmPartition, items = self.create_alarm_partition()
         self.set_items(items)
         super(AlarmPartitionTest, self).setUp()
 
-        self.alarmPartition = AlarmPartition(self.get_items()[0], self.get_items()[1])
         pe.set_number_value(items[1], AlarmState.UNARMED.value)
 
     def testIsInAlarm_notInAlarm_returnsFalse(self):

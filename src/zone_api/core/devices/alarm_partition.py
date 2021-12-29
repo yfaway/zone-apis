@@ -28,29 +28,44 @@ class AlarmPartition(Device):
     @see https://cms.dsc.com/media/documents/user-manuals/pc1616/PC1616-1832-1864_UM_ENG_V4-7_R001.pdf
     """
 
-    def __init__(self, alarm_status_item, arm_mode_item, send_command_item=None):
+    def __init__(self, alarm_status_item, arm_mode_item, send_command_item, panel_fire_key_alarm):
         """
         Ctor
 
         :param SwitchItem alarm_status_item: the item to indicate if the system is in alarm
         :param NumberItem arm_mode_item: the item to set the arming/disarming mode
         :param StringItem send_command_item: the item to send DSC commands.
+        :param SwitchItem panel_fire_key_alarm: the item to indicate if the panic fire key alarm was triggered
         :raise ValueError: if any parameter is invalid
         """
-        Device.__init__(self, alarm_status_item, [arm_mode_item, send_command_item])
+        Device.__init__(self, alarm_status_item, [arm_mode_item, send_command_item, panel_fire_key_alarm])
 
         if arm_mode_item is None:
             raise ValueError('armModeItem must not be None')
 
+        if send_command_item is None:
+            raise ValueError('send_command_item must not be None')
+
+        if panel_fire_key_alarm is None:
+            raise ValueError('panel_fire_key_alarm must not be None')
+
         self.arm_mode_item = arm_mode_item
         self.send_command_item = send_command_item
+        self.panel_fire_key_alarm = panel_fire_key_alarm
 
     def is_in_alarm(self):
         """
-        :return: True if the partition is in alarm; False otherwise
+        :return: True if the partition is in alarm; False otherwise.
         :rtype: bool
         """
         return pe.is_in_on_state(self.get_item())
+
+    def is_in_fire_alarm(self):
+        """
+        :return: True if the panic fire key was pressed; False otherwise.
+        :rtype: bool
+        """
+        return pe.is_in_on_state(self.get_panel_fire_key_alarm_item())
 
     def get_arm_mode(self) -> AlarmState:
         """
@@ -118,6 +133,9 @@ class AlarmPartition(Device):
 
     def get_arm_mode_item(self):
         return self.arm_mode_item
+
+    def get_panel_fire_key_alarm_item(self):
+        return self.panel_fire_key_alarm
 
     def __str__(self):
         """

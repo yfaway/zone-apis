@@ -133,14 +133,25 @@ def create_switches(zm: ImmutableZoneManager,
 
 def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmPartition:
     """
-    Creates an alarm partition.
+    Creates an alarm partition. Handle the following events:
+      - Partition arm mode changed.
+      - Partition in alarm.
+      - Keypad panic events.
+
     :param zm: the zone manager instance to dispatch the event.
     :param item: SwitchItem
     :return: AlarmPartition
     """
     arm_mode_item = Items.get_item(item.name + '_ArmMode')
     send_command_item = Items.get_item(item.name + '_SendCommand')
-    device = _configure_device(AlarmPartition(item, arm_mode_item, send_command_item), zm)
+    # noinspection PyTypeChecker
+    panel_fire_key_alarm_item: SwitchItem = Items.get_item(item.name + '_PanelFireKeyAlarm')
+    # noinspection PyTypeChecker
+    panel_ambulance_key_alarm_item: SwitchItem = Items.get_item(item.name + '_PanelAmbulanceKeyAlarm')
+    # noinspection PyTypeChecker
+    panel_police_key_alarm_item: SwitchItem = Items.get_item(item.name + '_PanelPoliceKeyAlarm')
+
+    device = _configure_device(AlarmPartition(item, arm_mode_item, send_command_item, panel_fire_key_alarm_item), zm)
 
     def arm_mode_value_changed(event: ValueChangeEvent):
         if AlarmState.ARM_AWAY == AlarmState(int(event.value)):
@@ -149,6 +160,12 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
                 and AlarmState.ARM_AWAY == AlarmState(int(event.old_value)):
             dispatch_event(zm, ZoneEvent.PARTITION_DISARMED_FROM_AWAY, device, item)
 
+        # Reset the key pad alarm states on unarmed event.
+        if AlarmState.UNARMED == AlarmState(int(event.value)):
+            pe.set_switch_state(panel_fire_key_alarm_item, False)
+            pe.set_switch_state(panel_ambulance_key_alarm_item, False)
+            pe.set_switch_state(panel_police_key_alarm_item, False)
+
     def arm_mode_value_received(event: ItemCommandEvent):
         if AlarmState.ARM_AWAY == AlarmState(int(event.value)):
             dispatch_event(zm, ZoneEvent.PARTITION_RECEIVE_ARM_AWAY, device, arm_mode_item)
@@ -156,13 +173,30 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
             dispatch_event(zm, ZoneEvent.PARTITION_RECEIVE_ARM_STAY, device, arm_mode_item)
 
     # noinspection PyUnusedLocal
-    def state_change_handler(event: ValueChangeEvent):
+    def in_alarm_state_change_handler(event: ValueChangeEvent):
         dispatch_event(zm, ZoneEvent.PARTITION_IN_ALARM_STATE_CHANGED, device, item)
+
+    # noinspection PyUnusedLocal
+    def fire_alarm_state_change_handler(event: ValueChangeEvent):
+        dispatch_event(zm, ZoneEvent.PARTITION_FIRE_ALARM_STATE_CHANGED, device, panel_fire_key_alarm_item)
 
     arm_mode_item.listen_event(arm_mode_value_changed, ValueChangeEvent)
     arm_mode_item.listen_event(arm_mode_value_received, ValueUpdateEvent)
 
-    item.listen_event(state_change_handler, ValueChangeEvent)
+    item.listen_event(in_alarm_state_change_handler, ValueChangeEvent)
+    panel_fire_key_alarm_item.listen_event(fire_alarm_state_change_handler, ValueChangeEvent)
+
+    # Wire the DSC key panels to the soft items. See notes in the .items file.
+    def wire_soft_panel_events(dsc_item, panel_item):
+        # noinspection PyUnusedLocal
+        def handler(event: ValueChangeEvent):
+            pe.set_switch_state(panel_item, pe.is_in_on_state(dsc_item))
+
+        dsc_item.listen_event(handler, ValueChangeEvent)
+
+    wire_soft_panel_events(Items.get_item(item.name + '_DscPanelFireKeyAlarm'), panel_fire_key_alarm_item)
+    wire_soft_panel_events(Items.get_item(item.name + '_DscPanelAmbulanceKeyAlarm'), panel_ambulance_key_alarm_item)
+    wire_soft_panel_events(Items.get_item(item.name + '_DscPanelPoliceKeyAlarm'), panel_police_key_alarm_item)
 
     # noinspection PyTypeChecker
     return device

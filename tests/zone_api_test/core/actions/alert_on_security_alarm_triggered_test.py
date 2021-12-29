@@ -11,7 +11,7 @@ class AlertOnSecurityAlarmTriggeredTest(DeviceTest):
     """ Unit tests for AlertOnSecurityAlarmTriggered. """
 
     def setUp(self):
-        self.alarmPartition, items = self.create_alarm_partition()
+        self.alarm_partition, items = self.create_alarm_partition()
         items = items + [pe.create_switch_item('Door'), pe.create_switch_item('Tripped')]
 
         self.set_items(items)
@@ -20,26 +20,41 @@ class AlertOnSecurityAlarmTriggeredTest(DeviceTest):
         self.action = AlertOnSecurityAlarmTriggered()
 
         self.door = Door(items[-2], items[-1])
-        self.zone1 = Zone('Foyer', [self.alarmPartition, self.door]).add_action(self.action)
+        self.zone1 = Zone('Foyer', [self.alarm_partition, self.door]).add_action(self.action)
         self.zm = create_zone_manager([self.zone1])
 
     def testOnAction_triggered_returnsTrueAndSendAlert(self):
-        pe.set_switch_state(self.get_items()[0], True)  # alarm
+        pe.set_switch_state(self.alarm_partition.get_item(), True)  # alarm
         pe.set_switch_state(self.get_items()[-1], True)  # tripped
-        self.sendEventAndAssertAlertContainMessage('Security system is on alarm (Foyer Door).')
+        self.sendEventAndAssertAlertContainMessage(
+            ZoneEvent.PARTITION_IN_ALARM_STATE_CHANGED, self.alarm_partition.get_item(),
+            'Security system is on alarm (Foyer Door).')
 
     def testOnAction_noLongerTriggered_returnsTrueAndSendsInfoAlert(self):
-        # initially below threshold
-        pe.set_switch_state(self.get_items()[0], True)
-        self.sendEventAndAssertAlertContainMessage('Security system is on alarm.')  # no info on where triggered
+        self.testOnAction_triggered_returnsTrueAndSendAlert()  # set up the regular alarm first.
 
         # now back to normal
-        pe.set_switch_state(self.get_items()[0], False)
-        self.sendEventAndAssertAlertContainMessage('Security system is NO LONGER in alarm')
+        pe.set_switch_state(self.alarm_partition.get_item(), False)
+        self.sendEventAndAssertAlertContainMessage(
+            ZoneEvent.PARTITION_IN_ALARM_STATE_CHANGED, self.alarm_partition.get_item(),
+            'Security system is NO LONGER in alarm')
 
-    def sendEventAndAssertAlertContainMessage(self, message):
-        event_info = EventInfo(ZoneEvent.PARTITION_IN_ALARM_STATE_CHANGED, self.get_items()[0], self.zone1,
-                               self.zm, pe.get_event_dispatcher(), None, self.alarmPartition)
+    def testOnAction_fireKeyTriggered_returnsTrueAndSendAlert(self):
+        item = self.alarm_partition.get_panel_fire_key_alarm_item()
+        pe.set_switch_state(item, True)
+        self.sendEventAndAssertAlertContainMessage(
+            ZoneEvent.PARTITION_FIRE_ALARM_STATE_CHANGED, item, 'Security system is on FIRE alarm.')
+
+    def testOnAction_fireAlarmNoLongerTriggered_returnsTrueAndSendAlert(self):
+        self.testOnAction_fireKeyTriggered_returnsTrueAndSendAlert()  # set up the fire alarm first.
+
+        item = self.alarm_partition.get_panel_fire_key_alarm_item()
+        pe.set_switch_state(item, False)
+        self.sendEventAndAssertAlertContainMessage(
+            ZoneEvent.PARTITION_FIRE_ALARM_STATE_CHANGED, item, "Security system is NO LONGER in FIRE alarm")
+
+    def sendEventAndAssertAlertContainMessage(self, event, item, message):
+        event_info = EventInfo(event, item, self.zone1, self.zm, pe.get_event_dispatcher(), None, self.alarm_partition)
         value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertTrue(message in self.zm.get_alert_manager()._lastEmailedSubject)

@@ -86,7 +86,8 @@ class DeviceTest(unittest.TestCase):
 
     # noinspection PyMethodMayBeStatic
     def create_alarm_partition(self):
-        items = [pe.create_switch_item('AlarmStatus'), pe.create_number_item('_AlarmMode')]
-        alarm_partition = AlarmPartition(items[0], items[1])
+        items = [pe.create_switch_item('AlarmStatus'), pe.create_number_item('_AlarmMode'),
+                 pe.create_string_item("send-command"), pe.create_switch_item('fire-alarm')]
+        alarm_partition = AlarmPartition(*items)
 
         return alarm_partition, items

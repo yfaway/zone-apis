@@ -6,9 +6,7 @@ from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.event_info import EventInfo
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.devices.alarm_partition import AlarmPartition
 from zone_api.core.devices.activity_times import ActivityTimes, ActivityType
-from zone_api.core.devices.chromecast_audio_sink import ChromeCastAudioSink
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 from zone_api.core.actions.simulate_daytime_presence import SimulateDaytimePresence
 
@@ -17,20 +15,14 @@ class SimulateDaytimePresenceTest(DeviceTest):
     """ Unit tests for simulate_daytime_presence.py. """
 
     def setUp(self):
-        items = [pe.create_switch_item('_testMotion'),
-                 pe.create_switch_item('_testAlarmStatus'),
-                 pe.create_number_item('_testArmMode'),
-                 pe.create_player_item('_testPlayer'),
-                 pe.create_number_item('_testVolume'),
-                 pe.create_string_item('_testTitle'),
-                 pe.create_switch_item('_testIdling'),
-                 ]
+        self.audioSink, sink_items = self.create_audio_sink()
+        self.partition, partition_items = self.create_alarm_partition()
+
+        items = sink_items + partition_items + [pe.create_switch_item('_testMotion')]
         self.set_items(items)
         super(SimulateDaytimePresenceTest, self).setUp()
 
-        self.motion_sensor = MotionSensor(items[0])
-        self.partition = AlarmPartition(items[1], items[2])
-        self.audioSink = ChromeCastAudioSink('sinkName', items[3], items[4], items[5], items[6])
+        self.motion_sensor = MotionSensor(items[-1])
 
         self.action = SimulateDaytimePresence("anUrl", 70, 0.1)
 
@@ -39,13 +31,13 @@ class SimulateDaytimePresenceTest(DeviceTest):
 
     def testOnAction_wrongEventType_returnsFalse(self):
         (porch, greatRoom, zm, _) = self.create_test_data()
-        event_info = EventInfo(ZoneEvent.DOOR_OPEN, self.get_items()[0],
+        event_info = EventInfo(ZoneEvent.DOOR_OPEN, self.motion_sensor.get_item(),
                                porch, zm, pe.get_event_dispatcher())
         value = self.action.on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_motionEventOnInternalZone_returnsFalse(self):
-        event_info = EventInfo(ZoneEvent.MOTION, self.get_items()[0], Zone('porch'),
+        event_info = EventInfo(ZoneEvent.MOTION, self.motion_sensor.get_item(), Zone('porch'),
                                None, pe.get_event_dispatcher())
         value = self.action.on_action(event_info)
         self.assertFalse(value)
@@ -131,7 +123,7 @@ class SimulateDaytimePresenceTest(DeviceTest):
 
         zm = create_zone_manager([porch, great_room])
 
-        event_info = EventInfo(ZoneEvent.MOTION, self.get_items()[0],
+        event_info = EventInfo(ZoneEvent.MOTION, self.motion_sensor.get_item(),
                                porch, zm, pe.get_event_dispatcher())
 
         return [porch, great_room, zm, event_info]

@@ -3,9 +3,7 @@ from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 from zone_api.core.event_info import EventInfo
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.devices.alarm_partition import AlarmPartition
 from zone_api.core.devices.switch import Light
-from zone_api.core.devices.chromecast_audio_sink import ChromeCastAudioSink
 from zone_api.core.actions.turn_off_devices_on_alarm_mode_change import TurnOffDevicesOnAlarmModeChange
 
 
@@ -14,23 +12,15 @@ class TurnOffDevicesOnAlarmModeChangeTest(DeviceTest):
 
     def setUp(self):
         self.audioSink, sink_items = self.create_audio_sink()
+        self.partition, partition_items = self.create_alarm_partition()
 
-        items = [pe.create_switch_item('_testMotion'),
-                 pe.create_switch_item('_testAlarmStatus'),
-                 pe.create_number_item('_testArmMode'),
-                 pe.create_switch_item('_testLight1'),
-                 pe.create_switch_item('_testLight2'),
-                 ]
-
-        for item in sink_items:
-            items.append(item)
-
+        items = sink_items + partition_items + \
+                [pe.create_switch_item('_testLight1'), pe.create_switch_item('_testLight2')]
         self.set_items(items)
         super(TurnOffDevicesOnAlarmModeChangeTest, self).setUp()
 
-        self.partition = AlarmPartition(items[1], items[2])
-        self.light1 = Light(items[3], 4)
-        self.light2 = Light(items[4], 4)
+        self.light1 = Light(items[-2], 4)
+        self.light2 = Light(items[-1], 4)
 
         self.action = TurnOffDevicesOnAlarmModeChange()
 
@@ -78,6 +68,6 @@ class TurnOffDevicesOnAlarmModeChangeTest(DeviceTest):
         porch = Zone('porch', [self.partition, self.light1, self.audioSink]).add_action(self.action)
         great_room = Zone('great room', [self.light2])
         zm = create_zone_manager([porch, great_room])
-        event_info = EventInfo(zone_event, self.get_items()[1], porch, zm, pe.get_event_dispatcher())
+        event_info = EventInfo(zone_event, self.partition.get_item(), porch, zm, pe.get_event_dispatcher())
 
         return [porch, zm, event_info]
