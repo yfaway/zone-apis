@@ -131,6 +131,14 @@ class AlarmPartition(Device):
         """ Trigger a ambulance alarm (may not be supported by the panel). """
         events.send_command(pe.get_item_name(self.send_command_item), "060,3")
 
+    def has_fire_alarm(self):
+        return pe.is_in_on_state(self.get_panel_fire_key_alarm_item())
+
+    def cancel_panic_alarm(self, events):
+        """ Turn off the panic alarm. """
+        self.disarm(events)
+        pe.set_switch_state(self.get_panel_fire_key_alarm_item(), False)
+
     def get_arm_mode_item(self):
         return self.arm_mode_item
 

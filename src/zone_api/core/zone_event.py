@@ -27,6 +27,11 @@ class ZoneEvent(Enum):
     PARTITION_AMBULANCE_ALARM_STATE_CHANGED = 18  # The partition is in panic ambulance alarm mode.
     PARTITION_POLICE_ALARM_STATE_CHANGED = 19  # The partition is in panic police alarm mode.
 
+    MANUALLY_TRIGGER_FIRE_ALARM = 20  # Manually trigger the fire alarm.
+    MANUALLY_TRIGGER_AMBULANCE_ALARM = 21  # Manually trigger the ambulance alarm.
+    MANUALLY_TRIGGER_POLICE_ALARM = 22  # Manually trigger the police alarm.
+    CANCEL_PANIC_ALARM = 23  # Cancel (silence) the panic alarm (fire, ambulance or police).
+
     HUMIDITY_CHANGED = 30  # The humidity percentage changed
     TEMPERATURE_CHANGED = 31  # The temperature changed
 

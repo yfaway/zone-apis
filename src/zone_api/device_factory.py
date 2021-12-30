@@ -174,11 +174,13 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
 
     # noinspection PyUnusedLocal
     def in_alarm_state_change_handler(event: ValueChangeEvent):
-        dispatch_event(zm, ZoneEvent.PARTITION_IN_ALARM_STATE_CHANGED, device, item)
+        # dispatch_event(zm, ZoneEvent.PARTITION_IN_ALARM_STATE_CHANGED, device, item)
+        pe.log_error(f"Alarm state changed: {event.value}")
 
     # noinspection PyUnusedLocal
     def fire_alarm_state_change_handler(event: ValueChangeEvent):
-        dispatch_event(zm, ZoneEvent.PARTITION_FIRE_ALARM_STATE_CHANGED, device, panel_fire_key_alarm_item)
+        # dispatch_event(zm, ZoneEvent.PARTITION_FIRE_ALARM_STATE_CHANGED, device, panel_fire_key_alarm_item)
+        pe.log_error(f"Fire Key Alarm state changed: {event.value}")
 
     arm_mode_item.listen_event(arm_mode_value_changed, ValueChangeEvent)
     arm_mode_item.listen_event(arm_mode_value_received, ValueUpdateEvent)
@@ -190,7 +192,10 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
     def wire_soft_panel_events(dsc_item, panel_item):
         # noinspection PyUnusedLocal
         def handler(event: ValueChangeEvent):
-            pe.set_switch_state(panel_item, pe.is_in_on_state(dsc_item))
+            # We don't propagate the OFF state to work around a limitation on the DSC panel (the RESTORE event is sent
+            # immediately).
+            if pe.is_in_on_state(dsc_item):
+                pe.set_switch_state(panel_item, True)
 
         dsc_item.listen_event(handler, ValueChangeEvent)
 
