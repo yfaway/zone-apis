@@ -1,4 +1,5 @@
 from zone_api.core.devices.alarm_partition import AlarmPartition
+from zone_api.core.devices.ikea_remote_control import IkeaRemoteControl
 from zone_api.core.event_info import EventInfo
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.action import action
@@ -7,7 +8,7 @@ EVENTS = [ZoneEvent.MANUALLY_TRIGGER_FIRE_ALARM, ZoneEvent.MANUALLY_TRIGGER_AMBU
           ZoneEvent.MANUALLY_TRIGGER_POLICE_ALARM, ZoneEvent.CANCEL_PANIC_ALARM]
 
 
-@action(events=EVENTS, external_events=EVENTS, zone_name_pattern='.*Virtual.*')
+@action(events=EVENTS, devices=[IkeaRemoteControl])
 class TriggerPanicAlarm:
     """
     Trigger a fire, ambulance or police panic alarm. Also support cancelling the panic alarm (will restore the arming

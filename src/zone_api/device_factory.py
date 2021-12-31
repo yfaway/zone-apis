@@ -20,6 +20,7 @@ from zone_api.core.devices.contact import Door, GarageDoor, Window
 from zone_api.core.devices.dimmer import Dimmer
 from zone_api.core.devices.gas_sensor import GasSensor
 from zone_api.core.devices.humidity_sensor import HumiditySensor
+from zone_api.core.devices.ikea_remote_control import IkeaRemoteControl
 from zone_api.core.devices.illuminance_sensor import IlluminanceSensor
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.devices.network_presence import NetworkPresence
@@ -174,13 +175,11 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
 
     # noinspection PyUnusedLocal
     def in_alarm_state_change_handler(event: ValueChangeEvent):
-        # dispatch_event(zm, ZoneEvent.PARTITION_IN_ALARM_STATE_CHANGED, device, item)
-        pe.log_error(f"Alarm state changed: {event.value}")
+        dispatch_event(zm, ZoneEvent.PARTITION_IN_ALARM_STATE_CHANGED, device, item)
 
     # noinspection PyUnusedLocal
     def fire_alarm_state_change_handler(event: ValueChangeEvent):
-        # dispatch_event(zm, ZoneEvent.PARTITION_FIRE_ALARM_STATE_CHANGED, device, panel_fire_key_alarm_item)
-        pe.log_error(f"Fire Key Alarm state changed: {event.value}")
+        dispatch_event(zm, ZoneEvent.PARTITION_FIRE_ALARM_STATE_CHANGED, device, panel_fire_key_alarm_item)
 
     arm_mode_item.listen_event(arm_mode_value_changed, ValueChangeEvent)
     arm_mode_item.listen_event(arm_mode_value_received, ValueUpdateEvent)
@@ -325,6 +324,53 @@ def create_humidity_sensor(zm: ImmutableZoneManager, item) -> HumiditySensor:
 
     # noinspection PyTypeChecker
     return sensor
+
+
+def create_ikea_remote_control(brightness_up_hold_event: ZoneEvent = None,
+                               brightness_down_hold_event: ZoneEvent = None):
+    """
+    Creates an IKEARemoteControl and register events.
+    :param brightness_up_hold_event: the event to fire when the bright up button is held.
+    :param brightness_down_hold_event: the event to fire when the bright down button is held.
+    """
+
+    def inner_fcn(zm: ImmutableZoneManager, item) -> GasSensor:
+        brightness_up_click_item = Items.get_item(item.name + "_BrightnessUpClick")
+        brightness_up_hold_item = Items.get_item(item.name + "_BrightnessUpHold")
+
+        brightness_down_click_item = Items.get_item(item.name + "_BrightnessDownClick")
+        brightness_down_hold_item = Items.get_item(item.name + "_BrightnessDownHold")
+
+        left_click_item = Items.get_item(item.name + "_ArrowLeftClick")
+        left_hold_item = Items.get_item(item.name + "_ArrowLeftHold")
+
+        right_click_item = Items.get_item(item.name + "_ArrowRightClick")
+        right_hold_item = Items.get_item(item.name + "_ArrowRightHold")
+
+        battery_item = Items.get_item(item.name + "_BatteryPercentage")
+
+        sensor = _configure_device(
+            IkeaRemoteControl(item, brightness_up_click_item, brightness_up_hold_item, brightness_down_click_item,
+                              brightness_down_hold_item, left_click_item, left_hold_item, right_click_item,
+                              right_hold_item, battery_item), zm)
+
+        def register_event(control_item, mapped_zone_event):
+            if mapped_zone_event is not None:
+                # noinspection PyUnusedLocal
+                def handler(event: ValueChangeEvent):
+                    if pe.is_in_on_state(control_item):
+                        dispatch_event(zm, mapped_zone_event, sensor, control_item)
+                        sensor.reset_value_states()  # Set the switch to off to wait for the next triggering event.
+
+                control_item.listen_event(handler, ValueChangeEvent)
+
+        register_event(brightness_up_hold_item, brightness_up_hold_event)
+        register_event(brightness_down_hold_item, brightness_down_hold_event)
+
+        # noinspection PyTypeChecker
+        return sensor
+
+    return inner_fcn
 
 
 def create_network_presence_device(zm: ImmutableZoneManager, item) -> NetworkPresence:

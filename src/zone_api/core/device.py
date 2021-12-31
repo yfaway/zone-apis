@@ -20,7 +20,7 @@ class Device(object):
         :param bool battery_powered: indicates if the device is powered by battery.
         :param bool wifi: indicates if the device communicates by WiFi.
         :param bool auto_report: indicates if the device periodically reports its value.
-        :param int battery_percentage_item: the remaining battery percentage or None if not applicable
+        :param NumberItem battery_percentage_item: the remaining battery percentage or None if not applicable
         :raise ValueError: if any parameter is invalid
         """
         if additional_items is None:

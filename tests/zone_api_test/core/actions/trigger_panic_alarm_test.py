@@ -2,6 +2,8 @@ from unittest.mock import MagicMock
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.actions.trigger_panic_alarm import TriggerPanicAlarm
+from zone_api.core.devices.alarm_partition import AlarmPartition
+from zone_api.core.devices.ikea_remote_control import IkeaRemoteControl
 from zone_api.core.event_info import EventInfo
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
@@ -20,6 +22,18 @@ class TriggerPanicAlarmTest(DeviceTest):
         self.zone1 = Zone('foyer', [], Level.FIRST_FLOOR) \
             .add_action(self.action) \
             .add_device(self.alarm_partition)
+
+        # Set up the mock to avoid having to create the IkeaRemoteControl object. Without the mock, the action won't
+        # be triggered dues to filtering effect.
+        def mock_get_devices_by_type(*args, **kwargs):
+            if args[0] == IkeaRemoteControl:
+                return [True]
+            elif args[0] == AlarmPartition:
+                return [self.alarm_partition]
+
+            return None
+        self.zone1.contains_open_hab_item = MagicMock(side_effect=lambda x: True)
+        self.zone1.get_devices_by_type = MagicMock(side_effect=mock_get_devices_by_type)
 
         self.motion_sensor_item = pe.create_switch_item("blah")
 

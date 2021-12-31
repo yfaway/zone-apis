@@ -17,6 +17,7 @@ from zone_api.core.devices.activity_times import ActivityTimes
 from zone_api.core.devices.gas_sensor import NaturalGasSensor, SmokeSensor, Co2GasSensor, RadonGasSensor
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 from zone_api.core.zone import Zone, Level
+from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.zone_manager import ZoneManager
 from zone_api.core.neighbor import NeighborType, Neighbor
 
@@ -64,6 +65,9 @@ def parse(activity_times: ActivityTimes, actions_package: str = "zone_api.core.a
         '.*Wled_MasterControls.*': df.create_switches,
         '[^g].*_Illuminance.*': df.create_illuminance_sensor,
         '[^g](?!.*Weather).*Humidity$': df.create_humidity_sensor,
+        '[^g].*_IkeaControl$': df.create_ikea_remote_control(
+            brightness_up_hold_event=ZoneEvent.MANUALLY_TRIGGER_FIRE_ALARM,
+            brightness_down_hold_event=ZoneEvent.CANCEL_PANIC_ALARM),
         '[^g].*_NetworkPresence.*': df.create_network_presence_device,
         '[^g].*_Plug(\\d*)$': df.create_plug,
         '[^g].*_Co2$': df.create_gas_sensor(Co2GasSensor),
