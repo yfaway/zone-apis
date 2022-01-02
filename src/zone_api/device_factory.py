@@ -152,7 +152,9 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
     # noinspection PyTypeChecker
     panel_police_key_alarm_item: SwitchItem = Items.get_item(item.name + '_PanelPoliceKeyAlarm')
 
-    device = _configure_device(AlarmPartition(item, arm_mode_item, send_command_item, panel_fire_key_alarm_item), zm)
+    # noinspection PyTypeChecker
+    device: AlarmPartition = _configure_device(
+        AlarmPartition(item, arm_mode_item, send_command_item, panel_fire_key_alarm_item), zm)
 
     def arm_mode_value_changed(event: ValueChangeEvent):
         if AlarmState.ARM_AWAY == AlarmState(int(event.value)):
@@ -175,7 +177,8 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
 
     # noinspection PyUnusedLocal
     def in_alarm_state_change_handler(event: ValueChangeEvent):
-        dispatch_event(zm, ZoneEvent.PARTITION_IN_ALARM_STATE_CHANGED, device, item)
+        if not device.is_in_fire_alarm():
+            dispatch_event(zm, ZoneEvent.PARTITION_IN_ALARM_STATE_CHANGED, device, item)
 
     # noinspection PyUnusedLocal
     def fire_alarm_state_change_handler(event: ValueChangeEvent):

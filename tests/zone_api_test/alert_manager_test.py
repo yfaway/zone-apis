@@ -109,7 +109,7 @@ class AlertManagerTest(DeviceTest):
 
         zm = MagicMock()
         zm.get_devices_by_type = MagicMock(return_value=[light])
-        zm.get_first_devices_by_type = MagicMock(return_value=astro)
+        zm.get_first_device_by_type = MagicMock(return_value=astro)
 
         self._fixture._turn_on_lights(Alert.create_critical_alert("an alert"), zm)
         light.turn_on.assert_not_called()
@@ -124,7 +124,7 @@ class AlertManagerTest(DeviceTest):
 
         zm = MagicMock()
         zm.get_devices_by_type = MagicMock(return_value=[light])
-        zm.get_first_devices_by_type = MagicMock(return_value=astro)
+        zm.get_first_device_by_type = MagicMock(return_value=astro)
 
         self._fixture._turn_on_lights(alert, zm)
         light.turn_on.assert_called()

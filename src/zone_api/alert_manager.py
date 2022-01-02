@@ -176,7 +176,7 @@ class AlertManager:
         Turns on all the lights, and register an alert cancellation hook to turn off those lights when the alert is
         canceled.
         """
-        astro_sensor: AstroSensor = zone_manager.get_first_devices_by_type(AstroSensor)
+        astro_sensor: AstroSensor = zone_manager.get_first_device_by_type(AstroSensor)
 
         if astro_sensor.is_light_on_time():
             lights = [light for light in zone_manager.get_devices_by_type(Light) if not light.is_on()]
