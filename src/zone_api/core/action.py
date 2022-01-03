@@ -143,6 +143,10 @@ class Action(object):
         self._filtering_disabled = True
         return self
 
+    def log_debug(self, message: str):
+        """ Log a debug message with the action name prefix. """
+        pe.log_debug(f"{self.__class__.__name__}: {message}")
+
     def log_info(self, message: str):
         """ Log an info message with the action name prefix. """
         pe.log_info(f"{self.__class__.__name__}: {message}")

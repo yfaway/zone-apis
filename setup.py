@@ -26,6 +26,7 @@ setup(
         'habapp>=0.30.3',
         'requests',
         'schedule',
+        'feedparser',
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

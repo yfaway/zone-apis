@@ -640,7 +640,7 @@ def create_weather(zm: ImmutableZoneManager, temperature_item: NumberItem) -> Un
     condition_item = Items.get_item(f"{device_name}_Condition")
 
     item_name = f"{device_name}_Alert_Title"
-    alert_item = Items.get_item(item_name) if pe.has_item(item_name) else None
+    alert_title_item = Items.get_item(item_name) if pe.has_item(item_name) else None
 
     item_name = f"{device_name}_ForecastTempMin"
     forecast_min_temp_item = Items.get_item(item_name) if pe.has_item(item_name) else None
@@ -648,7 +648,7 @@ def create_weather(zm: ImmutableZoneManager, temperature_item: NumberItem) -> Un
     item_name = f"{device_name}_ForecastTempMax"
     forecast_max_temp_item = Items.get_item(item_name) if pe.has_item(item_name) else None
 
-    device = Weather(temperature_item, humidity_item, condition_item, alert_item, forecast_min_temp_item,
+    device = Weather(temperature_item, humidity_item, condition_item, alert_title_item, forecast_min_temp_item,
                      forecast_max_temp_item)
     device = _configure_device(device, zm)
 
@@ -664,9 +664,9 @@ def create_weather(zm: ImmutableZoneManager, temperature_item: NumberItem) -> Un
         lambda event: dispatch_event(
             zm, ZoneEvent.WEATHER_CONDITION_CHANGED, device, condition_item), ValueChangeEvent)
 
-    alert_item.listen_event(
+    alert_title_item.listen_event(
         lambda event: dispatch_event(
-            zm, ZoneEvent.WEATHER_ALERT_CHANGED, device, alert_item), ValueChangeEvent)
+            zm, ZoneEvent.WEATHER_ALERT_CHANGED, device, alert_title_item), ValueChangeEvent)
 
     # noinspection PyTypeChecker
     return device

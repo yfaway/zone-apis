@@ -106,6 +106,15 @@ class EnvCanada(object):
     CITY_ALERT_MAPPING = {'ottawa': 'on41'}
 
     @staticmethod
+    def is_alert_url(url):
+        """ Returns True if url is an alert URL; False otherwise. """
+        for city_code in EnvCanada.CITY_ALERT_MAPPING.values():
+            if city_code in url:
+                return True
+
+        return False
+
+    @staticmethod
     def retrieve_hourly_forecast(city_or_url, hour_count=12):
         """
         Retrieves the hourly forecast for the given city.
