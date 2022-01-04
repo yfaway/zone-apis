@@ -51,7 +51,6 @@ class SendWeatherAlert:
                 self.log_debug("No weather alert exists.")
                 return False
         else:
-            self.log_error("Feed doesn't contain any entries.")
             return False
 
     def _has_new_alert(self, weather: Weather) -> Union[Tuple[bool, str], Tuple[bool, None]]:
