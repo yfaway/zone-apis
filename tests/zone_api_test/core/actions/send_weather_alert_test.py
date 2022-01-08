@@ -12,10 +12,12 @@ from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 entry1 = Zone
 entry1.title = "N/A"
 entry1.link = "https://not-an-alert-link.ca"
+entry1.published_parsed = (2002, 9, 7, 0, 0, 1, 5, 250, 0)
 
 entry2 = Zone
 entry2.title = "N/A"
 entry2.link = 'https://www.weather.gc.ca/warnings/report_e.html?on41'
+entry2.published_parsed = (2002, 9, 7, 0, 0, 1, 5, 250, 0)
 
 feed = Zone
 feed.entries = [entry1, entry2]
@@ -32,11 +34,12 @@ class SendWeatherAlertTest(DeviceTest):
 
     def setUp(self):
         items = [pe.create_number_item('weather-temp'), pe.create_number_item('weather-humidity'),
-                 pe.create_string_item('weather-condition'), pe.create_string_item('weather-alert')]
+                 pe.create_string_item('weather-condition'), pe.create_string_item('weather-alert'),
+                 pe.create_datetime_item('weather-date')]
         self.set_items(items)
         super(SendWeatherAlertTest, self).setUp()
 
-        self.alert_item = items[-1]
+        self.alert_item = items[-2]
         self.action = SendWeatherAlert()
         self.weather = Weather(*items)
         self.zone1 = Zone('office', [], Level.FIRST_FLOOR) \

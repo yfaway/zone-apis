@@ -1,7 +1,7 @@
+import datetime
 from typing import Union, Tuple
 
 import feedparser
-from zone_api import platform_encapsulator as pe
 from zone_api.alert import Alert
 from zone_api.core.devices.weather import Weather
 from zone_api.core.event_info import EventInfo
@@ -58,7 +58,6 @@ class SendWeatherAlert:
         :return: a tuple containing the boolean value indicating if there is an alert. If yes, the second value
             contains the alert URL (to fetch the details).
         """
-
         # retrieve the alert title from the feed
         feed = feedparser.parse(self._alert_rss_url)
         if len(feed.entries) == 0:
@@ -69,11 +68,13 @@ class SendWeatherAlert:
         for entry in feed.entries:
             if EnvCanada.is_alert_url(entry.link):
                 alert_title = entry.title
-                # alert_date = entry.published_parsed
+                published_parsed = entry.published_parsed
 
                 if alert_title != weather.get_alert_title():
                     # noinspection PyProtectedMember
                     weather._set_alert_title(alert_title)
+                    # noinspection PyProtectedMember
+                    weather._set_alert_datetime(datetime.datetime(*published_parsed[0:6]))
                     return True, entry.link
                 else:
                     return False, None

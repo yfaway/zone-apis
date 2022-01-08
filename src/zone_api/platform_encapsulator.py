@@ -1,33 +1,20 @@
+import datetime
+
 from HABApp.openhab.errors import ItemNotFoundError
 
-try:
-    import HABApp
-except ImportError:
-    from org.slf4j import Logger, LoggerFactory
-    from org.eclipse.smarthome.core.types import UnDefType
-    from org.eclipse.smarthome.core.library.types import DecimalType
-    from org.eclipse.smarthome.core.library.items import StringItem
-    from org.eclipse.smarthome.core.library.types import OnOffType
-    from org.eclipse.smarthome.core.library.types import OpenClosedType
+import HABApp
+import logging
+from typing import List, Union, Any
 
-    from core.jsr223 import scope
-    from core.testing import run_test
+from HABApp.core import Items
+from HABApp.core.items import Item
+from HABApp.openhab.items import ContactItem, DatetimeItem, DimmerItem, NumberItem, StringItem, SwitchItem, \
+    PlayerItem, OpenhabItem
+from HABApp.openhab.definitions import OnOffValue
+from HABApp.core.events import ValueChangeEvent
 
-    logger = LoggerFactory.getLogger("org.eclipse.smarthome.model.script.Rules")
-    _in_hab_app = False
-else:
-    import logging
-    from typing import Tuple, List, Union, Dict, Any
-
-    from HABApp.core import Items
-    from HABApp.core.items import Item
-    from HABApp.openhab.items import ContactItem, DimmerItem, NumberItem, StringItem, SwitchItem, PlayerItem, \
-        OpenhabItem
-    from HABApp.openhab.definitions import OnOffValue
-    from HABApp.core.events import ValueChangeEvent
-
-    _in_hab_app = True
-    logger = logging.getLogger('ZoneApis')
+_in_hab_app = True
+logger = logging.getLogger('ZoneApis')
 
 ACTION_AUDIO_SINK_ITEM_NAME = 'AudioVoiceSinkName'
 ACTION_TEXT_TO_SPEECH_MESSAGE_ITEM_NAME = 'TextToSpeechMessage'
@@ -49,11 +36,7 @@ def is_in_hab_app() -> bool:
 
 def register_test_item(item: Item) -> None:
     """ Register the given item with the runtime. """
-    if is_in_hab_app():
-        HABApp.core.Items.add_item(item)
-    else:
-        scope.itemRegistry.remove(item.getName())
-        scope.itemRegistry.add(item)
+    HABApp.core.Items.add_item(item)
 
 
 def unregister_test_item(item) -> None:
@@ -112,6 +95,10 @@ def is_in_open_state(item: ContactItem):
     return False
 
 
+def create_datetime_item(name: str) -> DatetimeItem:
+    return DatetimeItem(name)
+
+
 def create_number_item(name: str) -> NumberItem:
     return NumberItem(name)
 
@@ -154,6 +141,20 @@ def set_switch_state(item_or_item_name: Union[SwitchItem, str], on: bool):
             item_or_item_name.on()
         else:
             item_or_item_name.off()
+
+
+def set_datetime_value(item: DatetimeItem, value: datetime.datetime):
+    if is_in_unit_tests():
+        item.post_value(value)
+    else:
+        item.oh_send_command(value)
+
+
+def get_datetime_value(item_or_item_name: Union[DatetimeItem, str]) -> str:
+    if isinstance(item_or_item_name, str):
+        item_or_item_name = DatetimeItem.get_item(item_or_item_name)
+
+    return item_or_item_name.get_value()
 
 
 def set_dimmer_value(item: DimmerItem, percentage: int):
@@ -246,34 +247,22 @@ def log_warning(message: str):
     logger.warning(message)
 
 
-def get_channel(item) -> str:
+def get_channel(item) -> Union[str, None]:
     """
     Returns the OpenHab channel string linked with the item.
 
     :rtype: str the channel string or None if the item is not linked to
     a channel
     """
-    if _in_hab_app:
-        if is_in_unit_tests():
-            return None
-        else:
-            try:
-                item_def = HABApp.openhab.interface.get_item(item.name, "channel")
-                metadata = item_def.metadata
-                value = metadata.get("channel")
-                return value['value'] if value is not None else None
-            except ItemNotFoundError:
-                return None
+    if is_in_unit_tests():
+        return None
     else:
-        from core import osgi
-        from org.eclipse.smarthome.core.items import MetadataKey
-        meta_registry = osgi.get_service("org.eclipse.smarthome.core.items.MetadataRegistry")
-
-        channel_meta = meta_registry.get(
-            MetadataKey('channel', item.getName()))
-        if channel_meta is not None:
-            return channel_meta.value
-        else:
+        try:
+            item_def = HABApp.openhab.interface.get_item(item.name, "channel")
+            metadata = item_def.metadata
+            value = metadata.get("channel")
+            return value['value'] if value is not None else None
+        except ItemNotFoundError:
             return None
 
 

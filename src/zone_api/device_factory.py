@@ -642,14 +642,17 @@ def create_weather(zm: ImmutableZoneManager, temperature_item: NumberItem) -> Un
     item_name = f"{device_name}_Alert_Title"
     alert_title_item = Items.get_item(item_name) if pe.has_item(item_name) else None
 
+    item_name = f"{device_name}_Alert_Date"
+    alert_datetime_item = Items.get_item(item_name) if pe.has_item(item_name) else None
+
     item_name = f"{device_name}_ForecastTempMin"
     forecast_min_temp_item = Items.get_item(item_name) if pe.has_item(item_name) else None
 
     item_name = f"{device_name}_ForecastTempMax"
     forecast_max_temp_item = Items.get_item(item_name) if pe.has_item(item_name) else None
 
-    device = Weather(temperature_item, humidity_item, condition_item, alert_title_item, forecast_min_temp_item,
-                     forecast_max_temp_item)
+    device = Weather(temperature_item, humidity_item, condition_item, alert_title_item, alert_datetime_item,
+                     forecast_min_temp_item, forecast_max_temp_item)
     device = _configure_device(device, zm)
 
     temperature_item.listen_event(
