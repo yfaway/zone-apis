@@ -1,3 +1,5 @@
+import time
+from zone_api import platform_encapsulator as pe
 from zone_api.alert import Alert
 from zone_api.core.devices.alarm_partition import AlarmPartition
 from zone_api.core.devices.contact import Door, Window
@@ -16,6 +18,11 @@ class AlertOnFailureToArm:
     def on_action(self, event_info):
         zone = event_info.get_zone()
         zone_manager = event_info.get_zone_manager()
+
+        # Wait for the user to close the door first; otherwise we will get a lot of false notification in the regular
+        # use case - arm before head out.
+        if not pe.is_in_unit_tests():
+            time.sleep(15)  # 15 secs
 
         alert_message = None
 
