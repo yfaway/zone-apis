@@ -6,6 +6,7 @@ import HABApp
 from zone_api import zone_parser as zp
 from zone_api import platform_encapsulator as pe
 from zone_api.core.devices.activity_times import ActivityType, ActivityTimes
+from zone_api.core.map_parameters import MapParameters
 
 
 class ConfigureZoneManagerRule(HABApp.Rule):
@@ -25,7 +26,11 @@ class ConfigureZoneManagerRule(HABApp.Rule):
             ActivityType.AUTO_ARM_STAY: '20:00 - 2:00',
             ActivityType.TURN_OFF_PLUGS: '23:00 - 2:00',
         }
-        zm = zp.parse(ActivityTimes(time_map))
+
+        parameters = {
+            'AlertOnBadComputerStates.maxCpuTemperatureInDegree': 60
+        }
+        zm = zp.parse(ActivityTimes(time_map), MapParameters(parameters))
         pe.add_zone_manager_to_context(zm)
 
         pe.log_info(str(pe.get_zone_manager_from_context()))

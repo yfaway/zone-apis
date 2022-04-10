@@ -10,13 +10,20 @@ from zone_api.core.action import action
 class AlertOnBadComputerStates:
     """ Send a critical alert if a bad state is detected. """
 
-    def __init__(self, max_cpu_temperature_in_degree=70, max_gpu_temperature_in_degree=70,
-                 interval_between_alerts_in_minutes=15):
-        """
-        Ctor
+    def __init__(self):
+        self._thresholds = None
+        self._names = None
+        self._interval_between_alerts_in_minutes = None
+        self._alerts = None
 
-        :raise ValueError: if any parameter is invalid
-        """
+    # noinspection PyUnusedLocal
+    def on_startup(self, event_info: EventInfo):
+        max_cpu_temperature_in_degree = self.parameters().get(self, 'maxCpuTemperatureInDegree', 70)
+        max_gpu_temperature_in_degree = self.parameters().get(self, 'maxGpuTemperatureInDegree', 70)
+        interval_between_alerts_in_minutes = self.parameters().get(self, 'intervalBetweenAlertsInMinutes', 15)
+
+        self.log_info(f"Temp: {max_cpu_temperature_in_degree}")
+
         if max_cpu_temperature_in_degree <= 0:
             raise ValueError('max_cpu_temperature_in_degree must be positive')
         if max_gpu_temperature_in_degree <= 0:

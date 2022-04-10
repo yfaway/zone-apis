@@ -3,6 +3,7 @@ from typing import Any
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.event_info import EventInfo
+from zone_api.core.parameters import Parameters
 from zone_api.core.zone_event import ZoneEvent
 
 
@@ -31,6 +32,18 @@ class Action(object):
         self._zone_name_pattern = None
         self._filtering_disabled = False
         self._priority = 10
+        self._parameters = Parameters()  # always return the default value
+
+    def set_parameters(self, parameters: Parameters):
+        """ Injects the parameter implementation. """
+        if parameters is None:
+            raise ValueError("parameters must not be none")
+
+        self._parameters = parameters
+
+    def parameters(self) -> Parameters:
+        """ Returns the injected parameters implementation. """
+        return self._parameters
 
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def on_action(self, event_info: EventInfo) -> bool:
@@ -46,7 +59,7 @@ class Action(object):
     def on_startup(self, event_info: EventInfo):
         """
         Invoked when the system has been fully initialized, and the action is ready to accept event.
-        Action should perform any initialization actions such as starting the timer here.
+        Action should perform any initialization actions such as retrieving parameters and starting the timer here.
         """
         pass
 
@@ -211,6 +224,7 @@ def action(devices=None, events=None, internal=True, external=False, levels=None
             self._external_events = external_events
             self._filtering_disabled = False
             self._priority = priority
+            self._parameters = Parameters()  # always return the default value
 
         subclass = type(clazz.__name__, (clazz, Action), dict(__init__=init))
         subclass.on_action = validate(clazz.on_action)

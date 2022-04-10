@@ -16,6 +16,8 @@ class AlertOnBadComputerStatesTest(DeviceTest):
         super(AlertOnBadComputerStatesTest, self).setUp()
 
         self.action = AlertOnBadComputerStates()
+        self.action.on_startup(None)
+
         self.zone1 = Zone('office', [], Level.FIRST_FLOOR) \
             .add_action(self.action) \
             .add_device(Computer("Desktop", items[0], items[1]))

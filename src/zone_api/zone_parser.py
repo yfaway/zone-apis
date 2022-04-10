@@ -16,6 +16,7 @@ from zone_api.core.action import Action
 from zone_api.core.devices.activity_times import ActivityTimes
 from zone_api.core.devices.gas_sensor import NaturalGasSensor, SmokeSensor, Co2GasSensor, RadonGasSensor
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
+from zone_api.core.parameters import Parameters
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.zone_manager import ZoneManager
@@ -42,7 +43,7 @@ for the OpenHab items.
 """
 
 
-def parse(activity_times: ActivityTimes, actions_package: str = "zone_api.core.actions",
+def parse(activity_times: ActivityTimes, parameters: Parameters, actions_package: str = "zone_api.core.actions",
           actions_path: List[str] = actions.__path__) -> ImmutableZoneManager:
     """
     - Parses the zones and devices from the remote OpenHab items (via the REST API).
@@ -120,7 +121,7 @@ def parse(activity_times: ActivityTimes, actions_package: str = "zone_api.core.a
         zone_mappings[zone.get_id()] = zone
 
     action_classes = get_action_classes(actions_package, actions_path)
-    zone_mappings = add_actions(zone_mappings, action_classes)
+    zone_mappings = add_actions(zone_mappings, action_classes, parameters)
 
     for z in zone_mappings.values():
         zm.add_zone(z)
@@ -178,7 +179,7 @@ def _parse_zones() -> List[Zone]:
     return zones
 
 
-def add_actions(zone_mappings: Dict, action_classes: List[Type]) -> Dict:
+def add_actions(zone_mappings: Dict, action_classes: List[Type], parameters: Parameters) -> Dict:
     """
     Create action instances from action_classes and add them to the zones.
     A set of filters are applied to ensure that only the application actions are added to each zone.
@@ -187,17 +188,21 @@ def add_actions(zone_mappings: Dict, action_classes: List[Type]) -> Dict:
 
     :param str zone_mappings: mappings from zone_id string to a Zone instance.
     :param str action_classes: the list of action types.
+    :param Parameters parameters: the Parameter implementation
     """
 
     for clazz in action_classes:
         action: Action = clazz()
+        action.set_parameters(parameters)
 
         for zone in zone_mappings.values():
             if not _can_add_action_to_zone(zone, action):
                 continue
 
             if action.must_be_unique_instance():
-                zone = zone.add_action(clazz())
+                local_action: Action = clazz()
+                local_action.set_parameters(parameters)
+                zone = zone.add_action(local_action)
             else:
                 zone = zone.add_action(action)
 
