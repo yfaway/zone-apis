@@ -4,6 +4,7 @@ from zone_api import platform_encapsulator as pe
 from zone_api.core.devices.motion_sensor import MotionSensor
 
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.devices.activity_times import ActivityTimes, ActivityType
@@ -24,7 +25,11 @@ class SimulateDaytimePresenceTest(DeviceTest):
 
         self.motion_sensor = MotionSensor(items[-1])
 
-        self.action = SimulateDaytimePresence("anUrl", 70, 0.1)
+        parameters = MapParameters({'SimulateDaytimePresence.musicUrl': "anUrl",
+                                    'SimulateDaytimePresence.musicVolume': 70,
+                                    'SimulateDaytimePresence.playDurationInSeconds': 0.1
+                                    })
+        self.action = SimulateDaytimePresence(parameters)
 
         self.partition.disarm(pe.get_event_dispatcher())
         self.audioSink._set_test_mode()

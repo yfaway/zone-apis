@@ -4,6 +4,7 @@ from zone_api import platform_encapsulator as pe
 from zone_api.core.actions.play_music_at_dinner_time import PlayMusicAtDinnerTime
 from zone_api.core.devices.activity_times import ActivityTimes, ActivityType
 from zone_api.core.devices.motion_sensor import MotionSensor
+from zone_api.core.map_parameters import MapParameters
 
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 from zone_api.core.event_info import EventInfo
@@ -31,7 +32,7 @@ class PlayMusicAtDinnerTimeTest(DeviceTest):
         }
         self.activity_times = ActivityTimes(time_map)
 
-        self.action = PlayMusicAtDinnerTime()
+        self.action = PlayMusicAtDinnerTime(MapParameters({}))
 
     def tearDown(self):
         if self.action._timer is not None:
@@ -79,7 +80,8 @@ class PlayMusicAtDinnerTimeTest(DeviceTest):
         self.assertEqual('playStream', self.sink._get_last_test_command())
 
     def testOnAction_audioSinkInZone_automaticallyPauseAtDesignatedPeriod(self):
-        self.action = PlayMusicAtDinnerTime(duration_in_minutes=0.00025)
+        parameters = MapParameters({'PlayMusicAtDinnerTime.durationInMinutes': 0.00025})
+        self.action = PlayMusicAtDinnerTime(parameters)
         zone1 = Zone('Kitchen').add_device(self.sink).add_device(self.motion) \
             .add_device(self.activity_times) \
             .add_action(self.action)

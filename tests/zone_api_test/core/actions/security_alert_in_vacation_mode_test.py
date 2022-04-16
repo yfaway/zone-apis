@@ -3,6 +3,7 @@ from zone_api.core.actions.security_alert_in_vacation_mode import SecurityAlertI
 from zone_api.core.devices.contact import Window, Door
 from zone_api.core.devices.thermostat import EcobeeThermostat
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
@@ -22,7 +23,7 @@ class SecurityAlertInVacationModeTest(DeviceTest):
         self.window = Window(items[-3])
         self.thermostat = EcobeeThermostat(items[-2], items[-1])
 
-        self.action = SecurityAlertInVacationMode()
+        self.action = SecurityAlertInVacationMode(MapParameters({}))
         self.zone1 = Zone('foyer', [self.alarmPartition, self.thermostat]).add_action(self.action)
         self.zone2 = Zone('Porch', [self.door, self.window])
         self.zm = create_zone_manager([self.zone1, self.zone2])

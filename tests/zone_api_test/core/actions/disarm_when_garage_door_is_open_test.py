@@ -6,6 +6,7 @@ from zone_api.core.devices.contact import GarageDoor
 from zone_api.core.devices.network_presence import NetworkPresence
 
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
@@ -25,7 +26,10 @@ class DisarmWhenGarageDoorIsOpenTest(DeviceTest):
         self.network_presence = NetworkPresence(items[-1])
         self.garage_door = GarageDoor(items[-2])
 
-        self.action = DisarmWhenGarageDoorIsOpen(0.015, 2)
+        parameters = MapParameters({'DisarmWhenGarageDoorIsOpen.internalInSeconds': 0.015,
+                                    'DisarmWhenGarageDoorIsOpen.maximumIntervalCount': 2
+                                    })
+        self.action = DisarmWhenGarageDoorIsOpen(parameters)
         self.zone1 = Zone('garage', [self.network_presence, self.alarm_partition, self.garage_door])\
             .add_action(self.action)
 

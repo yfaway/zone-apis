@@ -2,7 +2,7 @@ import time
 from functools import reduce
 
 from zone_api import platform_encapsulator as pe
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 from zone_api.core.event_info import EventInfo
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 from zone_api.core.zone_event import ZoneEvent
@@ -16,7 +16,7 @@ DEBUG = False
 
 
 @action(events=[ZoneEvent.MOTION], devices=[Switch], internal=True, external=True, priority=1)
-class TurnOnSwitch:
+class TurnOnSwitch(Action):
     """
     Turns on a switch (fan, dimmer or regular light), after being triggered by
     a motion event.
@@ -144,7 +144,7 @@ class TurnOnSwitch:
             off_event_info = EventInfo(ZoneEvent.SWITCH_TURNED_ON,
                                        event_info.get_item(), event_info.get_zone(),
                                        event_info.get_zone_manager(), event_info.get_event_dispatcher())
-            turn_off_action = TurnOffAdjacentZones().disable_filtering()
+            turn_off_action = TurnOffAdjacentZones(self.parameters()).disable_filtering()
             turn_off_action.on_action(off_event_info)
 
         return is_processed

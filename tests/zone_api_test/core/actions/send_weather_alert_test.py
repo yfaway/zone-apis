@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock
 from zone_api import platform_encapsulator as pe
 from zone_api.core.devices.weather import Weather
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
@@ -40,7 +41,7 @@ class SendWeatherAlertTest(DeviceTest):
         super(SendWeatherAlertTest, self).setUp()
 
         self.alert_item = items[-2]
-        self.action = SendWeatherAlert()
+        self.action = SendWeatherAlert(MapParameters({}))
         self.weather = Weather(*items)
         self.zone1 = Zone('office', [], Level.FIRST_FLOOR) \
             .add_action(self.action) \

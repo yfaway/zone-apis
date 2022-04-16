@@ -5,6 +5,7 @@ from zone_api.core.actions.alert_on_inactive_devices import AlertOnInactiveDevic
 from zone_api.core.devices.motion_sensor import MotionSensor
 
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
@@ -22,7 +23,10 @@ class AlertOnInactiveDevicesTest(DeviceTest):
         self.motion1 = MotionSensor(items[0])
         self.motion2 = MotionSensor(items[1]).set_use_wifi(True).set_auto_report(True)
 
-        self.action = AlertOnInactiveDevices(1, 1)
+        parameters = MapParameters({'AlertOnInactiveDevices.batteryPoweredPeriodInHours': 1,
+                                    'AlertOnInactiveDevices.autoReportPeriodInHours': 1
+                                    })
+        self.action = AlertOnInactiveDevices(parameters)
         self.zone1 = Zone("foyer", [self.motion1, self.motion2])
 
         self.zm = create_zone_manager([self.zone1])

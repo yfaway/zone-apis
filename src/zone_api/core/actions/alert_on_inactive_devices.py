@@ -1,14 +1,16 @@
 from enum import unique, Enum
+from typing import List
 
 from zone_api.alert import Alert
 from zone_api import platform_encapsulator as pe
 from zone_api.core.event_info import EventInfo
+from zone_api.core.parameters import ParameterConstraint, positive_number_validator, Parameters
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 
 
 @action(events=[ZoneEvent.TIMER], devices=[], zone_name_pattern='.*Virtual.*')
-class AlertOnInactiveDevices:
+class AlertOnInactiveDevices(Action):
     """
     Send an admin info alert if a battery-powered or an auto-report device hasn't got any update in the specified
     duration.
@@ -21,21 +23,17 @@ class AlertOnInactiveDevices:
         BATTERY_DEVICES = 1
         AUTO_REPORT_WIFI_DEVICES = 2
 
-    def __init__(self, battery_powered_period_in_hours: float = 3 * 24,
-                 auto_report_period_in_hours: float = 0.25):
-        """
-        Ctor
+    @staticmethod
+    def supported_parameters() -> List[ParameterConstraint]:
+        return [ParameterConstraint.optional('batteryPoweredPeriodInHours', positive_number_validator, "must be positive"),
+                ParameterConstraint.optional('autoReportPeriodInHours', positive_number_validator, "must be positive")
+                ]
 
-        :raise ValueError: if any parameter is invalid
-        """
-        if battery_powered_period_in_hours <= 0:
-            raise ValueError('battery_powered_period_in_hours must be positive')
+    def __init__(self, parameters: Parameters):
+        super().__init__(parameters)
 
-        if auto_report_period_in_hours <= 0:
-            raise ValueError('auto_report_period_in_hours must be positive')
-
-        self._battery_powered_period_in_hours = battery_powered_period_in_hours
-        self._auto_report_period_in_hours = auto_report_period_in_hours
+        self._battery_powered_period_in_hours = self.parameters().get(self, 'batteryPoweredPeriodInHours', 3 * 24)
+        self._auto_report_period_in_hours = self.parameters().get(self, 'autoReportPeriodInHours', 0.25)
 
     def on_startup(self, event_info: EventInfo):
 

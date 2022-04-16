@@ -1,6 +1,7 @@
 from zone_api import platform_encapsulator as pe
 from zone_api.core.action import Action
 from zone_api.core.actions.announce_morning_weather_and_play_music import AnnounceMorningWeatherAndPlayMusic
+from zone_api.core.map_parameters import MapParameters
 
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
@@ -134,19 +135,19 @@ class ZoneTest(DeviceTest):
         self.assertEqual(None, zone.get_device_by_event(event_info))
 
     def testAddAction_oneValidAction_actionAdded(self):
-        zone = Zone('ff').add_action(TurnOnSwitch())
+        zone = Zone('ff').add_action(TurnOnSwitch(MapParameters({})))
         self.assertEqual(1, len(zone.get_actions(ZoneEvent.MOTION)))
 
         self.assertEqual(0, len(zone.get_actions(ZoneEvent.SWITCH_TURNED_ON)))
 
     def testAddAction_twoValidAction_actionAdded(self):
-        zone = Zone('ff').add_action(TurnOnSwitch())
-        zone = zone.add_action(TurnOffAdjacentZones())
+        zone = Zone('ff').add_action(TurnOnSwitch(MapParameters({})))
+        zone = zone.add_action(TurnOffAdjacentZones(MapParameters({})))
         self.assertEqual(1, len(zone.get_actions(ZoneEvent.MOTION)))
         self.assertEqual(1, len(zone.get_actions(ZoneEvent.SWITCH_TURNED_ON)))
 
     def testAddAction_validActionWithExternalEvent_actionAdded(self):
-        zone = Zone('ff').add_action(AnnounceMorningWeatherAndPlayMusic())
+        zone = Zone('ff').add_action(AnnounceMorningWeatherAndPlayMusic(MapParameters({})))
         self.assertEqual(1, len(zone.get_actions(ZoneEvent.MOTION)))
         self.assertEqual(1, len(zone.get_actions(ZoneEvent.DOOR_CLOSED)))
         self.assertEqual(0, len(zone.get_actions(ZoneEvent.SWITCH_TURNED_ON)))
@@ -159,7 +160,7 @@ class ZoneTest(DeviceTest):
             def get_external_events(self):
                 return [ZoneEvent.WINDOW_OPEN]
 
-        zone = Zone('ff').add_action(MyAction())
+        zone = Zone('ff').add_action(MyAction(MapParameters({})))
         self.assertEqual(1, len(zone.get_actions(ZoneEvent.WINDOW_OPEN)))
 
     def testIsOccupied_everythingOff_returnsFalse(self):
@@ -255,7 +256,7 @@ class ZoneTest(DeviceTest):
         self.assertFalse(self.light.is_on())
 
         zone = Zone('ff', [self.light, self.motionSensor])
-        zone = zone.add_action(TurnOnSwitch())
+        zone = zone.add_action(TurnOnSwitch(MapParameters({})))
 
         is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor,
                                            self.motionSensor.get_item(), create_zone_manager([zone]), True)
@@ -267,7 +268,7 @@ class ZoneTest(DeviceTest):
 
         zone = Zone('ff', [self.lightWithIlluminance, self.motionSensor,
                            self.illuminanceSensor])
-        zone = zone.add_action(TurnOnSwitch())
+        zone = zone.add_action(TurnOnSwitch(MapParameters({})))
 
         is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor,
                                            self.motionSensor.get_item(), create_zone_manager([zone]), True)
@@ -280,7 +281,7 @@ class ZoneTest(DeviceTest):
 
         zone = Zone('ff', [self.lightWithIlluminance, self.motionSensor,
                            self.illuminanceSensor])
-        zone = zone.add_action(TurnOnSwitch())
+        zone = zone.add_action(TurnOnSwitch(MapParameters({})))
 
         is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor,
                                            self.motionSensor.get_item(), create_zone_manager([zone]), True)
@@ -292,7 +293,7 @@ class ZoneTest(DeviceTest):
         pe.set_string_value(self.astroSensorItem, 'MORNING')
 
         zone = Zone('ff', [self.light, self.astroSensor])
-        zone = zone.add_action(TurnOnSwitch())
+        zone = zone.add_action(TurnOnSwitch(MapParameters({})))
 
         is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor,
                                            self.motionSensor.get_item(), create_zone_manager([zone]), True)
@@ -305,7 +306,7 @@ class ZoneTest(DeviceTest):
 
         zone = Zone('ff', [self.lightWithIlluminance, self.motionSensor,
                            self.illuminanceSensor, self.astroSensor])
-        zone = zone.add_action(TurnOnSwitch())
+        zone = zone.add_action(TurnOnSwitch(MapParameters({})))
 
         is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor,
                                            self.motionSensor.get_item(), create_zone_manager([zone]), True)
@@ -317,7 +318,7 @@ class ZoneTest(DeviceTest):
 
         pe.set_string_value(self.astroSensorItem, AstroSensor.LIGHT_ON_TIMES[0])
         zone = Zone('ff', [self.light, self.motionSensor, self.astroSensor])
-        zone = zone.add_action(TurnOnSwitch())
+        zone = zone.add_action(TurnOnSwitch(MapParameters({})))
 
         is_processed = zone.dispatch_event(ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor,
                                            self.motionSensor.get_item(), create_zone_manager([zone]), True)

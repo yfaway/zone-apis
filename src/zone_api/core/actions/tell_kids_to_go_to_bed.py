@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import unique, Enum
 
 from zone_api.audio_manager import get_nearby_audio_sink
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 from zone_api.core.devices.switch import Light
 from zone_api.core.event_info import EventInfo
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
@@ -10,7 +10,7 @@ from zone_api.core.zone_event import ZoneEvent
 
 
 @action(events=[ZoneEvent.TIMER], zone_name_pattern='.*Kitchen.*')
-class TellKidsToGoToBed:
+class TellKidsToGoToBed(Action):
     """
     If there is one or more lights turned on on the first floor, the first audio message asks kids
     to clean up and prepare to go to bed. The second message is played 5' later; all the lights on

@@ -1,3 +1,4 @@
+from zone_api.core.map_parameters import MapParameters
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 from zone_api import platform_encapsulator as pe
 
@@ -17,7 +18,7 @@ class AlertOnHumidityOutOfRangeTest(DeviceTest):
         self.set_items(items)
         super(AlertOnHumidityOutOfRangeTest, self).setUp()
 
-        self.action = AlertOnHumidityOutOfRange(35, 50, 3)
+        self.action = AlertOnHumidityOutOfRange(MapParameters({}))
         self.humidity_sensor = HumiditySensor(items[0])
         self.zone1 = Zone('great room', [], Level.FIRST_FLOOR) \
             .add_device(self.humidity_sensor) \
@@ -26,16 +27,18 @@ class AlertOnHumidityOutOfRangeTest(DeviceTest):
         self.zm = create_zone_manager([self.zone1])
 
     def testOnAction_zoneDoesNotContainSensor_returnsFalse(self):
+        # noinspection PyTypeChecker
         event_info = EventInfo(ZoneEvent.HUMIDITY_CHANGED, self.get_items()[0], Zone('innerZone'),
                                None, pe.get_event_dispatcher())
-        value = AlertOnHumidityOutOfRange().on_action(event_info)
+        value = AlertOnHumidityOutOfRange(MapParameters({})).on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_zoneIsExternal_returnsFalse(self):
         zone = Zone.create_external_zone('porch').add_device(HumiditySensor(self.get_items()[0]))
+        # noinspection PyTypeChecker
         event_info = EventInfo(ZoneEvent.HUMIDITY_CHANGED, self.get_items()[0], zone,
                                None, pe.get_event_dispatcher())
-        value = AlertOnHumidityOutOfRange().on_action(event_info)
+        value = AlertOnHumidityOutOfRange(MapParameters({})).on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_humidityJustBelowMinThresholdButAboveNoticeThreshold_sendsNoAlert(self):

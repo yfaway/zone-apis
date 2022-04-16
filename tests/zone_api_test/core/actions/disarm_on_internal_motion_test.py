@@ -4,6 +4,7 @@ from zone_api.core.devices.activity_times import ActivityTimes, ActivityType
 from zone_api.core.devices.contact import Door
 
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.devices.motion_sensor import MotionSensor
@@ -29,7 +30,7 @@ class DisarmOnInternalMotionTest(DeviceTest):
         }
         self.activity_times = ActivityTimes(time_map)
 
-        self.action = DisarmOnInternalMotion()
+        self.action = DisarmOnInternalMotion(MapParameters({}))
         self.zone1 = Zone('foyer', [self.motionSensor, self.alarmPartition, self.activity_times]) \
             .add_action(self.action)
         self.zone2 = Zone.create_external_zone('porch').add_device(self.door)

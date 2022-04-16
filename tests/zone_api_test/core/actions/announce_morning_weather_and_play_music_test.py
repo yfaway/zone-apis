@@ -6,6 +6,7 @@ from zone_api.core.devices.activity_times import ActivityTimes, ActivityType
 from zone_api.core.devices.contact import Door
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.devices.weather import Weather
+from zone_api.core.map_parameters import MapParameters
 
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 from zone_api.core.event_info import EventInfo
@@ -45,7 +46,7 @@ class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
         }
         self.activity_times = ActivityTimes(time_map)
 
-        self.action = AnnounceMorningWeatherAndPlayMusic()
+        self.action = AnnounceMorningWeatherAndPlayMusic(MapParameters({}))
 
     def tearDown(self):
         if self.action._timer is not None:
@@ -130,7 +131,8 @@ class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
         self.assertEqual('playStream', self.sink._get_last_test_command())
 
     def testOnAction_audioSinkInZone_automaticallyPauseAtDesignatedPeriod(self):
-        self.action = AnnounceMorningWeatherAndPlayMusic(duration_in_minutes=0.00025)
+        parameters = MapParameters({'AnnounceMorningWeatherAndPlayMusic.durationInMinutes': 0.00025})
+        self.action = AnnounceMorningWeatherAndPlayMusic(parameters)
         zone1 = Zone('Kitchen').add_device(self.sink).add_device(self.motion) \
             .add_device(self.activity_times) \
             .add_action(self.action)

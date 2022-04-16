@@ -1,14 +1,16 @@
 from threading import Timer
+from typing import List
 
 from zone_api.alert import Alert
+from zone_api.core.parameters import Parameters, ParameterConstraint, positive_number_validator
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 from zone_api.core.devices.contact import Door
 
 
 @action(events=[ZoneEvent.DOOR_OPEN, ZoneEvent.DOOR_CLOSED],
         devices=[Door], internal=False, external=True)
-class AlertOnExternalDoorLeftOpen:
+class AlertOnExternalDoorLeftOpen(Action):
     """
     Send an warning alert if a door on an external zone has been left open for
     a period of time.
@@ -16,20 +18,15 @@ class AlertOnExternalDoorLeftOpen:
     closed (--> stop the timer)
     """
 
-    def __init__(self, max_elapsed_time_in_seconds: float = 15 * 60):
-        """
-        Ctor
+    def __init__(self, parameters: Parameters):
+        super().__init__(parameters)
 
-        :param int max_elapsed_time_in_seconds: the elapsed time in second since
-            a door has been open, and at which point an alert will be sent
-        :raise ValueError: if any parameter is invalid
-        """
-
-        if max_elapsed_time_in_seconds <= 0:
-            raise ValueError('maxElapsedTimeInSeconds must be positive')
-
+        self.maxElapsedTimeInSeconds = self.parameters().get(self, 'maxElapsedTimeInSeconds', 15 * 60)
         self.timers = {}
-        self.maxElapsedTimeInSeconds = max_elapsed_time_in_seconds
+
+    @staticmethod
+    def supported_parameters() -> List[ParameterConstraint]:
+        return [ParameterConstraint.optional('maxElapsedTimeInSeconds', positive_number_validator)]
 
     def on_action(self, event_info):
         zone = event_info.get_zone()

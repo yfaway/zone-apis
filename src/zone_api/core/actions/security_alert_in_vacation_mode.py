@@ -1,7 +1,7 @@
 from zone_api.alert import Alert
 from zone_api.core.devices.alarm_partition import AlarmPartition
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 
 SECURITY_EVENTS = [ZoneEvent.PARTITION_ARMED_AWAY, ZoneEvent.PARTITION_ARMED_STAY,
                    ZoneEvent.PARTITION_DISARMED_FROM_AWAY, ZoneEvent.PARTITION_DISARMED_FROM_STAY,
@@ -10,7 +10,7 @@ CONTACT_EVENTS = [ZoneEvent.DOOR_OPEN, ZoneEvent.DOOR_CLOSED, ZoneEvent.WINDOW_O
 
 
 @action(events=SECURITY_EVENTS + CONTACT_EVENTS, external_events=CONTACT_EVENTS, devices=[AlarmPartition])
-class SecurityAlertInVacationMode:
+class SecurityAlertInVacationMode(Action):
     """
     Send an info alert when the security arm state changes or a door/window is open/closed while in vacation mode.
     """

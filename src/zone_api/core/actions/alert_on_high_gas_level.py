@@ -1,33 +1,35 @@
+from typing import List
+
 from zone_api.alert import Alert
+from zone_api.core.parameters import Parameters, ParameterConstraint, positive_number_validator
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 from zone_api.core.devices.gas_sensor import GasSensor
 
 
 @action(events=[ZoneEvent.GAS_TRIGGER_STATE_CHANGED], devices=[GasSensor], unique_instance=True)
-class AlertOnHighGasLevel:
+class AlertOnHighGasLevel(Action):
     """
     Send a critical alert if the gas sensor is triggered (i.e. the reading
     is above the threshold).
     """
 
-    def __init__(self, interval_between_alerts_in_minutes=15):
-        """
-        Ctor
+    def __init__(self, parameters: Parameters):
+        super().__init__(parameters)
 
-        :raise ValueError: if any parameter is invalid
-        """
-        if interval_between_alerts_in_minutes <= 0:
-            raise ValueError('intervalBetweenAlertsInMinutes must be positive')
-
-        self._interval_between_alerts_in_minutes = interval_between_alerts_in_minutes
+        self._interval_between_alerts_in_minutes = self.parameters().get(self, 'intervalBetweenAlertsInMinutes', 15)
         self._alert = None
+
+    @staticmethod
+    def supported_parameters() -> List[ParameterConstraint]:
+        return [ParameterConstraint.optional('intervalBetweenAlertsInMinutes', positive_number_validator, "must be positive")]
 
     def on_action(self, event_info):
         zone = event_info.get_zone()
         zone_manager = event_info.get_zone_manager()
 
-        gas_sensor = zone.get_device_by_event(event_info)
+        # noinspection PyTypeChecker
+        gas_sensor: GasSensor = zone.get_device_by_event(event_info)
         gas_type = gas_sensor.__class__.__name__
 
         if gas_sensor.is_triggered():

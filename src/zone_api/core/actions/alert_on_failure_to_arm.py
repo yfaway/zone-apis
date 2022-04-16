@@ -4,12 +4,12 @@ from zone_api.alert import Alert
 from zone_api.core.devices.alarm_partition import AlarmPartition
 from zone_api.core.devices.contact import Door, Window
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 
 
 @action(events=[ZoneEvent.PARTITION_RECEIVE_ARM_AWAY, ZoneEvent.PARTITION_RECEIVE_ARM_STAY],
         devices=[AlarmPartition], unique_instance=True)
-class AlertOnFailureToArm:
+class AlertOnFailureToArm(Action):
     """
     Send a info alert if an external door / windows was open when the system receives arm command.
     """

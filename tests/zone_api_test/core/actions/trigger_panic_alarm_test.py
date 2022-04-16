@@ -5,6 +5,7 @@ from zone_api.core.actions.trigger_panic_alarm import TriggerPanicAlarm
 from zone_api.core.devices.alarm_partition import AlarmPartition
 from zone_api.core.devices.ikea_remote_control import IkeaRemoteControl
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
@@ -18,7 +19,7 @@ class TriggerPanicAlarmTest(DeviceTest):
         self.set_items(items)
         super(TriggerPanicAlarmTest, self).setUp()
 
-        self.action = TriggerPanicAlarm()
+        self.action = TriggerPanicAlarm(MapParameters({}))
         self.zone1 = Zone('foyer', [], Level.FIRST_FLOOR) \
             .add_action(self.action) \
             .add_device(self.alarm_partition)

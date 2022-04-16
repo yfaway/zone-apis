@@ -21,7 +21,7 @@ class Action(object):
       4. Action::on_destroy is invoked with ZoneEvent::DESTROY.
     """
 
-    def __init__(self):
+    def __init__(self, parameters: Parameters):
         self._triggering_events = None
         self._external_events = None
         self._devices = None
@@ -32,13 +32,6 @@ class Action(object):
         self._zone_name_pattern = None
         self._filtering_disabled = False
         self._priority = 10
-        self._parameters = Parameters()  # always return the default value
-
-    def set_parameters(self, parameters: Parameters):
-        """ Injects the parameter implementation. """
-        if parameters is None:
-            raise ValueError("parameters must not be none")
-
         self._parameters = parameters
 
     def parameters(self) -> Parameters:
@@ -224,7 +217,6 @@ def action(devices=None, events=None, internal=True, external=False, levels=None
             self._external_events = external_events
             self._filtering_disabled = False
             self._priority = priority
-            self._parameters = Parameters()  # always return the default value
 
         subclass = type(clazz.__name__, (clazz, Action), dict(__init__=init))
         subclass.on_action = validate(clazz.on_action)

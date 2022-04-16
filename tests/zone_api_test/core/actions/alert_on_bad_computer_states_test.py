@@ -2,6 +2,7 @@ from zone_api import platform_encapsulator as pe
 from zone_api.core.actions.alert_on_bad_computer_states import AlertOnBadComputerStates
 from zone_api.core.devices.computer import Computer
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
@@ -15,8 +16,7 @@ class AlertOnBadComputerStatesTest(DeviceTest):
         self.set_items(items)
         super(AlertOnBadComputerStatesTest, self).setUp()
 
-        self.action = AlertOnBadComputerStates()
-        self.action.on_startup(None)
+        self.action = AlertOnBadComputerStates(MapParameters({}))
 
         self.zone1 = Zone('office', [], Level.FIRST_FLOOR) \
             .add_action(self.action) \

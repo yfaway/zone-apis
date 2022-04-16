@@ -1,11 +1,9 @@
-import time
-
 from zone_api import platform_encapsulator as pe
-from zone_api.core.actions.alert_on_inactive_devices import AlertOnInactiveDevices
 from zone_api.core.actions.alert_on_low_battery_level import AlertOnLowBatteryLevel
 from zone_api.core.devices.motion_sensor import MotionSensor
 
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
@@ -22,7 +20,7 @@ class AlertOnLowBatteryLevelTest(DeviceTest):
 
         self.motion1 = MotionSensor(items[0], True, None, items[1])
 
-        self.action = AlertOnLowBatteryLevel()
+        self.action = AlertOnLowBatteryLevel(MapParameters({}))
         self.zone1 = Zone("foyer", [self.motion1])
 
         self.zm = create_zone_manager([self.zone1])

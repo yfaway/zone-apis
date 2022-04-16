@@ -1,6 +1,3 @@
-import time
-from threading import Thread
-
 from zone_api import platform_encapsulator as pe
 from zone_api.core.actions.simulate_nighttime_presence import SimulateNighttimePresence
 from zone_api.core.devices.astro_sensor import AstroSensor
@@ -8,6 +5,7 @@ from zone_api.core.devices.switch import Light
 from zone_api.core.devices.thermostat import EcobeeThermostat
 
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
@@ -33,7 +31,10 @@ class SimulateNighttimePresenceTest(DeviceTest):
         self.astro = AstroSensor(self.astro_item)
         self.thermostat = EcobeeThermostat(self.thermostat_name, self.thermostat_state)
 
-        self.action = SimulateNighttimePresence(1/60, 3/60)
+        parameters = MapParameters({'SimulateNighttimePresence.minimumLightOnDurationInMinutes': 1/60,
+                                    'SimulateNighttimePresence.maximumLightOnDurationInMinutes': 3/60,
+                                    })
+        self.action = SimulateNighttimePresence(parameters)
         self.zone1 = Zone("foyer", [self.light1])
         self.zone2 = Zone("great-room", [self.light2, self.astro, self.thermostat])
 

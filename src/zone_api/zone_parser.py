@@ -16,6 +16,7 @@ from zone_api.core.action import Action
 from zone_api.core.devices.activity_times import ActivityTimes
 from zone_api.core.devices.gas_sensor import NaturalGasSensor, SmokeSensor, Co2GasSensor, RadonGasSensor
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.parameters import Parameters
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
@@ -192,16 +193,14 @@ def add_actions(zone_mappings: Dict, action_classes: List[Type], parameters: Par
     """
 
     for clazz in action_classes:
-        action: Action = clazz()
-        action.set_parameters(parameters)
+        action: Action = clazz(parameters)
 
         for zone in zone_mappings.values():
             if not _can_add_action_to_zone(zone, action):
                 continue
 
             if action.must_be_unique_instance():
-                local_action: Action = clazz()
-                local_action.set_parameters(parameters)
+                local_action: Action = clazz(parameters)
                 zone = zone.add_action(local_action)
             else:
                 zone = zone.add_action(action)
@@ -263,7 +262,7 @@ def get_action_classes(actions_package: str = "zone_api.core.actions",
             if name.lower() == normalized_module_name:
                 try:
                     clazz = getattr(module, name)
-                    obj = clazz()
+                    obj = clazz(MapParameters({}))
                     if isinstance(obj, Action):
                         classes.append(clazz)
                 except AttributeError:

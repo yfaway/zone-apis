@@ -1,39 +1,32 @@
 import random
 from threading import Timer
+from typing import List
 
 from zone_api.audio_manager import Genre, get_music_streams_by_genres, get_nearby_audio_sink
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.event_info import EventInfo
+from zone_api.core.parameters import positive_number_validator, ParameterConstraint, Parameters
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.devices.activity_times import ActivityTimes
 
 
 @action(events=[ZoneEvent.MOTION], devices=[MotionSensor], zone_name_pattern='.*Kitchen.*')
-class PlayMusicAtDinnerTime:
+class PlayMusicAtDinnerTime(Action):
     """
     Chooses a random URL stream when the motion sensor in the kitchen is triggered at dinner time.
     Turns off after the specified period.
     """
+    @staticmethod
+    def supported_parameters() -> List[ParameterConstraint]:
+        return [ParameterConstraint.optional('durationInMinutes', positive_number_validator)]
 
     # noinspection PyDefaultArgument
-    def __init__(self,
-                 music_streams=get_music_streams_by_genres(
-                     [Genre.CLASSICAL, Genre.INSTRUMENT, Genre.JAZZ]),
-                 duration_in_minutes: float = 180):
-        """
-        Ctor
+    def __init__(self, parameters: Parameters):
+        super().__init__(parameters)
 
-        :param list[str] music_streams: a list of music stream URL; a random stream will be selected
-            from the list.
-        :raise ValueError: if any parameter is invalid
-        """
-
-        if music_streams is None or len(music_streams) == 0:
-            raise ValueError('musicUrls must be specified')
-
-        self._music_streams = music_streams
-        self._duration_in_minutes = duration_in_minutes
+        self._music_streams = get_music_streams_by_genres([Genre.CLASSICAL, Genre.INSTRUMENT, Genre.JAZZ])
+        self._duration_in_minutes = self.parameters().get(self, self.supported_parameters()[0].name(), 180)
         self._in_session = False
         self._timer = None
 

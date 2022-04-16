@@ -1,14 +1,15 @@
 import random
 from zone_api.audio_manager import get_nearby_audio_sink, get_music_streams_by_genres
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 from zone_api.core.devices.switch import Fan
+from zone_api.core.parameters import Parameters
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.devices.activity_times import ActivityTimes
 from zone_api.music_streams import Genre, MusicStreams
 
 
 @action(events=[ZoneEvent.SWITCH_TURNED_ON, ZoneEvent.SWITCH_TURNED_OFF], devices=[Fan])
-class PlayMusicDuringShower:
+class PlayMusicDuringShower(Action):
     """
     Play the provided URL stream when the washroom fan is turned on. Pause
     when it it turned off.
@@ -17,17 +18,10 @@ class PlayMusicDuringShower:
     """
 
     # noinspection PyDefaultArgument
-    def __init__(self, music_streams=[m.value for m in list(MusicStreams)]):
-        """
-        Ctor
+    def __init__(self, parameters: Parameters):
+        super().__init__(parameters)
 
-        :param str music_streams: list of music streams
-        :raise ValueError: if any parameter is invalid
-        """
-        if music_streams is None or len(music_streams) == 0:
-            raise ValueError('music_streams must be specified')
-
-        self._music_streams = music_streams
+        self._music_streams = [m.value for m in list(MusicStreams)]
 
     def on_action(self, event_info):
         zone = event_info.get_zone()

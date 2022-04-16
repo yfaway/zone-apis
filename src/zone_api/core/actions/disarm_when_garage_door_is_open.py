@@ -1,22 +1,32 @@
 from threading import Timer
+from typing import List
 
 from zone_api import security_manager as sm
 from zone_api.core.devices.contact import GarageDoor
 from zone_api.core.devices.network_presence import NetworkPresence
+from zone_api.core.parameters import positive_number_validator, ParameterConstraint, Parameters
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 
 
 @action(events=[ZoneEvent.DOOR_OPEN], devices=[GarageDoor], external=True)
-class DisarmWhenGarageDoorIsOpen:
+class DisarmWhenGarageDoorIsOpen(Action):
     """
     Automatically disarm after the garage door is open and a network device is connected to WiFi.
     (indicates that a owner has just got home).
     """
 
-    def __init__(self, interval_in_seconds=10, max_interval_count=9):
-        self.interval_in_seconds = interval_in_seconds
-        self.max_interval_count = max_interval_count
+    @staticmethod
+    def supported_parameters() -> List[ParameterConstraint]:
+        return [ParameterConstraint.optional('internalInSeconds', positive_number_validator),
+                ParameterConstraint.optional('maximumIntervalCount', positive_number_validator)
+                ]
+
+    def __init__(self, parameters: Parameters):
+        super().__init__(parameters)
+
+        self.interval_in_seconds = self.parameters().get(self, self.supported_parameters()[0].name(), 10)
+        self.max_interval_count = self.parameters().get(self, self.supported_parameters()[1].name(), 9)
 
     # noinspection PyMethodMayBeStatic
     def on_action(self, event_info):

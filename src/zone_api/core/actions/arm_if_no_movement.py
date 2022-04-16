@@ -1,15 +1,18 @@
+from typing import List
+
 from zone_api import security_manager as sm
 from zone_api.core.devices.activity_times import ActivityTimes
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.devices.network_presence import NetworkPresence
 from zone_api.core.event_info import EventInfo
+from zone_api.core.parameters import positive_number_validator, ParameterConstraint, Parameters
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 from zone_api.core.devices.alarm_partition import AlarmPartition
 
 
 @action(events=[ZoneEvent.TIMER], devices=[AlarmPartition, MotionSensor])
-class ArmIfNoMovement:
+class ArmIfNoMovement(Action):
     """
     Automatically arm-stay the house if there has been no occupancy event in the last x minutes.
     Use case: user is at home but perhaps taking a nap. Accompanied disarm rule will automatically
@@ -17,8 +20,14 @@ class ArmIfNoMovement:
     If the house is in vacation mode, arm away instead.
     """
 
-    def __init__(self, unoccupied_duration_in_minutes=30):
-        self._unoccupied_duration_in_minutes = unoccupied_duration_in_minutes
+    @staticmethod
+    def supported_parameters() -> List[ParameterConstraint]:
+        return [ParameterConstraint.optional('unoccupiedDurationInMinutes', positive_number_validator)]
+
+    def __init__(self, parameters: Parameters):
+        super().__init__(parameters)
+
+        self._unoccupied_duration_in_minutes = self.parameters().get(self, self.supported_parameters()[0].name(), 30)
 
     def on_startup(self, event_info: EventInfo):
         scheduler = event_info.get_zone_manager().get_scheduler()

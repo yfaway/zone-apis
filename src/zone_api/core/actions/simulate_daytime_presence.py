@@ -1,41 +1,43 @@
 import random
 from threading import Timer
+from typing import List
 
 from zone_api import platform_encapsulator as pe
 from zone_api import security_manager as sm
 from zone_api.audio_manager import MusicStreams, get_main_audio_sink
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 from zone_api.core.devices.motion_sensor import MotionSensor
+from zone_api.core.parameters import ParameterConstraint, percentage_validator, positive_number_validator, Parameters
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.devices.activity_times import ActivityTimes
 
 
 @action(events=[ZoneEvent.MOTION], devices=[MotionSensor], internal=False, external=True)
-class SimulateDaytimePresence:
+class SimulateDaytimePresence(Action):
     """
     Play the provided URL stream when an external motion sensor is triggered
     and while the system is in arm-away mode, and when it is not sleep time.
     @todo: use local URL to avoid reliance on the Internet connection.
     """
 
-    def __init__(self, music_url=MusicStreams.CLASSIC_ROCK_FLORIDA.value.url, music_volume=90,
-                 play_duration_in_seconds: float = None):
-        """
-        Ctor
+    MUSIC_URL = ParameterConstraint.optional('musicUrl')
+    MUSIC_VOLUME = ParameterConstraint.optional('musicVolume', percentage_validator)
+    PLAY_DURATION_IN_SECONDS = ParameterConstraint.optional('playDurationInSeconds', positive_number_validator)
 
-        :param str music_url: 
-        :param int music_volume: percentage from 0 to 100 
-        :param int play_duration_in_seconds: how long the music will be played. \
-            If not specified, this value will be generated randomly.
-        :raise ValueError: if any parameter is invalid
-        """
+    @staticmethod
+    def supported_parameters() -> List[ParameterConstraint]:
+        return [SimulateDaytimePresence.MUSIC_URL, SimulateDaytimePresence.MUSIC_VOLUME,
+                SimulateDaytimePresence.PLAY_DURATION_IN_SECONDS]
 
-        if music_url is None:
-            raise ValueError('musicUrl must be specified')
+    def __init__(self, parameters: Parameters):
+        super().__init__(parameters)
 
-        self.music_url = music_url
-        self.music_volume = music_volume
-        self.play_duration_in_seconds = play_duration_in_seconds
+        self.music_url = self.parameters().get(
+            self, SimulateDaytimePresence.MUSIC_URL.name(), MusicStreams.CLASSIC_ROCK_FLORIDA.value.url)
+        self.music_volume = self.parameters().get(self, SimulateDaytimePresence.MUSIC_VOLUME.name(), 90)
+        self.play_duration_in_seconds = self.parameters().get(
+            self, SimulateDaytimePresence.PLAY_DURATION_IN_SECONDS.name(), None)
+
         self.timer = None
 
     def on_action(self, event_info):

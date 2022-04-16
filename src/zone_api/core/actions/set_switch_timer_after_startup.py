@@ -1,11 +1,11 @@
 from zone_api.core.devices.switch import Switch
 from zone_api.core.event_info import EventInfo
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 
 
 @action(events=[ZoneEvent.STARTUP], devices=[], zone_name_pattern='.*Virtual.*')
-class SetSwitchTimerAfterStartup:
+class SetSwitchTimerAfterStartup(Action):
     """
     After the system starts up, if a switch was already on but having no active timer, that means it was turned on
     before the system. In that case, reset the timer so that the switch will turn off eventually.

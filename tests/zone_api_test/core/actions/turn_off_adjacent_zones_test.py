@@ -1,6 +1,7 @@
 from zone_api import platform_encapsulator as pe
 from zone_api.core.actions.turn_off_adjacent_zones import TurnOffAdjacentZones
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.neighbor import Neighbor, NeighborType
@@ -31,7 +32,7 @@ class TurnOffAdjacentZonesTest(DeviceTest):
                                  ILLUMINANCE_THRESHOLD_IN_LUX, "0-23:59")  # always stay on
         self.show_fan = Fan(self.fan_item, 5)
 
-        self.action = TurnOffAdjacentZones()
+        self.action = TurnOffAdjacentZones(MapParameters({}))
 
         self.washroom = Zone('washroom', [self.washroom_light]).add_action(self.action)
         self.shower = Zone('shower', [self.show_fan]).add_action(self.action)

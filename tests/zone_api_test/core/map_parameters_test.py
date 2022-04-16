@@ -19,18 +19,19 @@ class MapParameterTest(unittest.TestCase):
         params = MapParameters(dict())
 
         with self.assertRaises(ValueError) as cm:
+            # noinspection PyTypeChecker
             params.get(None, "aKey")
 
         self.assertEqual('action must not be null', cm.exception.args[0])
 
     def testGet_keyExists_returnsExpectedValue(self):
         params = MapParameters({"MyAction.myKey": 1})
-        self.assertEqual(params.get(MapParameterTest.MyAction(), 'myKey'), 1)
+        self.assertEqual(params.get(MapParameterTest.MyAction(MapParameters({})), 'myKey'), 1)
 
     def testGet_keyDoesNotExistAndNoDefault_returnsNone(self):
         params = MapParameters({})
-        self.assertEqual(params.get(MapParameterTest.MyAction(), 'myKey'), None)
+        self.assertEqual(params.get(MapParameterTest.MyAction(MapParameters({})), 'myKey'), None)
 
     def testGet_keyDoesNotExistAndWithDefault_returnsDefault(self):
         params = MapParameters({})
-        self.assertEqual(params.get(MapParameterTest.MyAction(), 'myKey', 1), 1)
+        self.assertEqual(params.get(MapParameterTest.MyAction(MapParameters({})), 'myKey', 1), 1)

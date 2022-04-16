@@ -4,12 +4,12 @@ from zone_api.core.devices.alarm_partition import AlarmPartition
 from zone_api.core.devices.thermostat import Thermostat
 from zone_api.core.event_info import EventInfo
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 
 
 @action(events=[ZoneEvent.PARTITION_ARMED_AWAY, ZoneEvent.PARTITION_DISARMED_FROM_AWAY],
         devices=[AlarmPartition])
-class ChangeThermostatBasedOnSecurityArmMode:
+class ChangeThermostatBasedOnSecurityArmMode(Action):
     """
     Change the thermostat to AWAY mode if the house is armed-away.
     Resume the regular schedule if the house is disarmed (from away mode).

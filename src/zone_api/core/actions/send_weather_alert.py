@@ -1,26 +1,34 @@
 import datetime
-from typing import Union, Tuple
+from typing import Union, Tuple, List
 
 import feedparser
 from zone_api.alert import Alert
 from zone_api.core.devices.weather import Weather
 from zone_api.core.event_info import EventInfo
+from zone_api.core.parameters import ParameterConstraint, positive_number_validator, Parameters
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.environment_canada import EnvCanada
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 
 
 @action(events=[ZoneEvent.TIMER], devices=[Weather])
-class SendWeatherAlert:
+class SendWeatherAlert(Action):
     """
     Periodically check the Alert RSS feed from Environment Canada. If the feed has changed, retrieve the details of
     the alert, and proceed with the notification.
     """
+    @staticmethod
+    def supported_parameters() -> List[ParameterConstraint]:
+        return [ParameterConstraint.optional('alertRssUrl'),
+                ParameterConstraint.optional('feedRefreshIntervalInMinutes', positive_number_validator)
+                ]
 
-    def __init__(self, alert_rss_url: str = 'https://weather.gc.ca/rss/battleboard/on41_e.xml',
-                 feed_refresh_interval_in_minutes: int = 5):
-        self._alert_rss_url = alert_rss_url
-        self._feed_refresh_interval_in_minutes = feed_refresh_interval_in_minutes
+    def __init__(self, parameters: Parameters):
+        super().__init__(parameters)
+
+        self._alert_rss_url = self.parameters().get(
+            self, self.supported_parameters()[0].name(), 'https://weather.gc.ca/rss/battleboard/on41_e.xml')
+        self._feed_refresh_interval_in_minutes = self.parameters().get(self, self.supported_parameters()[1].name(), 5)
 
     def on_startup(self, event_info: EventInfo):
 

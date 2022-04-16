@@ -1,7 +1,7 @@
 from zone_api import security_manager as sm
 from zone_api.audio_manager import get_nearby_audio_sink
 from zone_api.audio_manager import get_main_audio_sink
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 from zone_api.core.devices.activity_times import ActivityTimes
 from zone_api.core.devices.chromecast_audio_sink import ChromeCastAudioSink
 from zone_api.core.event_info import EventInfo
@@ -11,7 +11,7 @@ from zone_api.core.zone_event import ZoneEvent
 
 
 @action(events=[ZoneEvent.TIMER], devices=[ChromeCastAudioSink], levels=[Level.FIRST_FLOOR])
-class PlayMindfulnessBell:
+class PlayMindfulnessBell(Action):
     """
     Play a bell sound every x minutes. This is a Zen Buddhist practice. When the bell rings, stop if
     possible and do a deep breath for a few times.

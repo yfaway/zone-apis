@@ -3,12 +3,12 @@ from zone_api.core.devices.activity_times import ActivityTimes
 from zone_api.core.devices.contact import Door
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 from zone_api.core.devices.alarm_partition import AlarmPartition
 
 
 @action(events=[ZoneEvent.MOTION], devices=[AlarmPartition, MotionSensor])
-class DisarmOnInternalMotion:
+class DisarmOnInternalMotion(Action):
     """
     Automatically disarm the security system when the motion sensor in the zone containing the
     security panel is triggered and the current time is not in the auto-arm-stay or sleep

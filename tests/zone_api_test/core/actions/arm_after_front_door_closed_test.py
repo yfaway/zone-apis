@@ -3,6 +3,7 @@ import time
 from zone_api import platform_encapsulator as pe
 
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.devices.motion_sensor import MotionSensor
@@ -26,7 +27,8 @@ class ArmAfterFrontDoorClosedTest(DeviceTest):
         self.externalMotionSensor = MotionSensor(items[-2])
         self.internalMotionSensor = MotionSensor(items[-1])
 
-        self.action = ArmAfterFrontDoorClosed(0.1)
+        parameters = MapParameters({'ArmAfterFrontDoorClosed.maximumElapsedTimeInSeconds': 0.1})
+        self.action = ArmAfterFrontDoorClosed(parameters)
         self.zone1 = Zone.create_external_zone('porch') \
             .add_device(self.door) \
             .add_device(self.externalMotionSensor) \
@@ -69,7 +71,8 @@ class ArmAfterFrontDoorClosedTest(DeviceTest):
         pe.set_switch_state(self.door.get_item(), False)  # close door
         self.alarmPartition.disarm(pe.get_event_dispatcher())
 
-        self.action = ArmAfterFrontDoorClosed(0.2)
+        parameters = MapParameters({'ArmAfterFrontDoorClosed.maximumElapsedTimeInSeconds': 0.2})
+        self.action = ArmAfterFrontDoorClosed(parameters)
         self.zone1 = Zone.create_external_zone('porch') \
             .add_device(self.door) \
             .add_device(self.externalMotionSensor) \

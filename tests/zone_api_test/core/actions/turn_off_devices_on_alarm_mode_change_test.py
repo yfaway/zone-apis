@@ -1,4 +1,5 @@
 from zone_api import platform_encapsulator as pe
+from zone_api.core.map_parameters import MapParameters
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 from zone_api.core.event_info import EventInfo
 from zone_api.core.zone import Zone
@@ -22,7 +23,7 @@ class TurnOffDevicesOnAlarmModeChangeTest(DeviceTest):
         self.light1 = Light(items[-2], 4)
         self.light2 = Light(items[-1], 4)
 
-        self.action = TurnOffDevicesOnAlarmModeChange()
+        self.action = TurnOffDevicesOnAlarmModeChange(MapParameters({}))
 
         self.audioSink._set_test_mode()
         self.audioSink.play_stream("http://stream")

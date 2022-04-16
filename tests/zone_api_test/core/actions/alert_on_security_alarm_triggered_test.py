@@ -2,6 +2,7 @@ from zone_api import platform_encapsulator as pe
 from zone_api.core.actions.alert_on_security_alarm_triggered import AlertOnSecurityAlarmTriggered
 from zone_api.core.devices.contact import Door
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
@@ -17,7 +18,7 @@ class AlertOnSecurityAlarmTriggeredTest(DeviceTest):
         self.set_items(items)
         super(AlertOnSecurityAlarmTriggeredTest, self).setUp()
 
-        self.action = AlertOnSecurityAlarmTriggered()
+        self.action = AlertOnSecurityAlarmTriggered(MapParameters({}))
 
         self.door = Door(items[-2], items[-1])
         self.zone1 = Zone('Foyer', [self.alarm_partition, self.door]).add_action(self.action)

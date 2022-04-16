@@ -2,12 +2,13 @@ from zone_api.core.actions.turn_on_switch import TurnOnSwitch
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.neighbor import Neighbor, NeighborType
 from zone_api.core.devices.illuminance_sensor import IlluminanceSensor
 from zone_api.core.devices.motion_sensor import MotionSensor
-from zone_api.core.devices.switch import Light, Fan, Switch
+from zone_api.core.devices.switch import Light, Fan
 
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 
@@ -44,7 +45,7 @@ class TurnOnSwitchTest(DeviceTest):
         self.motionSensor1 = MotionSensor(self.motionSensorItem1)
         self.motionSensor2 = MotionSensor(self.motionSensorItem2)
 
-        self.action = TurnOnSwitch()
+        self.action = TurnOnSwitch(MapParameters({}))
 
         self.zone1 = Zone('great room', [self.light1, self.illuminanceSensor, self.motionSensor1]) \
             .add_action(self.action)
@@ -188,7 +189,7 @@ class TurnOnSwitchTest(DeviceTest):
                                self.zone2, create_zone_manager([self.zone1, self.zone2, self.zone3]),
                                pe.get_event_dispatcher())
 
-        return_val = TurnOnSwitch().on_action(event_info)
+        return_val = TurnOnSwitch(MapParameters({})).on_action(event_info)
         self.assertFalse(return_val)
         self.assertFalse(self.zone2.is_light_on())
         self.assertTrue(self.zone3.is_light_on())

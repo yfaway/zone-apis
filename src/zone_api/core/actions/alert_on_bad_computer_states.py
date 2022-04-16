@@ -1,40 +1,36 @@
+from typing import List
+
 from zone_api.alert import Alert
 from zone_api.core.devices.computer import Computer
 from zone_api.core.event_info import EventInfo
+from zone_api.core.parameters import Parameters, ParameterConstraint, positive_number_validator
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 
 
 @action(events=[ZoneEvent.COMPUTER_CPU_TEMPERATURE_CHANGED, ZoneEvent.COMPUTER_GPU_TEMPERATURE_CHANGED],
         devices=[Computer], unique_instance=True)
-class AlertOnBadComputerStates:
+class AlertOnBadComputerStates(Action):
     """ Send a critical alert if a bad state is detected. """
 
-    def __init__(self):
-        self._thresholds = None
-        self._names = None
-        self._interval_between_alerts_in_minutes = None
-        self._alerts = None
+    def __init__(self, parameters: Parameters):
+        super().__init__(parameters)
 
-    # noinspection PyUnusedLocal
-    def on_startup(self, event_info: EventInfo):
         max_cpu_temperature_in_degree = self.parameters().get(self, 'maxCpuTemperatureInDegree', 70)
         max_gpu_temperature_in_degree = self.parameters().get(self, 'maxGpuTemperatureInDegree', 70)
         interval_between_alerts_in_minutes = self.parameters().get(self, 'intervalBetweenAlertsInMinutes', 15)
-
-        self.log_info(f"Temp: {max_cpu_temperature_in_degree}")
-
-        if max_cpu_temperature_in_degree <= 0:
-            raise ValueError('max_cpu_temperature_in_degree must be positive')
-        if max_gpu_temperature_in_degree <= 0:
-            raise ValueError('max_gpu_temperature_in_degree must be positive')
-        if interval_between_alerts_in_minutes <= 0:
-            raise ValueError('intervalBetweenAlertsInMinutes must be positive')
 
         self._thresholds = [max_cpu_temperature_in_degree, max_gpu_temperature_in_degree]
         self._names = ["CPU", "GPU"]
         self._interval_between_alerts_in_minutes = interval_between_alerts_in_minutes
         self._alerts = [None, None]  # CPU & GPU
+
+    @staticmethod
+    def supported_parameters() -> List[ParameterConstraint]:
+        return [ParameterConstraint.optional('maxCpuTemperatureInDegree', positive_number_validator, "must be positive"),
+                ParameterConstraint.optional('maxGpuTemperatureInDegree', positive_number_validator, "must be positive"),
+                ParameterConstraint.optional('intervalBetweenAlertsInMinutes', positive_number_validator, "must be positive")
+                ]
 
     def on_action(self, event_info: EventInfo):
         zone = event_info.get_zone()

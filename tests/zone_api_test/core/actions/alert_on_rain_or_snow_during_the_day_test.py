@@ -3,6 +3,7 @@ from unittest.mock import patch
 from zone_api import platform_encapsulator as pe
 from zone_api.core.actions.alert_on_rain_or_snow_during_the_day import AlertOnRainOrSnowDuringTheDay
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.environment_canada import Forecast
@@ -19,7 +20,7 @@ class AlertOnRainOrSnowDuringTheDayTest(DeviceTest):
         self.set_items(items)
         super(AlertOnRainOrSnowDuringTheDayTest, self).setUp()
 
-        self.action = AlertOnRainOrSnowDuringTheDay()
+        self.action = AlertOnRainOrSnowDuringTheDay(MapParameters({}))
         self.zone1 = Zone('Virtual', [], Level.FIRST_FLOOR) \
             .add_action(self.action)
         self.zm = create_zone_manager([self.zone1])

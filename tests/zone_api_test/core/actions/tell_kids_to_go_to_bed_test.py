@@ -1,6 +1,7 @@
 from zone_api import platform_encapsulator as pe
 from zone_api.core.actions.tell_kids_to_go_to_bed import TellKidsToGoToBed
 from zone_api.core.devices.switch import Light
+from zone_api.core.map_parameters import MapParameters
 
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 from zone_api.core.event_info import EventInfo
@@ -25,7 +26,7 @@ class TellKidsToGoToBedTest(DeviceTest):
         self.kitchen_light = Light(self.light1_item, 5)
         self.foyer_light = Light(self.light2_item, 5)
 
-        self.action = TellKidsToGoToBed()
+        self.action = TellKidsToGoToBed(MapParameters({}))
 
         self.foyer = Zone('Foyer', [self.foyer_light], Level.FIRST_FLOOR)
         self.kitchen = Zone('kitchen', [self.kitchen_light, self.sink], Level.FIRST_FLOOR).add_action(self.action)

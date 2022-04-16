@@ -1,5 +1,6 @@
 from zone_api import platform_encapsulator as pe
 from zone_api.core.devices.switch import Fan
+from zone_api.core.map_parameters import MapParameters
 
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 from zone_api.core.event_info import EventInfo
@@ -22,7 +23,7 @@ class PlayMusicDuringShowerTest(DeviceTest):
         super(PlayMusicDuringShowerTest, self).setUp()
 
         self.fan = Fan(self.fan_item, 2)
-        self.action = PlayMusicDuringShower()
+        self.action = PlayMusicDuringShower(MapParameters({}))
 
     def testOnAction_wrongEventType_returnsFalse(self):
         self.zone = Zone('innerZone').add_action(self.action)

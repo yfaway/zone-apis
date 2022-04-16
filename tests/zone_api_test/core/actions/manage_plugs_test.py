@@ -4,6 +4,7 @@ from zone_api.core.devices.activity_times import ActivityTimes, ActivityType
 from zone_api.core.devices.plug import Plug
 
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.devices.motion_sensor import MotionSensor
@@ -120,7 +121,7 @@ class ManagePlugsTest(DeviceTest):
     def _setup_zone_manager(self, time_map):
         self.activity_times = ActivityTimes(time_map)
 
-        self.action = ManagePlugs()
+        self.action = ManagePlugs(MapParameters({}))
         self.zone1 = Zone('foyer', [self.plug, self.motionSensor, self.alarm_partition, self.activity_times]) \
             .add_action(self.action)
 

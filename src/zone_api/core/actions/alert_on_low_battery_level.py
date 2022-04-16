@@ -4,30 +4,26 @@ from zone_api.alert import Alert
 from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
 from zone_api.core.event_info import EventInfo
+from zone_api.core.parameters import ParameterConstraint, positive_number_validator, percentage_validator, Parameters
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 
 
 @action(events=[ZoneEvent.TIMER], devices=[], zone_name_pattern='.*Virtual.*')
-class AlertOnLowBatteryLevel:
+class AlertOnLowBatteryLevel(Action):
     """ Send an admin info alert if a device's battery level is below a threshold. """
 
-    BATTERY_PERCENTAGE_THRESHOLD = 15
+    @staticmethod
+    def supported_parameters() -> List[ParameterConstraint]:
+        return [ParameterConstraint.optional('alertPeriodInHours', positive_number_validator, "must be positive"),
+                ParameterConstraint.optional('batteryPercentageThreshold', percentage_validator, "must be a percentage")
+                ]
 
-    def __init__(self, period_in_hours: int = 3 * 24, battery_percentage_threshold=BATTERY_PERCENTAGE_THRESHOLD):
-        """
-        Ctor
+    def __init__(self, parameters: Parameters):
+        super().__init__(parameters)
 
-        :raise ValueError: if any parameter is invalid
-        """
-        if period_in_hours <= 0:
-            raise ValueError('period_in_hours must be positive')
-
-        if battery_percentage_threshold < 0 or battery_percentage_threshold > 100:
-            raise ValueError('battery_percentage_threshold must be a percentage')
-
-        self._period_in_hours = period_in_hours
-        self._battery_percentage_threshold = battery_percentage_threshold
+        self._period_in_hours = self.parameters().get(self, 'alertPeriodInHours', 3 * 24)
+        self._battery_percentage_threshold = self.parameters().get(self, 'alertPeriodInHours', 15)
 
     def on_startup(self, event_info: EventInfo):
 

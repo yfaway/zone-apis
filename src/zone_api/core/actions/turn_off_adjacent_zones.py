@@ -1,19 +1,16 @@
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.neighbor import NeighborType
 from zone_api.core.devices.switch import Light
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 
 
 @action(events=[ZoneEvent.SWITCH_TURNED_ON], devices=[Light], internal=True, external=True)
-class TurnOffAdjacentZones:
+class TurnOffAdjacentZones(Action):
     """
     Turn off the lights in the zones adjacent to the current zone if the 
     current zone's light is on and if the adjacent zones are of the OPEN_SPACE
     and OPEN_SPACE_SLAVE type.
     """
-
-    def __init__(self):
-        pass
 
     def on_action(self, event_info):
         events = event_info.get_event_dispatcher()

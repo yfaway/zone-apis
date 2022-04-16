@@ -1,11 +1,12 @@
 import random
 from threading import Timer
-from typing import Union
+from typing import Union, List
 
 from zone_api.audio_manager import Genre, get_music_streams_by_genres, get_nearby_audio_sink
 from zone_api.core.devices.weather import Weather
+from zone_api.core.parameters import ParameterConstraint, positive_number_validator, Parameters
 from zone_api.environment_canada import EnvCanada
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.devices.activity_times import ActivityTimes
@@ -13,33 +14,27 @@ from zone_api.core.devices.activity_times import ActivityTimes
 
 @action(events=[ZoneEvent.MOTION], external_events=[ZoneEvent.DOOR_CLOSED],
         devices=[MotionSensor], zone_name_pattern='.*Kitchen.*')
-class AnnounceMorningWeatherAndPlayMusic:
+class AnnounceMorningWeatherAndPlayMusic(Action):
     """
     Announces the current weather and plays a random music stream twice during the wake up period.
     This is based on the assumption of a household having two adults that leave work at different
     times. The music stops when the front door is closed.
     """
 
+    @staticmethod
+    def supported_parameters() -> List[ParameterConstraint]:
+        return [ParameterConstraint.optional('durationInMinutes', positive_number_validator),
+                ParameterConstraint.optional('maximumStartCount', positive_number_validator)
+                ]
+
     # noinspection PyDefaultArgument
-    def __init__(self,
-                 music_streams=get_music_streams_by_genres(
-                     [Genre.CLASSICAL, Genre.INSTRUMENT, Genre.JAZZ]),
-                 duration_in_minutes: float = 120,
-                 max_start_count: int = 2):
-        """
-        Ctor
+    def __init__(self, parameters: Parameters):
+        super().__init__(parameters)
 
-        :param list[str] music_streams: a list of music stream URL; a random stream will be selected
-            from the list.
-        :raise ValueError: if any parameter is invalid
-        """
-
-        if music_streams is None or len(music_streams) == 0:
-            raise ValueError('musicUrls must be specified')
-
-        self._music_streams = music_streams
-        self._max_start_count = max_start_count
-        self._duration_in_minutes = duration_in_minutes
+        self._music_streams = get_music_streams_by_genres(
+                     [Genre.CLASSICAL, Genre.INSTRUMENT, Genre.JAZZ])
+        self._duration_in_minutes = self.parameters().get(self, self.supported_parameters()[0].name(), 120)
+        self._max_start_count = self.parameters().get(self, self.supported_parameters()[1].name(), 2)
         self._in_session = False
         self._start_count = 0
         self._timer = None

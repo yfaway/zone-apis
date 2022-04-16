@@ -2,18 +2,20 @@ from zone_api.alert import Alert
 from zone_api.core.devices.alarm_partition import AlarmPartition
 from zone_api.core.devices.security_aware_mixin import SecurityAwareMixin
 from zone_api.core.event_info import EventInfo
+from zone_api.core.parameters import Parameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 
 
 @action(events=[ZoneEvent.PARTITION_IN_ALARM_STATE_CHANGED, ZoneEvent.PARTITION_FIRE_ALARM_STATE_CHANGED],
         devices=[AlarmPartition])
-class AlertOnSecurityAlarmTriggered:
+class AlertOnSecurityAlarmTriggered(Action):
     """ Send a critical alert if the security alarm is triggered. """
 
-    def __init__(self):
-        """ Ctor """
+    def __init__(self, parameters: Parameters):
+        super().__init__(parameters)
+
         self._general_alert = None
         self._fire_alert = None
 

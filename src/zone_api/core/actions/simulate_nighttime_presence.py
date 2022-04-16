@@ -1,12 +1,14 @@
 import random
 from threading import Timer
+from typing import List
 
 from zone_api import platform_encapsulator as pe
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 from zone_api.core.devices.astro_sensor import AstroSensor
 from zone_api.core.devices.switch import Light
 from zone_api.core.event_info import EventInfo
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
+from zone_api.core.parameters import ParameterConstraint, positive_number_validator, Parameters
 from zone_api.core.zone_event import ZoneEvent
 
 ON_EVENTS = [ZoneEvent.VACATION_MODE_ON, ZoneEvent.ASTRO_LIGHT_ON]
@@ -16,7 +18,7 @@ DISPLAY_ITEM_NAME = 'Out_Light_Simulation'
 
 
 @action(events=ON_EVENTS + OFF_EVENTS, external_events=ON_EVENTS + OFF_EVENTS, devices=[AstroSensor])
-class SimulateNighttimePresence:
+class SimulateNighttimePresence(Action):
     """
     When on vacation mode, after the sunset and before bed time, randomly turn on a managed light for a random period.
     After the period expires, randomly select another light (could be the same one again) and turn it on. Repeat this
@@ -24,10 +26,24 @@ class SimulateNighttimePresence:
     If the OH switch item DISPLAY_ITEM_NAME is present, set its value to True if light simulation is running.
     """
 
-    def __init__(self, min_light_on_duration_in_minutes=3, max_light_on_duration_in_minutes=8):
+    MIN_LIGHT_ON_DURATION_IN_MINUTES = ParameterConstraint.optional(
+        'minimumLightOnDurationInMinutes', positive_number_validator)
+    MAX_LIGHT_ON_DURATION_IN_MINUTES = ParameterConstraint.optional(
+        'maximumLightOnDurationInMinutes', positive_number_validator)
+
+    @staticmethod
+    def supported_parameters() -> List[ParameterConstraint]:
+        return [SimulateNighttimePresence.MIN_LIGHT_ON_DURATION_IN_MINUTES,
+                SimulateNighttimePresence.MAX_LIGHT_ON_DURATION_IN_MINUTES]
+
+    def __init__(self, parameters: Parameters):
         """ Ctor """
-        self.min_light_on_duration_in_minutes = min_light_on_duration_in_minutes
-        self.max_light_on_duration_in_minutes = max_light_on_duration_in_minutes
+        super().__init__(parameters)
+
+        self.min_light_on_duration_in_minutes = self.parameters().get(
+            self, SimulateNighttimePresence.MIN_LIGHT_ON_DURATION_IN_MINUTES, 3)
+        self.max_light_on_duration_in_minutes = self.parameters().get(
+            self, SimulateNighttimePresence.MAX_LIGHT_ON_DURATION_IN_MINUTES, 8)
 
         # noinspection PyTypeChecker
         self.timer: Timer = None

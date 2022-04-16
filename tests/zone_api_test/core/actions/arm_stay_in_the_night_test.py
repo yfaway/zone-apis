@@ -3,6 +3,7 @@ from zone_api.core.actions.arm_stay_in_the_night import ArmStayInTheNight
 from zone_api.core.devices.activity_times import ActivityTimes, ActivityType
 
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
@@ -23,7 +24,7 @@ class ArmStayInTheNightTest(DeviceTest):
         }
         self.activity_times = ActivityTimes(time_map)
 
-        self.action = ArmStayInTheNight()
+        self.action = ArmStayInTheNight(MapParameters({}))
         self.zone1 = Zone('foyer', [self.alarm_partition, self.activity_times]) \
             .add_action(self.action)
 

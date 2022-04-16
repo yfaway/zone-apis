@@ -1,15 +1,25 @@
+from typing import List
+
 from zone_api.alert import Alert
 from zone_api.core.event_info import EventInfo
+from zone_api.core.parameters import ParameterConstraint, Parameters
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.environment_canada import EnvCanada
 from zone_api import platform_encapsulator as pe
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 
 
 @action(events=[ZoneEvent.TIMER], devices=[], zone_name_pattern='.*Virtual.*')
-class AlertOnRainOrSnowDuringTheDay:
-    def __init__(self, city: str = 'Ottawa'):
-        self._city = city
+class AlertOnRainOrSnowDuringTheDay(Action):
+    @staticmethod
+    def supported_parameters() -> List[ParameterConstraint]:
+        return [ParameterConstraint.optional('city')]
+
+    def __init__(self, parameters: Parameters):
+        super().__init__(parameters)
+
+        self._city = self.parameters().get(
+            self, AlertOnRainOrSnowDuringTheDay.supported_parameters()[0].name(), 'Ottawa')
 
     def on_startup(self, event_info: EventInfo):
 

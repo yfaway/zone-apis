@@ -1,15 +1,16 @@
 from zone_api.alert_manager import *
 
 from zone_api.core.devices.alarm_partition import AlarmPartition
+from zone_api.core.parameters import Parameters
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 from zone_api.core.devices.camera import Camera
 from zone_api.core.devices.contact import Door
 from zone_api import platform_encapsulator as pe
 
 
 @action(events=[ZoneEvent.MOTION], devices=[Camera], internal=False, external=True)
-class AlertOnEntranceActivity:
+class AlertOnEntranceActivity(Action):
     """
     The alert is triggered from a PIR motion sensor. The motion sensor sometimes generate false
     positive event. This is remedied by determining if the camera also detects motion (through the
@@ -20,9 +21,10 @@ class AlertOnEntranceActivity:
     out of the house, and thus shouldn't triggered the event.
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, parameters: Parameters):
+        super().__init__(parameters)
 
+    # noinspection PyMethodMayBeStatic
     def on_action(self, event_info):
         zone = event_info.get_zone()
         zone_manager = event_info.get_zone_manager()

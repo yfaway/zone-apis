@@ -1,3 +1,4 @@
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone_manager import ZoneManager
 from zone_api import platform_encapsulator as pe
 
@@ -137,7 +138,7 @@ class ZoneManagerTest(DeviceTest):
         pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
         zone = Zone('ff', [self.light, self.motionSensor, self.illuminanceSensor])
-        zone = zone.add_action(TurnOnSwitch())
+        zone = zone.add_action(TurnOnSwitch(MapParameters({})))
         self.zm.add_zone(zone)
 
         self.assertTrue(self.zm.get_immutable_instance().dispatch_event(

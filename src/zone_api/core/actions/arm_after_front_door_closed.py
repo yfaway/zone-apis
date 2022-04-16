@@ -1,39 +1,39 @@
 from threading import Timer
+from typing import List
 
 from zone_api.alert import Alert
 from zone_api.core.devices.plug import Plug
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
+from zone_api.core.parameters import ParameterConstraint, positive_number_validator, Parameters
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 from zone_api.core.devices.alarm_partition import AlarmPartition
 from zone_api.core.devices.contact import Door
 from zone_api import platform_encapsulator as pe
 
 
 @action(events=[ZoneEvent.DOOR_CLOSED], devices=[Door], internal=False, external=True)
-class ArmAfterFrontDoorClosed:
+class ArmAfterFrontDoorClosed(Action):
     """
     Automatically arm the house if a front door was closed and there was no
     activity in the house for x number of seconds.
     Once armed, an alert will be sent out.
     """
 
-    def __init__(self, max_elapsed_time_in_seconds: float = 15 * 60):
+    @staticmethod
+    def supported_parameters() -> List[ParameterConstraint]:
         """
-        Ctor
-
-        :param int max_elapsed_time_in_seconds: the elapsed time in second since a door has been
-            closed at which point the timer will determine if there was any previous activity in
-            the house. If not, the security system is armed. Note that a motion sensor might not
-            switched to OFF until a few minutes later; do take this into consideration.
-        :raise ValueError: if any parameter is invalid
+        maxElapsedTimeInSeconds: the elapsed time in second since a door has been closed at which point the timer
+        will determine if there was any previous activity in the house. If not, the security system is armed. Note that
+        a motion sensor might not switched to OFF until a few minutes later; do take this into consideration.
         """
+        return [ParameterConstraint.optional('maximumElapsedTimeInSeconds', positive_number_validator)]
 
-        if max_elapsed_time_in_seconds <= 0:
-            raise ValueError('maxElapsedTimeInSeconds must be positive')
+    def __init__(self, parameters: Parameters):
+        super().__init__(parameters)
 
         self.timer = None
-        self.max_elapsed_time_in_seconds = max_elapsed_time_in_seconds
+        self.max_elapsed_time_in_seconds = self.parameters().get(self, self.supported_parameters()[0].name(), 15 * 60)
 
     def on_action(self, event_info):
         events = event_info.get_event_dispatcher()

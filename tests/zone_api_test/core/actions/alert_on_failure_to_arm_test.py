@@ -2,6 +2,7 @@ from zone_api import platform_encapsulator as pe
 from zone_api.core.actions.alert_on_failure_to_arm import AlertOnFailureToArm
 from zone_api.core.devices.contact import Door, Window
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
@@ -21,7 +22,7 @@ class AlertOnFailureToArmTest(DeviceTest):
         self.door = Door(items[-4], items[-3])
         self.window = Window(items[-2], items[-1])
 
-        self.action = AlertOnFailureToArm()
+        self.action = AlertOnFailureToArm(MapParameters({}))
 
         self.zone1 = Zone('foyer', [self.alarmPartition]).add_action(self.action)
         self.zone2 = Zone.create_external_zone('foyer').add_device(self.door).add_device(self.window)

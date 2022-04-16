@@ -2,6 +2,7 @@ from zone_api import platform_encapsulator as pe
 from zone_api.core.actions.alert_on_water_leak import AlertOnWaterLeak
 from zone_api.core.devices.water_leak_sensor import WaterLeakSensor
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
@@ -15,7 +16,7 @@ class AlertWaterLeakTest(DeviceTest):
         self.set_items(items)
         super(AlertWaterLeakTest, self).setUp()
 
-        self.action = AlertOnWaterLeak()
+        self.action = AlertOnWaterLeak(MapParameters({}))
         self.zone1 = Zone('great room', [], Level.FIRST_FLOOR) \
             .add_action(self.action) \
             .add_device(WaterLeakSensor(items[0]))

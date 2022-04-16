@@ -3,14 +3,14 @@ from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.devices.plug import Plug
 from zone_api.core.event_info import EventInfo
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 from zone_api.core.devices.alarm_partition import AlarmPartition
 
 
 @action(events=[ZoneEvent.TIMER, ZoneEvent.MOTION, ZoneEvent.PARTITION_ARMED_AWAY,
                 ZoneEvent.PARTITION_DISARMED_FROM_AWAY],
         devices=[AlarmPartition, MotionSensor])
-class ManagePlugs:
+class ManagePlugs(Action):
     """
     Turns off the plugs if the house is armed-away or if it is evening time (via ActivityTimes).
     Turn on the internal plugs on the first motion sensor trigger during wake-up time period, or when

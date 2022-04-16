@@ -4,6 +4,7 @@ from zone_api.alert_manager import AlertManager
 from zone_api import platform_encapsulator as pe
 
 from zone_api.core.event_info import EventInfo
+from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.devices.contact import Door
@@ -21,7 +22,7 @@ class AlertOnExternalDoorLeftOpenTest(DeviceTest):
         self.set_items(items)
         super(AlertOnExternalDoorLeftOpenTest, self).setUp()
 
-        self.action = AlertOnExternalDoorLeftOpen()
+        self.action = AlertOnExternalDoorLeftOpen(MapParameters({}))
         self.zone1 = Zone.create_external_zone('porch').add_device(Door(items[0]))
         self.zone2 = Zone.create_external_zone('garage').add_device(Door(items[1]))
         self.alertManager = AlertManager()
@@ -29,7 +30,7 @@ class AlertOnExternalDoorLeftOpenTest(DeviceTest):
         self.zm = create_zone_manager([self.zone1, self.zone2])
 
     def testOnAction_notAnExternalZone_returnsFalse(self):
-        event_info = EventInfo(ZoneEvent.DOOR_OPEN,self.get_items()[0],
+        event_info = EventInfo(ZoneEvent.DOOR_OPEN, self.get_items()[0],
                                Zone('innerZone').add_action(self.action), self.zm,
                                pe.get_event_dispatcher())
         value = self.action.on_action(event_info)
@@ -45,7 +46,8 @@ class AlertOnExternalDoorLeftOpenTest(DeviceTest):
     def testOnAction_aDoorIsOpen_returnsTrue(self):
         pe.set_switch_state(self.get_items()[0], True)
 
-        self.action = AlertOnExternalDoorLeftOpen(0.1)
+        parameters = MapParameters({'AlertOnExternalDoorLeftOpen.maxElapsedTimeInSeconds': 0.1})
+        self.action = AlertOnExternalDoorLeftOpen(parameters)
         self.zone1 = self.zone1.add_action(self.action)
         event_info = EventInfo(ZoneEvent.DOOR_OPEN, self.get_items()[0], self.zone1, self.zm,
                                pe.get_event_dispatcher())

@@ -1,7 +1,7 @@
 import datetime
 from typing import List
 
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 from zone_api.core.devices.plug import Plug
 from zone_api.core.event_info import EventInfo
 from zone_api.core.zone_event import ZoneEvent
@@ -10,7 +10,7 @@ ON_EVENTS = [ZoneEvent.ASTRO_LIGHT_ON]
 
 
 @action(events=ON_EVENTS + [ZoneEvent.ASTRO_BED_TIME], external_events=ON_EVENTS + [ZoneEvent.ASTRO_BED_TIME], devices=[Plug], external=True, internal=False)
-class TurnOnOutdoorXmasPlugs:
+class TurnOnOutdoorXmasPlugs(Action):
     """ Turn on the outdoor XMAS plugs in December. """
 
     # noinspection PyMethodMayBeStatic

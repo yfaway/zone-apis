@@ -1,12 +1,12 @@
 from zone_api.alert import Alert
 from zone_api.core.devices.contact import Window
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 
 
 @action(events=[ZoneEvent.WINDOW_OPEN, ZoneEvent.WINDOW_CLOSED],
         devices=[Window], internal=False, external=True)
-class AlertOnExternalWindowOpen:
+class AlertOnExternalWindowOpen(Action):
     """
     Send an info alert when the window is open / closed.
     """
