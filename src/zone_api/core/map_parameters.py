@@ -1,4 +1,4 @@
-from typing import Mapping, Any, TYPE_CHECKING
+from typing import Mapping, Any, TYPE_CHECKING, Type, List
 
 from zone_api.core.parameters import Parameters
 
@@ -17,12 +17,17 @@ class MapParameters(Parameters):
 
         self.values = values
 
-    def get(self, action: 'Action', key: str, default: Any = None):
+    def keys(self, action_type: Type) -> List[str]:
         """ @Override """
-        if not action:
-            raise ValueError("action must not be null")
+        prefix = action_type.__name__
+        return [key[len(prefix) + 1:] for key in self.values.keys() if key.startswith(prefix)]
 
-        action_name = action.__class__.__name__
+    def get_by_type(self, action_type: Type, key: str, default: Any = None):
+        """ @Override """
+        if not action_type:
+            raise ValueError("action_type must not be null")
+
+        action_name = action_type.__name__
         full_key = f"{action_name}.{key}"
 
         if full_key in self.values.keys():

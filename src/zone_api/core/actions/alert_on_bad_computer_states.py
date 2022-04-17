@@ -27,9 +27,9 @@ class AlertOnBadComputerStates(Action):
 
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
-        return [ParameterConstraint.optional('maxCpuTemperatureInDegree', positive_number_validator, "must be positive"),
-                ParameterConstraint.optional('maxGpuTemperatureInDegree', positive_number_validator, "must be positive"),
-                ParameterConstraint.optional('intervalBetweenAlertsInMinutes', positive_number_validator, "must be positive")
+        return [ParameterConstraint.optional('maxCpuTemperatureInDegree', positive_number_validator),
+                ParameterConstraint.optional('maxGpuTemperatureInDegree', positive_number_validator),
+                ParameterConstraint.optional('intervalBetweenAlertsInMinutes', positive_number_validator)
                 ]
 
     def on_action(self, event_info: EventInfo):
