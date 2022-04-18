@@ -23,6 +23,12 @@ class Parameters(object):
         """
         raise NotImplemented()
 
+    def unique_action_type_names(self) -> List[str]:
+        """
+        Returns a list of unique action type strings that this object contains values for.
+        """
+        raise NotImplemented()
+
     def get(self, action: 'Action', name: str, default: Any = None):
         """ Returns the named parameter for the given action via Parameters::get_by_type() """
 
@@ -31,7 +37,34 @@ class Parameters(object):
 
         return self.get_by_type(action.__class__, name, default)
 
-    def validate(self, action_type: Type) -> Tuple[bool, List[str]]:
+    def validate(self, action_types: List[Type]) -> Tuple[bool, List[str]]:
+        """
+        Validates if the values contained in this object are supported by the provided action types. Specifically, If a
+        value is specified, it must be supported by the action action_type::supported_parameters() and it must pass the
+        validation.
+
+        :return: a tuple of boolean value and a list of errors
+        """
+        error_messages = []
+        for action_type in action_types:
+            (validated, errors) = self._validate_against_single_action_type(action_type)
+            if not validated:
+                error_messages = error_messages + errors
+
+        # Scan for keys in invalid actions
+        defined_unique_type_names = self.unique_action_type_names()
+        provided_unique_type_names = set([a.__name__ for a in action_types])
+
+        invalid_type_names = [d for d in defined_unique_type_names if d not in provided_unique_type_names]
+        if len(invalid_type_names) > 0:
+            error_messages.append("Unsupported action types: " + ", ".join(invalid_type_names))
+
+        if len(error_messages) == 0:
+            return True, []
+        else:
+            return False, error_messages
+
+    def _validate_against_single_action_type(self, action_type: Type) -> Tuple[bool, List[str]]:
         """
         Validates if the values contained in this object matches with the action_type's declared available types
         via action_type::supported_parameters() function.

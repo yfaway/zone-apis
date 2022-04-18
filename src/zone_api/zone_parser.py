@@ -44,7 +44,7 @@ for the OpenHab items.
 """
 
 
-def parse(activity_times: ActivityTimes, parameters: Parameters, actions_package: str = "zone_api.core.actions",
+def parse(activity_times: ActivityTimes, action_parameters: Parameters, actions_package: str = "zone_api.core.actions",
           actions_path: List[str] = actions.__path__) -> ImmutableZoneManager:
     """
     - Parses the zones and devices from the remote OpenHab items (via the REST API).
@@ -122,7 +122,7 @@ def parse(activity_times: ActivityTimes, parameters: Parameters, actions_package
         zone_mappings[zone.get_id()] = zone
 
     action_classes = get_action_classes(actions_package, actions_path)
-    zone_mappings = add_actions(zone_mappings, action_classes, parameters)
+    zone_mappings = add_actions(zone_mappings, action_classes, action_parameters)
 
     for z in zone_mappings.values():
         zm.add_zone(z)
@@ -194,7 +194,7 @@ def add_actions(zone_mappings: Dict, action_classes: List[Type], parameters: Par
     """
 
     for clazz in action_classes:
-        (validated, errors) = parameters.validate(clazz)
+        (validated, errors) = parameters._validate_against_single_action_type(clazz)
         if not validated:
             raise ValueError("\n".join(errors))
 

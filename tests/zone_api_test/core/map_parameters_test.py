@@ -21,6 +21,18 @@ class MapParameterTest(unittest.TestCase):
 
         self.assertEqual('values must not be none', cm.exception.args[0])
 
+    def testCtor_emptyKey_raiseException(self):
+        with self.assertRaises(ValueError) as cm:
+            MapParameters({'': 15})
+
+        self.assertEqual('Must be of format: action_type_name.key - ', cm.exception.args[0])
+
+    def testCtor_missionActionTypeInKey_raiseException(self):
+        with self.assertRaises(ValueError) as cm:
+            MapParameters({'aKey': 15})
+
+        self.assertEqual('Must be of format: action_type_name.key - aKey', cm.exception.args[0])
+
     def testGet_nullAction_throwException(self):
         params = MapParameters(dict())
 
@@ -46,28 +58,30 @@ class MapParameterTest(unittest.TestCase):
         class MyActionWithNoParams(Action):
             pass
 
-        params = MapParameters({'random': 4})
-        (validated, errors) = params.validate(MyActionWithNoParams)
+        params = MapParameters({'MyAction.value1': 2})
+        (validated, errors) = params.validate([MyActionWithNoParams, MapParameterTest.MyAction])
         self.assertTrue(validated)
         self.assertEqual(len(errors), 0)
 
     def testValidate_validValues_returnsTrue(self):
         params = MapParameters({'MyAction.value1': 2, 'MyAction.value2': 2})
-        (validated, errors) = params.validate(MapParameterTest.MyAction)
+        (validated, errors) = params.validate([MapParameterTest.MyAction])
 
         self.assertTrue(validated)
         self.assertEqual(len(errors), 0)
 
-    def testValidate_validValuesIgnoreOtherActionKeys_returnsTrue(self):
+
+    def testValidate_containsInvalidAction_returnsFalse(self):
         params = MapParameters({'MyAction.value1': 2, 'MyAction.value2': 2, 'NotMyAction.key': 15})
-        (validated, errors) = params.validate(MapParameterTest.MyAction)
+        (validated, errors) = params.validate([MapParameterTest.MyAction])
 
-        self.assertTrue(validated)
-        self.assertEqual(len(errors), 0)
+        self.assertFalse(validated)
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors[0], "Unsupported action types: NotMyAction")
 
     def testValidate_valueNotValidatedDefaultErrorMessage_returnsFalse(self):
         params = MapParameters({'MyAction.value1': -2})
-        (validated, errors) = params.validate(MapParameterTest.MyAction)
+        (validated, errors) = params.validate([MapParameterTest.MyAction])
 
         self.assertFalse(validated)
         self.assertEqual(len(errors), 1)
@@ -75,7 +89,7 @@ class MapParameterTest(unittest.TestCase):
 
     def testValidate_valueNotValidatedWithErrorMessage_returnsFalse(self):
         params = MapParameters({'MyAction.value2': -2})
-        (validated, errors) = params.validate(MapParameterTest.MyAction)
+        (validated, errors) = params.validate([MapParameterTest.MyAction])
 
         self.assertFalse(validated)
         self.assertEqual(len(errors), 1)
@@ -83,14 +97,14 @@ class MapParameterTest(unittest.TestCase):
 
     def testValidate_multipleValueNotValidated_returnsFalse(self):
         params = MapParameters({'MyAction.value1': -2, 'MyAction.value2': -2})
-        (validated, errors) = params.validate(MapParameterTest.MyAction)
+        (validated, errors) = params.validate([MapParameterTest.MyAction])
 
         self.assertFalse(validated)
         self.assertEqual(len(errors), 2)
 
     def testValidate_keyNotSupported_returnsFalse(self):
         params = MapParameters({'MyAction.badKey1': 2, 'MyAction.badKey2': 2})
-        (validated, errors) = params.validate(MapParameterTest.MyAction)
+        (validated, errors) = params.validate([MapParameterTest.MyAction])
 
         self.assertFalse(validated)
         self.assertEqual(len(errors), 1)
