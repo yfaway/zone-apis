@@ -27,6 +27,7 @@ setup(
         'requests',
         'schedule',
         'feedparser',
+        'pyyaml',
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
