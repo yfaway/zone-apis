@@ -192,12 +192,11 @@ def add_actions(zone_mappings: Dict, action_classes: List[Type], parameters: Par
     :param Parameters parameters: the Parameter implementation
     :raise ValueError: if there are invalid parameters
     """
+    (validated, errors) = parameters.validate(action_classes)
+    if not validated:
+        raise ValueError("\n".join(errors))
 
     for clazz in action_classes:
-        (validated, errors) = parameters._validate_against_single_action_type(clazz)
-        if not validated:
-            raise ValueError("\n".join(errors))
-
         action: Action = clazz(parameters)
 
         for zone in zone_mappings.values():

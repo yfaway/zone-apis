@@ -1,0 +1,5 @@
+
+# Contains the parameters for each named actions.
+action-parameters:
+  AlertOnBadComputerStates:
+    maxCpuTemperatureInDegree: 60

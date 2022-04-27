@@ -1,4 +1,6 @@
 import HABApp
+import os
+import yaml
 # from importlib import reload
 # from zone_api import zone_parser
 # reload(zone_parser)
@@ -27,13 +29,34 @@ class ConfigureZoneManagerRule(HABApp.Rule):
             ActivityType.TURN_OFF_PLUGS: '23:00 - 2:00',
         }
 
-        parameters = {
-            'AlertOnBadComputerStates.maxCpuTemperatureInDegree': 60
-        }
-        zm = zp.parse(ActivityTimes(time_map), MapParameters(parameters))
+        # When running on the PI
+        config_file = '/home/pi/git/zone-apis/habapp/config.yml'
+        if not os.path.exists(config_file):  # In development machine
+            config_file = './habapp/zone-api-config.yml'
+            if not os.path.exists(config_file):
+                raise ValueError("Missing zone-api-config.yml file.")
+
+        pe.log_info(f"Reading zone-api configuration from '{config_file}'")
+
+        zm = zp.parse(ActivityTimes(time_map), self._read_zone_api_configurations(config_file))
         pe.add_zone_manager_to_context(zm)
 
         pe.log_info(str(pe.get_zone_manager_from_context()))
+
+    @staticmethod
+    def _read_zone_api_configurations(config_file: str) -> MapParameters:
+        flat_map = {}
+        with open(config_file, 'r') as file:
+            config = yaml.safe_load(file)
+
+            all_action_params = config['action-parameters']
+            for action_name in all_action_params.keys():
+                action_params = all_action_params[action_name]
+                for key in action_params.keys():
+                    flat_key = f"{action_name}.{key}"
+                    flat_map[flat_key] = action_params[key]
+
+        return MapParameters(flat_map)
 
 
 ConfigureZoneManagerRule()

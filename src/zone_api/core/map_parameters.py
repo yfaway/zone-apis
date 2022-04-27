@@ -30,7 +30,7 @@ class MapParameters(Parameters):
     def keys(self, action_type: Type) -> List[str]:
         """ @Override """
         prefix = action_type.__name__
-        return [key[len(prefix) + 1:] for key in self.values.keys() if key.startswith(prefix)]
+        return [key[len(prefix) + 1:] for key in self.values.keys() if key.startswith(prefix + ".")]
 
     def unique_action_type_names(self) -> Set[str]:
         """ @Override """
