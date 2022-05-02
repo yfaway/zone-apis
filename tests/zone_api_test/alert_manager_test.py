@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 from zone_api.alert import Alert
 # noinspection PyProtectedMember
-from zone_api.alert_manager import AlertManager, _get_owner_email_addresses
+from zone_api.alert_manager import AlertManager
 from zone_api.core.devices.activity_times import ActivityTimes, ActivityType
 from zone_api.core.devices.chromecast_audio_sink import ChromeCastAudioSink
 from zone_api.core.zone import Zone
@@ -33,14 +33,20 @@ class AlertManagerTest(DeviceTest):
         self._zone = Zone('great room', [self._cast, self._activity_time])
         self._zm = create_zone_manager([self._zone])
 
-        self._properties_file = 'email-addresses.txt'
-        self._fixture = AlertManager(self._properties_file)
+        yaml_string = """
+            system:
+              alerts:
+                email:
+                  owner-email-addresses:
+                    - user1@gmail.com
+                    - user2@gmail.com
+                  admin-email-addresses:
+                    - admin1@gmail.com"""
 
-        self._fixture._set_test_mode(True)
-
-    def tearDown(self):
-        super(AlertManagerTest, self).tearDown()
-        self._fixture._set_test_mode(False)
+        import io
+        import yaml
+        config = yaml.safe_load(io.StringIO(yaml_string))
+        self._fixture = AlertManager.test_instance(config)
 
     def testProcessAlert_missingAlert_throwsException(self):
         with self.assertRaises(ValueError) as cm:
@@ -98,9 +104,9 @@ class AlertManagerTest(DeviceTest):
         self.assertTrue(result)
         self.assertEqual(alert.get_subject(), self._fixture._lastEmailedSubject)
 
-    def testGetEmailAddresses_noParams_returnsNonEmptyList(self):
-        emails = _get_owner_email_addresses(self._properties_file)
-        self.assertTrue(len(emails) > 0)
+    def testTestInstance_noParam_returnsNonEmptyList(self):
+        self.assertEqual(len(self._fixture._owner_email_addresses), 2)
+        self.assertTrue(len(self._fixture._admin_email_addresses), 1)
 
     def testTurnOnLight_notLightOnTime_notTurnOnLights(self):
         light = MagicMock()

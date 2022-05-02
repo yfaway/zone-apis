@@ -1,3 +1,5 @@
+from typing import Hashable, Any
+
 import HABApp
 import os
 import yaml
@@ -38,25 +40,13 @@ class ConfigureZoneManagerRule(HABApp.Rule):
 
         pe.log_info(f"Reading zone-api configuration from '{config_file}'")
 
-        zm = zp.parse(ActivityTimes(time_map), self._read_zone_api_configurations(config_file))
-        pe.add_zone_manager_to_context(zm)
-
-        pe.log_info(str(pe.get_zone_manager_from_context()))
-
-    @staticmethod
-    def _read_zone_api_configurations(config_file: str) -> MapParameters:
-        flat_map = {}
         with open(config_file, 'r') as file:
             config = yaml.safe_load(file)
 
-            all_action_params = config['action-parameters']
-            for action_name in all_action_params.keys():
-                action_params = all_action_params[action_name]
-                for key in action_params.keys():
-                    flat_key = f"{action_name}.{key}"
-                    flat_map[flat_key] = action_params[key]
+        zm = zp.parse(ActivityTimes(time_map), config)
+        pe.add_zone_manager_to_context(zm)
 
-        return MapParameters(flat_map)
+        pe.log_info(str(pe.get_zone_manager_from_context()))
 
 
 ConfigureZoneManagerRule()

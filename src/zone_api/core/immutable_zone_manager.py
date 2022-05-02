@@ -1,6 +1,6 @@
 import threading
 import time
-from typing import Type, List
+from typing import Type, List, Any, Hashable
 
 from schedule import Scheduler
 
@@ -11,6 +11,39 @@ from zone_api.core.devices.vacation import Vacation
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.device import Device
+
+
+class EmailSettings:
+    """ Contains the settings for the email service. """
+
+    def __init__(self, smtp_server: str, port: int, from_email_address: str, password: str):
+        if not smtp_server:
+            raise ValueError('smtp_server must be non-empty string')
+        if not from_email_address:
+            raise ValueError('from_email_address must be non-empty string')
+        if not password:
+            raise ValueError('password must be non-empty string')
+
+        self._smtp_server = smtp_server
+        self._port = port
+        self._from_email_address = from_email_address
+        self._password = password
+
+    @property
+    def smtp_server(self):
+        return self._smtp_server
+
+    @property
+    def port(self):
+        return self._port
+
+    @property
+    def from_email_address(self):
+        return self._from_email_address
+
+    @property
+    def password(self):
+        return self._password
 
 
 class ImmutableZoneManager:
@@ -29,12 +62,14 @@ class ImmutableZoneManager:
     """
 
     def __init__(self, get_zones_fcn, get_zone_by_id_fcn, get_devices_by_type_fcn,
-                 alert_manager: AlertManager = None):
+                 alert_manager: AlertManager = None, email_settings: EmailSettings = None):
         self.get_zones_fcn = get_zones_fcn
         self.get_zone_by_id_fcn = get_zone_by_id_fcn
         self.get_devices_by_type_fcn = get_devices_by_type_fcn
         self.alert_manager = alert_manager
         self.scheduler = Scheduler()
+
+        self._email_settings = email_settings
 
         # noinspection PyTypeChecker
         self.cease_continuous_run: threading.Event = None
@@ -75,8 +110,35 @@ class ImmutableZoneManager:
         params = {'get_zones_fcn': self.get_zones_fcn,
                   'get_zone_by_id_fcn': self.get_zone_by_id_fcn,
                   'get_devices_by_type_fcn': self.get_devices_by_type_fcn,
+                  'email_settings': self.email_settings,
                   'alert_manager': alert_manager}
         return ImmutableZoneManager(**params)
+
+    def set_system_config(self, config: dict[Hashable, Any]):
+        """
+        Sets the system configuration. This method will construct various settings object from the ``config``. They are
+        accessible via the various properties.
+
+        :param dict[Hashable, Any] config: the value read from a yaml file via `yaml.safe_load(file)`.
+        """
+        email_service = config['system']['email-service']
+        self._email_settings = EmailSettings(email_service['smtp-server'], email_service['port'],
+                                             email_service['sender-email'], email_service['sender-password'])
+
+        pe.log_info(f"Email service settings: {self._email_settings.smtp_server}, {self._email_settings.port}, "
+                    f"{self._email_settings.from_email_address}")
+
+        params = {'get_zones_fcn': self.get_zones_fcn,
+                  'get_zone_by_id_fcn': self.get_zone_by_id_fcn,
+                  'get_devices_by_type_fcn': self.get_devices_by_type_fcn,
+                  'alert_manager': self.alert_manager,
+                  'email_settings': self.email_settings}
+        return ImmutableZoneManager(**params)
+
+    @property
+    def email_settings(self):
+        """ Returns the :class:`.EmailSettings` instance constructed from the system configuration. """
+        return self._email_settings
 
     def get_alert_manager(self) -> AlertManager:
         return self.alert_manager

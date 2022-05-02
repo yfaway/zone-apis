@@ -20,8 +20,20 @@ def create_zone_manager(zones: List[Zone]) -> ImmutableZoneManager:
     for zone in zones:
         zm.add_zone(zone)
 
-    alert_manager = AlertManager()
-    alert_manager._set_test_mode(True)
+    yaml_string = """
+        system:
+          alerts:
+            email:
+              owner-email-addresses:
+                - user1@gmail.com
+                - user2@gmail.com
+              admin-email-addresses:
+                - admin1@gmail.com"""
+
+    import io
+    import yaml
+    config = yaml.safe_load(io.StringIO(yaml_string))
+    alert_manager = AlertManager.test_instance(config)
     alert_manager._process_further_actions_for_critical_alert = MagicMock()
 
     immutable_zm = zm.get_immutable_instance().set_alert_manager(alert_manager)

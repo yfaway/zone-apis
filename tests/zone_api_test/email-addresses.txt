@@ -1,2 +1,0 @@
-owner-email-address='owner@here.com'
-admin-email-address='admin@here.com'

@@ -1,5 +1,5 @@
 import re
-from typing import List, Dict, Type
+from typing import List, Dict, Type, Hashable, Any
 import pkgutil
 import inspect
 import importlib
@@ -44,7 +44,7 @@ for the OpenHab items.
 """
 
 
-def parse(activity_times: ActivityTimes, action_parameters: Parameters, actions_package: str = "zone_api.core.actions",
+def parse(activity_times: ActivityTimes, config: dict[Hashable, Any], actions_package: str = "zone_api.core.actions",
           actions_path: List[str] = actions.__path__) -> ImmutableZoneManager:
     """
     - Parses the zones and devices from the remote OpenHab items (via the REST API).
@@ -86,9 +86,12 @@ def parse(activity_times: ActivityTimes, action_parameters: Parameters, actions_
         '.*_Weather_Temperature$': df.create_weather,
     }
 
+    action_parameters: Parameters = _read_zone_api_configurations(config)
+
     zm: ZoneManager = ZoneManager()
     immutable_zm = zm.get_immutable_instance()
-    immutable_zm = immutable_zm.set_alert_manager(AlertManager())
+    immutable_zm = immutable_zm.set_system_config(config)
+    immutable_zm = immutable_zm.set_alert_manager(AlertManager(config))
 
     zone_mappings = {}
     for zone in _parse_zones():
@@ -275,3 +278,16 @@ def get_action_classes(actions_package: str = "zone_api.core.actions",
                     pass
 
     return classes
+
+
+def _read_zone_api_configurations(config: dict[Hashable, Any]) -> MapParameters:
+    flat_map = {}
+
+    all_action_params = config['action-parameters']
+    for action_name in all_action_params.keys():
+        action_params = all_action_params[action_name]
+        for key in action_params.keys():
+            flat_key = f"{action_name}.{key}"
+            flat_map[flat_key] = action_params[key]
+
+    return MapParameters(flat_map)

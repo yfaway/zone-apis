@@ -1,3 +1,16 @@
+system:
+  email-service:
+    smtp-server: smtp.gmail.com
+    port: 465
+    sender-email: sender@gmail.com
+    sender-password: password
+
+  alerts:
+    email:
+      owner-email-addresses:
+        - recipient@gmail.com
+      admin-email-addresses:
+        - recipient@gmail.com
 
 # Contains the parameters for each named actions.
 action-parameters:

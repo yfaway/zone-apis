@@ -1,19 +1,25 @@
 import datetime
+import logging
+import smtplib
+import ssl
 
-from HABApp.openhab.errors import ItemNotFoundError
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+from typing import List, Union, Any, TYPE_CHECKING
 
 import HABApp
-import logging
-from typing import List, Union, Any
-
 from HABApp.core import Items
+from HABApp.core.events import ValueChangeEvent
 from HABApp.core.items import Item
+from HABApp.openhab.definitions import OnOffValue
+from HABApp.openhab.errors import ItemNotFoundError
 from HABApp.openhab.items import ContactItem, DatetimeItem, DimmerItem, NumberItem, StringItem, SwitchItem, \
     PlayerItem, OpenhabItem
-from HABApp.openhab.definitions import OnOffValue
-from HABApp.core.events import ValueChangeEvent
 
-_in_hab_app = True
+if TYPE_CHECKING:
+    from zone_api.core.immutable_zone_manager import EmailSettings
+
 logger = logging.getLogger('ZoneApis')
 
 ACTION_AUDIO_SINK_ITEM_NAME = 'AudioVoiceSinkName'
@@ -31,7 +37,7 @@ _in_unit_tests = False
 
 
 def is_in_hab_app() -> bool:
-    return _in_hab_app
+    return True
 
 
 def register_test_item(item: Item) -> None:
@@ -335,10 +341,21 @@ def send_email(email_addresses: List[str], subject: str, body: str = '', attachm
     if body is None:
         body = ''
 
-    StringItem.get_item('EmailSubject').oh_post_update(subject)
-    StringItem.get_item('EmailBody').oh_post_update(body)
-    StringItem.get_item('EmailAttachmentUrls').oh_post_update(', '.join(attachment_urls))
-    StringItem.get_item('EmailAddresses').oh_post_update(', '.join(email_addresses))
+    email_settings: 'EmailSettings' = get_zone_manager_from_context().email_settings
+    context = ssl.create_default_context()
+
+    with smtplib.SMTP_SSL(email_settings.smtp_server, email_settings.port, context=context) as server:
+        server.login(email_settings.from_email_address, email_settings.password)
+
+        message = MIMEMultipart()
+        message["From"] = email_settings.from_email_address
+        message["To"] = ";".join(email_addresses)
+        message["Subject"] = subject
+
+        part1 = MIMEText(body, "plain")
+        message.attach(part1)
+
+        server.sendmail(email_settings.from_email_address, email_addresses, message.as_string())
 
 
 def change_ecobee_thermostat_hold_mode(mode: str):

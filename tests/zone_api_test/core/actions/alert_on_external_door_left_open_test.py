@@ -25,7 +25,6 @@ class AlertOnExternalDoorLeftOpenTest(DeviceTest):
         self.action = AlertOnExternalDoorLeftOpen(MapParameters({}))
         self.zone1 = Zone.create_external_zone('porch').add_device(Door(items[0]))
         self.zone2 = Zone.create_external_zone('garage').add_device(Door(items[1]))
-        self.alertManager = AlertManager()
 
         self.zm = create_zone_manager([self.zone1, self.zone2])
 
