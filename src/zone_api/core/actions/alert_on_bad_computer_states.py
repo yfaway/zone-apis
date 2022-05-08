@@ -63,3 +63,4 @@ class AlertOnBadComputerStates(Action):
             zone_manager.get_alert_manager().process_alert(alert, zone_manager)
             # noinspection PyUnresolvedReferences
             self._alerts[index].cancel()
+            self._alerts[index] = None

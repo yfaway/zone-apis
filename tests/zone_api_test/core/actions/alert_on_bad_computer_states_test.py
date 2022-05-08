@@ -40,6 +40,7 @@ class AlertOnBadComputerStatesTest(DeviceTest):
         pe.set_number_value(self.get_items()[0], 60)
         self.sendEventAndAssertAlertContainMessage(
             ZoneEvent.COMPUTER_CPU_TEMPERATURE_CHANGED, self.get_items()[0], 'is back to normal')
+        self.assertTrue(self.action._alerts[0] is None)
 
     def testOnAction_gpuTemperatureAboveThreshold_returnsTrueAndSendAlert(self):
         pe.set_number_value(self.get_items()[1], 80)
@@ -57,6 +58,7 @@ class AlertOnBadComputerStatesTest(DeviceTest):
         pe.set_number_value(self.get_items()[1], 60)
         self.sendEventAndAssertAlertContainMessage(
             ZoneEvent.COMPUTER_GPU_TEMPERATURE_CHANGED, self.get_items()[1], 'is back to normal')
+        self.assertTrue(self.action._alerts[1] is None)
 
     def sendEventAndAssertAlertContainMessage(self, event: ZoneEvent, item, message):
         event_info = EventInfo(event, item, self.zone1, self.zm, pe.get_event_dispatcher())
