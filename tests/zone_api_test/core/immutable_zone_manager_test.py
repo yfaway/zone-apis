@@ -1,8 +1,10 @@
 from typing import List
 
 from zone_api.core.device import Device
+from zone_api.core.devices.activity_times import ActivityType
 from zone_api.core.devices.astro_sensor import AstroSensor
 from zone_api.core.devices.thermostat import EcobeeThermostat
+from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 from zone_api.core.neighbor import Neighbor
 from zone_api.core.zone_manager import ZoneManager
 from zone_api import platform_encapsulator as pe
@@ -126,3 +128,57 @@ class ImmutableZoneManagerTest(DeviceTest):
         pe.set_string_value(self.astroSensorItem, AstroSensor.LIGHT_ON_TIMES[0])
         izm = ZoneManager().add_zone(self.zone4).get_immutable_instance()
         self.assertTrue(izm.is_light_on_time())
+
+    def testCreateActivityTimes_missingSystemObj_throwsException(self):
+        with self.assertRaises(ValueError) as cm:
+            ImmutableZoneManager._create_activity_times({})
+
+        self.assertEqual("Expect 'system' object.", cm.exception.args[0])
+
+    def testCreateActivityTimes_missingActivityTimeObj_throwsException(self):
+        yaml_string = """
+            system:
+              alerts: 3"""
+        import io
+        import yaml
+        config = yaml.safe_load(io.StringIO(yaml_string))
+
+        with self.assertRaises(ValueError) as cm:
+            ImmutableZoneManager._create_activity_times(config)
+
+        self.assertEqual("Expect 'system -> activity-times' object.", cm.exception.args[0])
+
+    def testCreateActivityTimes_invalidActivity_throwsException(self):
+        yaml_string = """
+            system:
+              activity-times:
+                wakeup: '6:35 - 9'
+                lunch: '12:00 - 13:30'
+                bad-key: '12:00 - 13:30'"""
+        import io
+        import yaml
+        config = yaml.safe_load(io.StringIO(yaml_string))
+
+        with self.assertRaises(ValueError) as cm:
+            ImmutableZoneManager._create_activity_times(config)
+
+        self.assertEqual("'bad-key' is not a valid ActivityType", cm.exception.args[0])
+
+    def testCreateActivityTimes_validActivityTypes_returnSuccessfully(self):
+        yaml_string = f"""
+            system:
+              activity-times:
+                {ActivityType.WAKE_UP.value}: '6:35 - 9'
+                {ActivityType.LUNCH.value}: '12:00 - 13:30'
+                {ActivityType.QUIET.value}: '14:00 - 16:00 20:00 - 22:59'
+                {ActivityType.DINNER.value}: '17:50 - 20:00'
+                {ActivityType.SLEEP.value}: '23:00 - 7:00'
+                {ActivityType.AUTO_ARM_STAY.value}: '20:00 - 2:00'
+                {ActivityType.TURN_OFF_PLUGS.value}: '23:00 - 2:00'"""
+
+        import io
+        import yaml
+        config = yaml.safe_load(io.StringIO(yaml_string))
+
+        activity_times = ImmutableZoneManager._create_activity_times(config)
+        self.assertTrue(activity_times is not None)

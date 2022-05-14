@@ -1,4 +1,13 @@
 system:
+  activity-times:
+    wakeup: '6:35 - 9'
+    lunch: '12:00 - 13:30'
+    quiet: '20:00 - 22:59'
+    dinner: '17:50 - 20:00'
+    sleep: '23:00 - 7:00'
+    auto-arm-stay: '20:00 - 2:00'
+    turn-off-plugs: '23:00 - 2:00'
+
   email-service:
     smtp-server: smtp.gmail.com
     port: 465

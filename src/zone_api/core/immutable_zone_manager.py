@@ -6,6 +6,7 @@ from schedule import Scheduler
 
 from zone_api import platform_encapsulator as pe
 from zone_api.alert_manager import AlertManager
+from zone_api.core.devices.activity_times import ActivityTimes, ActivityType
 from zone_api.core.devices.astro_sensor import AstroSensor
 from zone_api.core.devices.vacation import Vacation
 from zone_api.core.zone import Zone
@@ -62,7 +63,8 @@ class ImmutableZoneManager:
     """
 
     def __init__(self, get_zones_fcn, get_zone_by_id_fcn, get_devices_by_type_fcn,
-                 alert_manager: AlertManager = None, email_settings: EmailSettings = None):
+                 alert_manager: AlertManager = None, email_settings: EmailSettings = None,
+                 activity_times: ActivityTimes = None):
         self.get_zones_fcn = get_zones_fcn
         self.get_zone_by_id_fcn = get_zone_by_id_fcn
         self.get_devices_by_type_fcn = get_devices_by_type_fcn
@@ -70,6 +72,7 @@ class ImmutableZoneManager:
         self.scheduler = Scheduler()
 
         self._email_settings = email_settings
+        self._activity_times = activity_times
 
         # noinspection PyTypeChecker
         self.cease_continuous_run: threading.Event = None
@@ -111,6 +114,7 @@ class ImmutableZoneManager:
                   'get_zone_by_id_fcn': self.get_zone_by_id_fcn,
                   'get_devices_by_type_fcn': self.get_devices_by_type_fcn,
                   'email_settings': self.email_settings,
+                  'activity_times': self.activity_times,
                   'alert_manager': alert_manager}
         return ImmutableZoneManager(**params)
 
@@ -122,23 +126,51 @@ class ImmutableZoneManager:
         :param dict[Hashable, Any] config: the value read from a yaml file via `yaml.safe_load(file)`.
         """
         email_service = config['system']['email-service']
-        self._email_settings = EmailSettings(email_service['smtp-server'], email_service['port'],
-                                             email_service['sender-email'], email_service['sender-password'])
+        email_settings = EmailSettings(email_service['smtp-server'], email_service['port'],
+                                       email_service['sender-email'], email_service['sender-password'])
 
-        pe.log_info(f"Email service settings: {self._email_settings.smtp_server}, {self._email_settings.port}, "
-                    f"{self._email_settings.from_email_address}")
+        pe.log_info(f"Email service settings: {email_settings.smtp_server}, {email_settings.port}, "
+                    f"{email_settings.from_email_address}")
+
+        activity_times = self._create_activity_times(config)
+        pe.log_info(f"Configured {activity_times.number_of_activities} activities.")
 
         params = {'get_zones_fcn': self.get_zones_fcn,
                   'get_zone_by_id_fcn': self.get_zone_by_id_fcn,
                   'get_devices_by_type_fcn': self.get_devices_by_type_fcn,
                   'alert_manager': self.alert_manager,
-                  'email_settings': self.email_settings}
+                  'email_settings': email_settings,
+                  'activity_times': activity_times,
+                  }
         return ImmutableZoneManager(**params)
 
+    @staticmethod
+    def _create_activity_times(config: dict[Hashable, Any]) -> ActivityTimes:
+        """ Returns a map from ActivityType to time range string. """
+
+        if 'system' not in config:
+            raise ValueError("Expect 'system' object.")
+
+        if 'activity-times' not in config['system']:
+            raise ValueError("Expect 'system -> activity-times' object.")
+
+        # Map to proper enum key
+        raw_map = config['system']['activity-times']
+        activities: dict[ActivityType, str] = {}
+        for key in raw_map.keys():
+            activities[ActivityType(key)] = raw_map[key]
+
+        return ActivityTimes(activities)
+
     @property
-    def email_settings(self):
+    def email_settings(self) -> EmailSettings:
         """ Returns the :class:`.EmailSettings` instance constructed from the system configuration. """
         return self._email_settings
+
+    @property
+    def activity_times(self) -> ActivityTimes:
+        """ Returns the :class:`.ActivityTimes` instance constructed from the system configuration. """
+        return self._activity_times
 
     def get_alert_manager(self) -> AlertManager:
         return self.alert_manager

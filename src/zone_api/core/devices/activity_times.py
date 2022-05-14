@@ -36,12 +36,15 @@ class ActivityTimes(Device):
         """
         Device.__init__(self, pe.create_string_item('ActivityTimesItem'))
 
-        acceptable_keys = ['lunch', 'dinner', 'sleep', 'quiet', 'wakeup', 'auto-arm-stay', 'turn-off-plugs']
         for key in time_range_map.keys():
             if key not in ActivityType:
                 raise ValueError('Invalid time range key {}'.format(key))
 
         self.timeRangeMap = time_range_map
+
+    @property
+    def number_of_activities(self) -> int:
+        return len(self.timeRangeMap)
 
     def is_lunch_time(self, epoch_seconds=None):
         return self._is_in_time_range(ActivityType.LUNCH, epoch_seconds)

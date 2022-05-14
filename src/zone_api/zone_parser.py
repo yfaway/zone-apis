@@ -13,7 +13,6 @@ from zone_api import platform_encapsulator as pe
 from zone_api import device_factory as df
 from zone_api.alert_manager import AlertManager
 from zone_api.core.action import Action
-from zone_api.core.devices.activity_times import ActivityTimes
 from zone_api.core.devices.gas_sensor import NaturalGasSensor, SmokeSensor, Co2GasSensor, RadonGasSensor
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 from zone_api.core.map_parameters import MapParameters
@@ -44,7 +43,7 @@ for the OpenHab items.
 """
 
 
-def parse(activity_times: ActivityTimes, config: dict[Hashable, Any], actions_package: str = "zone_api.core.actions",
+def parse(config: dict[Hashable, Any], actions_package: str = "zone_api.core.actions",
           actions_path: List[str] = actions.__path__) -> ImmutableZoneManager:
     """
     - Parses the zones and devices from the remote OpenHab items (via the REST API).
@@ -121,7 +120,7 @@ def parse(activity_times: ActivityTimes, config: dict[Hashable, Any], actions_pa
     # Add specific devices to the Virtual Zone
     zone = next((z for z in zone_mappings.values() if z.get_name() == 'Virtual'), None)
     if zone is not None:
-        zone = zone.add_device(activity_times)
+        zone = zone.add_device(immutable_zm.activity_times)
         zone_mappings[zone.get_id()] = zone
 
     action_classes = get_action_classes(actions_package, actions_path)
