@@ -14,7 +14,7 @@ from HABApp.core.events import ValueChangeEvent
 from HABApp.core.items import Item
 from HABApp.openhab.definitions import OnOffValue
 from HABApp.openhab.errors import ItemNotFoundError
-from HABApp.openhab.items import ContactItem, DatetimeItem, DimmerItem, NumberItem, StringItem, SwitchItem, \
+from HABApp.openhab.items import ColorItem, ContactItem, DatetimeItem, DimmerItem, NumberItem, StringItem, SwitchItem, \
     PlayerItem, OpenhabItem
 
 if TYPE_CHECKING:
@@ -133,6 +133,16 @@ def create_switch_item(name: str, on=False) -> SwitchItem:
 
 def create_string_item(name: str) -> StringItem:
     return StringItem(name)
+
+
+def set_color_value(item: ColorItem, rgb_color: List[int]):
+    """ Change the color of the item. """
+    if is_in_unit_tests():
+        item.post_rgb(*rgb_color)
+    else:
+        # OH's color item accepts only HSB value; thus the RGB value needs to be converted to HSB.
+        item.set_rgb(*rgb_color)
+        item.oh_send_command(",".join(map(str, [item.hue, item.saturation, item.brightness])))
 
 
 def set_switch_state(item_or_item_name: Union[SwitchItem, str], on: bool):

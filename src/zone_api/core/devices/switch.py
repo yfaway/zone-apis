@@ -1,5 +1,7 @@
 import time
+from random import randint
 from threading import Timer
+from typing import List
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
@@ -236,6 +238,39 @@ class Light(Switch):
             super(Light, self).__str__(), self.illuminance_level,
             ", no premature turn-off time range: {}".format(self.no_premature_turn_off_time_range)
             if self.no_premature_turn_off_time_range is not None else "")
+
+
+class ColorLight(Light):
+    """ Represents a color bulb (modeled as a light switch).  """
+
+    def __init__(self, switch_item, color_item, duration_in_minutes: float, illuminance_level: int = None,
+                 no_premature_turn_off_time_range: str = None):
+        """
+        :param color_item: the OpenHab item to change the color.
+        :param int illuminance_level: the illuminance level in LUX unit. The \
+            light should only be turned on if the light level is below this unit.
+        :param str no_premature_turn_off_time_range: optional parameter to define \
+            the time range when the light should not be turned off before its \
+            expiry time.
+        """
+        Light.__init__(self, switch_item, duration_in_minutes, illuminance_level, no_premature_turn_off_time_range)
+        self._color_item = color_item
+
+    def turn_on(self, events):
+        super(ColorLight, self).turn_on(events)
+
+        self.change_color([randint(0, 255), randint(0, 255), randint(0, 255)])
+
+    def change_color(self, rgb_color: List[int]):
+        """
+        :param rgb_color: a list of 3 integers representing the R, B, and G values, range from 0 to 255.
+        """
+        pe.set_color_value(self._color_item, rgb_color)
+
+    def __str__(self):
+        """ @override """
+        return u"{}, color item: {}".format(
+            super(ColorLight, self).__str__(), pe.get_item_name(self._color_item))
 
 
 class Fan(Switch):

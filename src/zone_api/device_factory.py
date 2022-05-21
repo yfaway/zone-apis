@@ -25,7 +25,7 @@ from zone_api.core.devices.illuminance_sensor import IlluminanceSensor
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.devices.network_presence import NetworkPresence
 from zone_api.core.devices.plug import Plug
-from zone_api.core.devices.switch import Light, Fan
+from zone_api.core.devices.switch import Light, Fan, ColorLight
 from zone_api.core.devices.temperature_sensor import TemperatureSensor
 from zone_api.core.devices.thermostat import EcobeeThermostat
 from zone_api.core.devices.tv import Tv
@@ -61,14 +61,16 @@ def create_switches(zm: ImmutableZoneManager,
     device_name = match.group(3)
 
     dimmable_key = 'dimmable'
+    color_bulb_key = 'colorBulb'
     duration_in_minutes_key = 'durationInMinutes'
     disable_triggering_key = "disableTriggeringFromMotionSensor"
 
     item_def = HABApp.openhab.interface.get_item(
-        item.name, f"noPrematureTurnOffTimeRange, {duration_in_minutes_key}, {dimmable_key}, {disable_triggering_key}")
+        item.name, f"noPrematureTurnOffTimeRange, {duration_in_minutes_key}, {dimmable_key}, {disable_triggering_key}, "
+                   f"{color_bulb_key}")
     metadata = item_def.metadata
 
-    if 'LightSwitch' == device_name or 'FanSwitch' == device_name or 'Wled_MasterControls' in device_name:
+    if device_name.endswith('LightSwitch') or device_name.endswith('FanSwitch') or 'Wled_MasterControls' in device_name:
         duration_in_minutes = int(get_meta_value(metadata, duration_in_minutes_key, -1))
         if duration_in_minutes == -1:
             raise ValueError(f"Missing durationInMinutes value for {item_name}'")
@@ -76,7 +78,7 @@ def create_switches(zm: ImmutableZoneManager,
         duration_in_minutes = None
 
     device = None
-    if 'LightSwitch' == device_name:
+    if device_name.endswith('LightSwitch'):
         no_premature_turn_off_time_range = get_meta_value(metadata, "noPrematureTurnOffTimeRange", None)
 
         if dimmable_key in metadata:
@@ -88,11 +90,16 @@ def create_switches(zm: ImmutableZoneManager,
                             illuminance_threshold_in_lux,
                             no_premature_turn_off_time_range)
         else:
-            device = Light(item, duration_in_minutes,
-                           illuminance_threshold_in_lux,
-                           no_premature_turn_off_time_range)
+            color_bulb = True if "true" == get_meta_value(metadata, color_bulb_key, 'false') else False
+            if color_bulb:
+                color_item = Items.get_item(item_name + 'Color')
+                device = ColorLight(item, color_item, duration_in_minutes, illuminance_threshold_in_lux,
+                                    no_premature_turn_off_time_range)
+            else:
+                device = Light(item, duration_in_minutes, illuminance_threshold_in_lux,
+                               no_premature_turn_off_time_range)
 
-    elif 'FanSwitch' == device_name:
+    elif device_name.endswith('FanSwitch'):
         device = Fan(item, duration_in_minutes)
     elif 'Wled_MasterControls' in device_name:
         effect_item = Items.get_item(item.name.replace('MasterControls', 'FX'))
