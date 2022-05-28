@@ -1,11 +1,13 @@
+
 <!-- vim-markdown-toc GFM -->
 
 * [Quick intro and setup instructions](#quick-intro-and-setup-instructions)
     * [1. Install the libraries](#1-install-the-libraries)
     * [2. Configure HABapp](#2-configure-habapp)
-    * [3. Create a HABapp rule to integrate with ZoneApi.](#3-create-a-habapp-rule-to-integrate-with-zoneapi)
-    * [4. Change OpenHab item names to patterns recognized by the default Zone API parser](#4-change-openhab-item-names-to-patterns-recognized-by-the-default-zone-api-parser)
-    * [5. Start HABapp and observe the action via the log file](#5-start-habapp-and-observe-the-action-via-the-log-file)
+    * [3. Create the zone-api configuration file.](#3-create-the-zone-api-configuration-file)
+    * [4. Create a HABapp rule to integrate with ZoneApi.](#4-create-a-habapp-rule-to-integrate-with-zoneapi)
+    * [5. Change OpenHab item names to patterns recognized by the default Zone API parser](#5-change-openhab-item-names-to-patterns-recognized-by-the-default-zone-api-parser)
+    * [6. Start HABapp and observe the action via the log file](#6-start-habapp-and-observe-the-action-via-the-log-file)
 * [Zone API - an alternative approach to writing rules](#zone-api---an-alternative-approach-to-writing-rules)
 * [Core concepts and API](#core-concepts-and-api)
     * [ZoneManager](#zonemanager)
@@ -37,11 +39,13 @@
             * [Televisions](#televisions)
             * [Water leak sensors](#water-leak-sensors)
             * [Weather](#weather)
+* [Common services](#common-services)
+    * [Alert](#alert)
 
 <!-- vim-markdown-toc -->
 
 # Quick intro and setup instructions
-This library contains a set of reusable rules for OpenHab. This is achieved with the following components:
+This framework contains a set of reusable rules for OpenHab. It contains the following components:
 1. The item definitions and bindings in OpenHab.
 2. The [HABApp](https://habapp.readthedocs.io/en/latest/installation.html) process that communicates with OpenHab via
    the REST API. 
@@ -91,15 +95,49 @@ Next, add a new logger for Zone API to the file `logging.xml` under the section 
 
 See [the HABApp website](https://habapp.readthedocs.io) for additional detail.
 
-## 3. Create a HABapp rule to integrate with ZoneApi.
-Create the file `configure_zone_manager.py` under `my-home/habapp/rules` (HABapp created this folder earlier). Copy
+## 3. Create the zone-api configuration file.
+Create the file `my-home/habapp/zone-api-config.yml` with the content below:
+```yaml
+system:
+  activity-times:
+    wakeup: '6:35 - 9'
+    lunch: '12:00 - 13:30'
+    quiet: '20:00 - 22:59'
+    dinner: '17:50 - 20:00'
+    sleep: '23:00 - 7:00'
+    auto-arm-stay: '20:00 - 2:00'
+    turn-off-plugs: '23:00 - 2:00'
+
+  email-service:
+    smtp-server: smtp.gmail.com
+    port: 465
+    sender-email: sender@gmail.com
+    sender-password: password
+
+  alerts:
+    email:
+      owner-email-addresses:
+        - recipient@gmail.com
+      admin-email-addresses:
+        - recipient@gmail.com
+
+# Contains the parameters for each named actions.
+action-parameters:
+  AlertOnBadComputerStates:
+    maxCpuTemperatureInDegree: 60
+```
+The latest version of this file can be found [here](https://github.com/yfaway/zone-apis/blob/master/habapp/zone-api-config.yml).
+
+## 4. Create a HABapp rule to integrate with ZoneApi.
+Next create the file `configure_zone_manager.py` under `my-home/habapp/rules` (HABapp created this folder earlier). Copy
 the following content into that file.
 ```python
 import HABApp
+import os
+import yaml
 
 from zone_api import zone_parser as zp
 from zone_api import platform_encapsulator as pe
-from zone_api.core.devices.activity_times import ActivityType, ActivityTimes
 
 
 class ConfigureZoneManagerRule(HABApp.Rule):
@@ -110,16 +148,16 @@ class ConfigureZoneManagerRule(HABApp.Rule):
 
     # noinspection PyMethodMayBeStatic
     def configure_zone_manager(self):
-        time_map = {
-            ActivityType.WAKE_UP: '6 - 9',
-            ActivityType.LUNCH: '12:00 - 13:30',
-            ActivityType.QUIET: '14:00 - 16:00, 20:00 - 22:59',
-            ActivityType.DINNER: '17:50 - 20:00',
-            ActivityType.SLEEP: '23:00 - 7:00',
-            ActivityType.AUTO_ARM_STAY: '20:00 - 2:00',
-            ActivityType.TURN_OFF_PLUGS: '23:00 - 2:00',
-        }
-        zm = zp.parse(ActivityTimes(time_map))
+        config_file = './habapp/zone-api-config.yml'
+        if not os.path.exists(config_file):
+            raise ValueError("Missing zone-api-config.yml file.")
+
+        pe.log_info(f"Reading zone-api configuration from '{config_file}'")
+
+        with open(config_file, 'r') as file:
+            config = yaml.safe_load(file)
+
+        zm = zp.parse(config)
         pe.add_zone_manager_to_context(zm)
 
         pe.log_info(str(pe.get_zone_manager_from_context()))
@@ -127,9 +165,11 @@ class ConfigureZoneManagerRule(HABApp.Rule):
 
 ConfigureZoneManagerRule()
 ```
+This is the only rule that is needed to bootstrap the framework. It reads the configuration from the yaml file in the
+section above.
 The latest version of this file can be found [here](https://github.com/yfaway/zone-apis/blob/master/habapp/rules/configure_zone_manager.py).
 
-## 4. Change OpenHab item names to patterns recognized by the default Zone API parser
+## 5. Change OpenHab item names to patterns recognized by the default Zone API parser
 Let's adjust the OpenHab items files to something like this:
 ```
 String Zone_Office { level="FF" }
@@ -144,7 +184,7 @@ first floor (`FF` abbreviation). The next two items define a [Light](https://git
 device and a [MotionSensor](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/core/devices/motion_sensor.py)
 in the `Office` zone (via the convention `FF_Office` prefix).
 
-## 5. Start HABapp and observe the action via the log file
+## 6. Start HABapp and observe the action via the log file
 Restart HABapp with `./bin/habapp --config habapp/` and then monitor the HABapp activity via `tail -F habapp/log/HABApp.log`.
 You should see something like this:
 ```
@@ -333,12 +373,12 @@ from zone_api import security_manager as sm
 from zone_api.core.devices.activity_times import ActivityTimes
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.action import action
+from zone_api.core.action import action, Action
 from zone_api.core.devices.alarm_partition import AlarmPartition
 
 
 @action(events=[ZoneEvent.MOTION], devices=[AlarmPartition, MotionSensor])
-class DisarmOnInternalMotion:
+class DisarmOnInternalMotion(Action):
     """
     Automatically disarm the security system when the motion sensor in the zone containing the
     security panel is triggered and the current time is not in the auto-arm-stay or sleep
@@ -367,13 +407,15 @@ class DisarmOnInternalMotion:
 The decorator for the action above indicates that it is triggered by the motion event, and should
 only be added to a zone that contains both the AlarmPartition and the Motion devices.
 
+Actions can read parameters from the ```zone-api-config.yml``` file (see section 3 above).
+
 ## ZoneParser and the default OpenHab item naming conventions
 This is the default parser that retrieves items from OpenHab and creates the appropriate zones and 
 devices based on specific naming conventions. Note that this is just a default parser, it is 
 possible to create zones and devices using a different naming convention, or even manually. The
 Zone API is not dependent on any specific naming pattern.
 
-See [sample .items](https://github.com/yfaway/openhab-rules/blob/master/items/) files that is
+See [sample.items](https://github.com/yfaway/openhab-rules/blob/master/items/) files that is
 parsable by ZoneParser.
 
 ### OpenHab zone items
@@ -399,7 +441,7 @@ Here are the list of supported attributes:
 ### OpenHab device items
 The individual OpenHab items are named after this convention: ```{zone_id}_{device_type}_{device_name}```.
 
-For the full list of supported devices, see [ZoneParser](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/zone_parser.py).
+For the full list of supported devices, see [ZoneParser](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/zone_parser.py#L57).
 
 To see the functions supported by each device, view the [device classes](https://github.com/yfaway/zone-apis/tree/master/src/zone_api/core/devices).
 
@@ -643,3 +685,17 @@ Number:Temperature FF_Virtual_Weather_ForecastTempMax "Forecast Max Temperature 
 String FF_Virtual_Weather_Alert_Title "Alert [%s]"                                                
   {channel="feed:feed:envCanada:latest-title"}
 ```
+# Common services
+## Alert
+This is a common service to send various notifications such as security violation or temperature / humidity getting too
+high. The actions just need to classify whether an alert is info, warning, or critical. The service will provide
+appropriate implementation.
+
+Currently three mechanisms are supported:
+1. Email: send an email notification to either the owners or the administrators.
+   See [zone-api-config.yml](https://github.com/yfaway/zone-apis/blob/master/habapp/zone-api-config.yml) for more info.
+
+2. Audio: send a text-to-speed (TTS) to one or more connected audio devices. The volume is set based on the criticality
+   of the alert.
+
+3. Light: if a critical alert occurs during the night, the internal lights are turned on.
