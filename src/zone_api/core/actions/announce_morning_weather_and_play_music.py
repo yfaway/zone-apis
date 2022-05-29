@@ -23,7 +23,8 @@ class AnnounceMorningWeatherAndPlayMusic(Action):
 
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
-        return [ParameterConstraint.optional('durationInMinutes', positive_number_validator),
+        return Action.supported_parameters() + \
+               [ParameterConstraint.optional('durationInMinutes', positive_number_validator),
                 ParameterConstraint.optional('maximumStartCount', positive_number_validator)
                 ]
 
@@ -33,8 +34,8 @@ class AnnounceMorningWeatherAndPlayMusic(Action):
 
         self._music_streams = get_music_streams_by_genres(
                      [Genre.CLASSICAL, Genre.INSTRUMENT, Genre.JAZZ])
-        self._duration_in_minutes = self.parameters().get(self, self.supported_parameters()[0].name(), 120)
-        self._max_start_count = self.parameters().get(self, self.supported_parameters()[1].name(), 2)
+        self._duration_in_minutes = self.parameters().get(self, self.supported_parameters()[-2].name(), 120)
+        self._max_start_count = self.parameters().get(self, self.supported_parameters()[-1].name(), 2)
         self._in_session = False
         self._start_count = 0
         self._timer = None

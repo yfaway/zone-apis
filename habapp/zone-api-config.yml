@@ -25,3 +25,4 @@ system:
 action-parameters:
   AlertOnBadComputerStates:
     maxCpuTemperatureInDegree: 60
+    disabled: false

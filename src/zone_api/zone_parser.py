@@ -201,6 +201,9 @@ def add_actions(zone_mappings: Dict, action_classes: List[Type], parameters: Par
     for clazz in action_classes:
         action: Action = clazz(parameters)
 
+        if action.get_parameter('disabled', False):
+            continue
+
         for zone in zone_mappings.values():
             if not _can_add_action_to_zone(zone, action):
                 continue

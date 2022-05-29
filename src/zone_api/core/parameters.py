@@ -115,6 +115,13 @@ def positive_number_validator(value: Number) -> tuple[bool, str]:
     return value > 0, "must be positive"
 
 
+def boolean_value_validator(value: Any) -> tuple[bool, str]:
+    """ Ensure that value is a boolean. """
+
+    # noinspection PyTypeChecker
+    return isinstance(value, bool), "must be either 'true' or 'false'"
+
+
 def percentage_validator(value: Number) -> tuple[bool, str]:
     """ A validator to ensure that value represent a percentage. """
 

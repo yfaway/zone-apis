@@ -13,13 +13,13 @@ from zone_api.core.action import action, Action
 class AlertOnRainOrSnowDuringTheDay(Action):
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
-        return [ParameterConstraint.optional('city')]
+        return Action.supported_parameters() + [ParameterConstraint.optional('city')]
 
     def __init__(self, parameters: Parameters):
         super().__init__(parameters)
 
         self._city = self.parameters().get(
-            self, AlertOnRainOrSnowDuringTheDay.supported_parameters()[0].name(), 'Ottawa')
+            self, AlertOnRainOrSnowDuringTheDay.supported_parameters()[-1].name(), 'Ottawa')
 
     def on_startup(self, event_info: EventInfo):
 

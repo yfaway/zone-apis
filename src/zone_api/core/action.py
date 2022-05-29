@@ -1,9 +1,9 @@
 import re
-from typing import Any
+from typing import Any, List
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.event_info import EventInfo
-from zone_api.core.parameters import Parameters
+from zone_api.core.parameters import Parameters, ParameterConstraint, boolean_value_validator
 from zone_api.core.zone_event import ZoneEvent
 
 
@@ -20,6 +20,13 @@ class Action(object):
       3. Action::on_action is invoked when the specified event is triggered.
       4. Action::on_destroy is invoked with ZoneEvent::DESTROY.
     """
+    @staticmethod
+    def supported_parameters() -> List[ParameterConstraint]:
+        """ Returns the list of parameters common to all actions. """
+        return [
+            # Disable the action.
+            ParameterConstraint.optional('disabled', boolean_value_validator)
+        ]
 
     def __init__(self, parameters: Parameters):
         self._triggering_events = None
@@ -37,6 +44,12 @@ class Action(object):
     def parameters(self) -> Parameters:
         """ Returns the injected parameters implementation. """
         return self._parameters
+
+    def get_parameter(self, name: str, default: Any = None):
+        """
+        Returns the value for the input parameter name. This is a short cut for 'self.parameters().get(...)'.
+        """
+        return self.parameters().get(self, name, default)
 
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def on_action(self, event_info: EventInfo) -> bool:

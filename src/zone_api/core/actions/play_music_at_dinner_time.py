@@ -19,14 +19,15 @@ class PlayMusicAtDinnerTime(Action):
     """
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
-        return [ParameterConstraint.optional('durationInMinutes', positive_number_validator)]
+        return Action.supported_parameters() + \
+               [ParameterConstraint.optional('durationInMinutes', positive_number_validator)]
 
     # noinspection PyDefaultArgument
     def __init__(self, parameters: Parameters):
         super().__init__(parameters)
 
         self._music_streams = get_music_streams_by_genres([Genre.CLASSICAL, Genre.INSTRUMENT, Genre.JAZZ])
-        self._duration_in_minutes = self.parameters().get(self, self.supported_parameters()[0].name(), 180)
+        self._duration_in_minutes = self.parameters().get(self, self.supported_parameters()[-1].name(), 180)
         self._in_session = False
         self._timer = None
 

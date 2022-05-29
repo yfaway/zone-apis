@@ -33,7 +33,8 @@ class SimulateNighttimePresence(Action):
 
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
-        return [SimulateNighttimePresence.MIN_LIGHT_ON_DURATION_IN_MINUTES,
+        return Action.supported_parameters() + \
+               [SimulateNighttimePresence.MIN_LIGHT_ON_DURATION_IN_MINUTES,
                 SimulateNighttimePresence.MAX_LIGHT_ON_DURATION_IN_MINUTES]
 
     def __init__(self, parameters: Parameters):

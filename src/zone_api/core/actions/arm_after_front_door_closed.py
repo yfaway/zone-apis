@@ -27,13 +27,14 @@ class ArmAfterFrontDoorClosed(Action):
         will determine if there was any previous activity in the house. If not, the security system is armed. Note that
         a motion sensor might not switched to OFF until a few minutes later; do take this into consideration.
         """
-        return [ParameterConstraint.optional('maximumElapsedTimeInSeconds', positive_number_validator)]
+        return Action.supported_parameters() + \
+               [ParameterConstraint.optional('maximumElapsedTimeInSeconds', positive_number_validator)]
 
     def __init__(self, parameters: Parameters):
         super().__init__(parameters)
 
         self.timer = None
-        self.max_elapsed_time_in_seconds = self.parameters().get(self, self.supported_parameters()[0].name(), 15 * 60)
+        self.max_elapsed_time_in_seconds = self.parameters().get(self, self.supported_parameters()[-1].name(), 15 * 60)
 
     def on_action(self, event_info):
         events = event_info.get_event_dispatcher()

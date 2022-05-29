@@ -31,10 +31,10 @@ class AlertOnHumidityOutOfRange(Action):
 
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
-        return [ParameterConstraint.optional('minimumHumidity', positive_number_validator, "must be positive"),
+        return Action.supported_parameters() + \
+               [ParameterConstraint.optional('minimumHumidity', positive_number_validator, "must be positive"),
                 ParameterConstraint.optional('maximumHumidity', positive_number_validator, "must be positive"),
-                ParameterConstraint.optional('notificationStepValue', positive_number_validator, "must be positive")
-                ]
+                ParameterConstraint.optional('notificationStepValue', positive_number_validator, "must be positive")]
 
     def on_action(self, event_info):
         zone = event_info.get_zone()

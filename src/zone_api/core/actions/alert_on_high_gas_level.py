@@ -22,7 +22,9 @@ class AlertOnHighGasLevel(Action):
 
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
-        return [ParameterConstraint.optional('intervalBetweenAlertsInMinutes', positive_number_validator, "must be positive")]
+        return Action.supported_parameters() + \
+               [ParameterConstraint.optional(
+                   'intervalBetweenAlertsInMinutes', positive_number_validator, "must be positive")]
 
     def on_action(self, event_info):
         zone = event_info.get_zone()

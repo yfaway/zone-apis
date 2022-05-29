@@ -15,13 +15,14 @@ class AlertOnWaterLeak(Action):
 
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
-        return [ParameterConstraint.optional('intervalBetweenAlertsInMinutes', positive_number_validator)]
+        return Action.supported_parameters() + \
+               [ParameterConstraint.optional('intervalBetweenAlertsInMinutes', positive_number_validator)]
 
     def __init__(self, parameters: Parameters):
         super().__init__(parameters)
 
         self._interval_between_alerts_in_minutes = self.parameters().get(
-            self, self.supported_parameters()[0].name(), 15)
+            self, self.supported_parameters()[-1].name(), 15)
         self._alert = None
 
     def on_action(self, event_info):

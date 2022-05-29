@@ -26,7 +26,8 @@ class SimulateDaytimePresence(Action):
 
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
-        return [SimulateDaytimePresence.MUSIC_URL, SimulateDaytimePresence.MUSIC_VOLUME,
+        return Action.supported_parameters() + \
+               [SimulateDaytimePresence.MUSIC_URL, SimulateDaytimePresence.MUSIC_VOLUME,
                 SimulateDaytimePresence.PLAY_DURATION_IN_SECONDS]
 
     def __init__(self, parameters: Parameters):

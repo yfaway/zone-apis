@@ -70,7 +70,6 @@ class MapParameterTest(unittest.TestCase):
         self.assertTrue(validated)
         self.assertEqual(len(errors), 0)
 
-
     def testValidate_containsInvalidAction_returnsFalse(self):
         params = MapParameters({'MyAction.value1': 2, 'MyAction.value2': 2, 'NotMyAction.key': 15})
         (validated, errors) = params.validate([MapParameterTest.MyAction])

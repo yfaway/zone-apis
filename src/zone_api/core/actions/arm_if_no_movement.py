@@ -22,12 +22,13 @@ class ArmIfNoMovement(Action):
 
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
-        return [ParameterConstraint.optional('unoccupiedDurationInMinutes', positive_number_validator)]
+        return Action.supported_parameters() + \
+               [ParameterConstraint.optional('unoccupiedDurationInMinutes', positive_number_validator)]
 
     def __init__(self, parameters: Parameters):
         super().__init__(parameters)
 
-        self._unoccupied_duration_in_minutes = self.parameters().get(self, self.supported_parameters()[0].name(), 30)
+        self._unoccupied_duration_in_minutes = self.parameters().get(self, self.supported_parameters()[-1].name(), 30)
 
     def on_startup(self, event_info: EventInfo):
         scheduler = event_info.get_zone_manager().get_scheduler()

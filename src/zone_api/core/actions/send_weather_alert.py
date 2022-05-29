@@ -19,7 +19,8 @@ class SendWeatherAlert(Action):
     """
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
-        return [ParameterConstraint.optional('alertRssUrl'),
+        return Action.supported_parameters() + \
+               [ParameterConstraint.optional('alertRssUrl'),
                 ParameterConstraint.optional('feedRefreshIntervalInMinutes', positive_number_validator)
                 ]
 
@@ -27,8 +28,8 @@ class SendWeatherAlert(Action):
         super().__init__(parameters)
 
         self._alert_rss_url = self.parameters().get(
-            self, self.supported_parameters()[0].name(), 'https://weather.gc.ca/rss/battleboard/on41_e.xml')
-        self._feed_refresh_interval_in_minutes = self.parameters().get(self, self.supported_parameters()[1].name(), 5)
+            self, self.supported_parameters()[-2].name(), 'https://weather.gc.ca/rss/battleboard/on41_e.xml')
+        self._feed_refresh_interval_in_minutes = self.parameters().get(self, self.supported_parameters()[-1].name(), 5)
 
     def on_startup(self, event_info: EventInfo):
 

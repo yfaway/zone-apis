@@ -15,7 +15,8 @@ class AlertOnLowBatteryLevel(Action):
 
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
-        return [ParameterConstraint.optional('alertPeriodInHours', positive_number_validator, "must be positive"),
+        return Action.supported_parameters() + \
+               [ParameterConstraint.optional('alertPeriodInHours', positive_number_validator, "must be positive"),
                 ParameterConstraint.optional('batteryPercentageThreshold', percentage_validator, "must be a percentage")
                 ]
 

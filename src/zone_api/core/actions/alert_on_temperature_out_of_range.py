@@ -20,7 +20,8 @@ class AlertOnTemperatureOutOfRange(Action):
 
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
-        return [AlertOnTemperatureOutOfRange.MIN_TEMPERATURE_PARAM, AlertOnTemperatureOutOfRange.MAX_TEMPERATURE_PARAM,
+        return Action.supported_parameters() + \
+               [AlertOnTemperatureOutOfRange.MIN_TEMPERATURE_PARAM, AlertOnTemperatureOutOfRange.MAX_TEMPERATURE_PARAM,
                 AlertOnTemperatureOutOfRange.NOTIFICATION_STEP_VALUE_PARAM]
 
     def __init__(self, parameters: Parameters):

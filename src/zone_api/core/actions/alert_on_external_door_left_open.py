@@ -26,7 +26,8 @@ class AlertOnExternalDoorLeftOpen(Action):
 
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
-        return [ParameterConstraint.optional('maxElapsedTimeInSeconds', positive_number_validator)]
+        return Action.supported_parameters() + \
+               [ParameterConstraint.optional('maxElapsedTimeInSeconds', positive_number_validator)]
 
     def on_action(self, event_info):
         zone = event_info.get_zone()

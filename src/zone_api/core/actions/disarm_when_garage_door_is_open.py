@@ -18,15 +18,16 @@ class DisarmWhenGarageDoorIsOpen(Action):
 
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
-        return [ParameterConstraint.optional('internalInSeconds', positive_number_validator),
+        return Action.supported_parameters() + \
+               [ParameterConstraint.optional('internalInSeconds', positive_number_validator),
                 ParameterConstraint.optional('maximumIntervalCount', positive_number_validator)
                 ]
 
     def __init__(self, parameters: Parameters):
         super().__init__(parameters)
 
-        self.interval_in_seconds = self.parameters().get(self, self.supported_parameters()[0].name(), 10)
-        self.max_interval_count = self.parameters().get(self, self.supported_parameters()[1].name(), 9)
+        self.interval_in_seconds = self.parameters().get(self, self.supported_parameters()[-2].name(), 10)
+        self.max_interval_count = self.parameters().get(self, self.supported_parameters()[-1].name(), 9)
 
     # noinspection PyMethodMayBeStatic
     def on_action(self, event_info):

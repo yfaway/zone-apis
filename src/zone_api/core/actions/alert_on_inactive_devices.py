@@ -25,9 +25,10 @@ class AlertOnInactiveDevices(Action):
 
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
-        return [ParameterConstraint.optional('batteryPoweredPeriodInHours', positive_number_validator, "must be positive"),
-                ParameterConstraint.optional('autoReportPeriodInHours', positive_number_validator, "must be positive")
-                ]
+        return Action.supported_parameters() + \
+               [ParameterConstraint.optional(
+                   'batteryPoweredPeriodInHours', positive_number_validator, "must be positive"),
+                ParameterConstraint.optional('autoReportPeriodInHours', positive_number_validator, "must be positive")]
 
     def __init__(self, parameters: Parameters):
         super().__init__(parameters)
