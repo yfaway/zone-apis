@@ -409,6 +409,12 @@ only be added to a zone that contains both the AlarmPartition and the Motion dev
 
 Actions can read parameters from the ```zone-api-config.yml``` file (see section 3 above).
 
+Parameters available to all actions:
+ - disabled (optional boolean; default: false): if set to true, the action is excluded from all zones. This parameter
+   is useful to disable certain actions, either temporarily or permanently when importing a large number of external actions from a library.
+
+Each actions might also have their own parameters; see the method ```supported_parameters``` in each action.
+
 ## ZoneParser and the default OpenHab item naming conventions
 This is the default parser that retrieves items from OpenHab and creates the appropriate zones and 
 devices based on specific naming conventions. Note that this is just a default parser, it is 

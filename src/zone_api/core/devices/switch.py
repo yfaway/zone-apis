@@ -257,9 +257,12 @@ class ColorLight(Light):
         self._color_item = color_item
 
     def turn_on(self, events):
+        """ Turns on the light. If the light was off, also change to a random colour. """
+        was_on = self.is_on()
         super(ColorLight, self).turn_on(events)
 
-        self.change_color([randint(0, 255), randint(0, 255), randint(0, 255)])
+        if not was_on:
+            self.change_color([randint(0, 255), randint(0, 255), randint(0, 255)])
 
     def change_color(self, rgb_color: List[int]):
         """
