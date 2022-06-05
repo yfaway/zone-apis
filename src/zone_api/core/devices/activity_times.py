@@ -37,8 +37,11 @@ class ActivityTimes(Device):
         Device.__init__(self, pe.create_string_item('ActivityTimesItem'))
 
         for key in time_range_map.keys():
-            if key not in ActivityType:
-                raise ValueError('Invalid time range key {}'.format(key))
+            if isinstance(key, ActivityType):
+                if key not in ActivityType:
+                    raise ValueError('Invalid time range key {}'.format(key))
+            else:
+                raise TypeError('Invalid time range key {}'.format(key))
 
         self.timeRangeMap = time_range_map
 

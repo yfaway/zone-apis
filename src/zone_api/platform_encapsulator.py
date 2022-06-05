@@ -122,6 +122,15 @@ def create_dimmer_item(name: str, percentage: int = 0) -> DimmerItem:
     return DimmerItem(name, percentage)
 
 
+def create_color_item(name: str, on=False) -> ColorItem:
+    """ Create a color item. """
+    item = ColorItem(name)
+    if on:
+        item.set_value(0, 0, 100)
+
+    return item
+
+
 def create_switch_item(name: str, on=False) -> SwitchItem:
     """
     :param name: the item name
