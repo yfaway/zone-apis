@@ -36,8 +36,8 @@ from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 from zone_api.core.zone_event import ZoneEvent
 
 """
-This module contains a set of utility functions to create devices and their associated event handler.
-They are independent from the OpenHab naming convention but they are HABApp specific.
+This module contains a set of utility functions to create devices from OpenHab items. The OpenHab items' events are
+captured and transformed into ZoneEvent, and then dispatched.
 """
 
 
@@ -588,8 +588,17 @@ def create_astro_sensor(zm: ImmutableZoneManager, item) -> AstroSensor:
 
 def create_television_device(zm: ImmutableZoneManager, item) -> Tv:
     """ Create an television device. """
+    sensor = _configure_device(Tv(item), zm)
+
+    # noinspection PyUnusedLocal
+    def handler(event: ValueChangeEvent):
+        zone_event = ZoneEvent.ENTERTAINMENT_ON if pe.is_in_on_state(item) else ZoneEvent.ENTERTAINMENT_OFF
+        dispatch_event(zm, zone_event, sensor, item)
+
+    item.listen_event(handler, ValueChangeEvent)
+
     # noinspection PyTypeChecker
-    return _configure_device(Tv(item), zm)
+    return sensor
 
 
 def create_computer(zm: ImmutableZoneManager, item) -> Computer:

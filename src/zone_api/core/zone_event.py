@@ -59,6 +59,9 @@ class ZoneEvent(Enum):
     VACATION_MODE_ON = 83
     VACATION_MODE_OFF = 84
 
+    ENTERTAINMENT_ON = 90  # A TV / soundbar is turned on.
+    ENTERTAINMENT_OFF = 91
+
     TIMER = 98  # A timer event is triggered.
     STARTUP = 99  # action startup event
     DESTROY = 100  # action destroy event
