@@ -1,7 +1,10 @@
 import datetime
 from copy import copy
 import time
-from typing import Union
+from typing import TYPE_CHECKING, Union
+
+if TYPE_CHECKING:
+    import zone_api.core.zone
 
 from zone_api import platform_encapsulator as pe
 
@@ -68,6 +71,17 @@ class Device(object):
         :rtype: str
         """
         return pe.get_item_name(self.item)
+
+    def get_friendly_item_name(self, zone: 'Zone'):
+        """ Returns the friend item name that excludes the zone name (if contained). Also replace hyphen with space. """
+        name = self.get_item_name()
+        index = name.find(zone.get_name())
+        if index != -1:
+            name = name[index + len(zone.get_name()) + 1:]
+
+        name = name.replace("_", " ")
+
+        return name
 
     def get_all_items(self):
         """ Return a list of all items in this device. """

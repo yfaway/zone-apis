@@ -7,6 +7,7 @@ from HABApp.core.Items import ItemAlreadyExistsError
 
 from zone_api import platform_encapsulator as pe
 from zone_api.alert_manager import AlertManager
+from zone_api.core.device import Device
 from zone_api.core.devices.alarm_partition import AlarmPartition
 from zone_api.core.devices.chromecast_audio_sink import ChromeCastAudioSink
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
@@ -103,3 +104,23 @@ class DeviceTest(unittest.TestCase):
         alarm_partition = AlarmPartition(*items)
 
         return alarm_partition, items
+
+
+class RealDeviceTest(unittest.TestCase):
+    """ Separate from DeviceTest which is inherited by many other tests so that the tests here will be run just once """
+
+    def test_get_friendly_device_name(self):
+        zone = MagicMock()
+        zone.get_name = MagicMock(return_value="Kitchen")
+
+        device = Device(MagicMock())
+        device.get_item_name = MagicMock(return_value="FF_Kitchen_MotionSensor")
+        self.assertEqual("MotionSensor", device.get_friendly_item_name(zone),
+                         "Zone name must be excluded when in the middle.")
+
+        device.get_item_name = MagicMock(return_value="Kitchen_Pantry_MotionSensor")
+        self.assertEqual("Pantry MotionSensor", device.get_friendly_item_name(zone),
+                         "Zone name must be excluded when in the beginning.")
+
+        device.get_item_name = MagicMock(return_value="Pantry_MotionSensor")
+        self.assertEqual("Pantry MotionSensor", device.get_friendly_item_name(zone), "Room name must be optional.")
