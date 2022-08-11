@@ -193,11 +193,14 @@ def get_dimmer_percentage(item: DimmerItem) -> int:
     return item.get_value(0)
 
 
-def set_number_value(item: NumberItem, value: float):
+def set_number_value(item_or_item_name: Union[NumberItem, str], value: float):
+    if isinstance(item_or_item_name, str):
+        item_or_item_name = NumberItem.get_item(item_or_item_name)
+
     if is_in_unit_tests():
-        item.post_value(value)
+        item_or_item_name.post_value(value)
     else:
-        item.oh_send_command(str(value))
+        item_or_item_name.oh_send_command(str(value))
 
 
 def get_number_value(item_or_item_name: Union[NumberItem, DimmerItem, str]) -> float:
@@ -207,11 +210,14 @@ def get_number_value(item_or_item_name: Union[NumberItem, DimmerItem, str]) -> f
     return int(item_or_item_name.get_value(0))
 
 
-def set_string_value(item: StringItem, value: str):
+def set_string_value(item_or_item_name: Union[StringItem, str], value: str):
+    if isinstance(item_or_item_name, str):
+        item_or_item_name = StringItem.get_item(item_or_item_name)
+
     if is_in_unit_tests():
-        item.post_value(value)
+        item_or_item_name.post_value(value)
     else:
-        item.oh_send_command(value)
+        item_or_item_name.oh_send_command(value)
 
 
 def get_string_value(item_or_item_name: Union[StringItem, str]) -> str:

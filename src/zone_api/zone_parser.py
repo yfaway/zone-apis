@@ -83,6 +83,7 @@ def parse(config: dict[Hashable, Any], actions_package: str = "zone_api.core.act
         '[^g].*_TimeOfDay$': df.create_astro_sensor,
         '.*_Computer_[^_]+$': df.create_computer,
         '.*_Weather_Temperature$': df.create_weather,
+        '[^g].*_AutoReportDeviceName$': df.create_auto_report_notification_setting,
     }
 
     action_parameters: Parameters = _read_zone_api_configurations(config)

@@ -11,6 +11,7 @@ from HABApp.openhab.items import ColorItem, DimmerItem, NumberItem, SwitchItem, 
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
+from zone_api.core.devices.deferred_auto_report_notification import DeferredAutoReportNotification
 from zone_api.core.devices.alarm_partition import AlarmPartition, AlarmState
 from zone_api.core.devices.astro_sensor import AstroSensor
 from zone_api.core.devices.camera import Camera
@@ -686,6 +687,32 @@ def create_weather(zm: ImmutableZoneManager, temperature_item: NumberItem) -> Un
     alert_title_item.listen_event(
         lambda event: dispatch_event(
             zm, ZoneEvent.WEATHER_ALERT_CHANGED, device, alert_title_item), ValueChangeEvent)
+
+    # noinspection PyTypeChecker
+    return device
+
+
+def create_auto_report_notification_setting(zm: ImmutableZoneManager, device_name_item: StringItem) \
+        -> Union[None, DeferredAutoReportNotification]:
+    """
+    Creates deferred auto report notification item.
+    :param zm: the zone manager instance to dispatch the event.
+    :param device_name_item: the item tracking the device name
+    """
+    device_name_pattern = '(.*)_AutoReportDeviceName'
+    match = re.search(device_name_pattern, device_name_item.name)
+    if not match:
+        return None
+
+    name_prefix = match.group(1)
+    duration_item = Items.get_item(f"{name_prefix}_AutoReportDeferredDurationInHour")
+
+    device = DeferredAutoReportNotification(device_name_item, duration_item)
+    device = _configure_device(device, zm)
+
+    device_name_item.listen_event(
+        lambda event: dispatch_event(
+            zm, ZoneEvent.DEFERRED_NOTIFICATION_DEVICE_NAME_CHANGED, device, device_name_item), ValueChangeEvent)
 
     # noinspection PyTypeChecker
     return device

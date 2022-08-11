@@ -10,7 +10,7 @@ class GenerateWifiItemMappings(HABApp.Rule):
     def __init__(self):
         super().__init__()
 
-        self.run.at(10, self.generate)
+        # self.run.at(10, self.generate)
 
     # noinspection PyMethodMayBeStatic
     def generate(self):

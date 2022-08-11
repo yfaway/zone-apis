@@ -50,6 +50,7 @@ class TurnOnSwitch(Action):
         events = event_info.get_event_dispatcher()
         zone = event_info.get_zone()
         zone_manager: ImmutableZoneManager = event_info.get_zone_manager()
+        # noinspection PyTypeChecker
         motion_sensor: MotionSensor = event_info.get_device()
 
         is_processed = False
