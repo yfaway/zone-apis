@@ -1,5 +1,5 @@
 import HABApp
-from HABApp.core.events import ValueChangeEvent
+from HABApp.core.events import ValueChangeEvent, ValueChangeEventFilter
 from HABApp.openhab.items import StringItem
 
 from zone_api import platform_encapsulator as pe
@@ -17,7 +17,7 @@ class ProcessOpenHabAlerts(HABApp.Rule):
         super().__init__()
 
         item = StringItem.get_item('VT_AlertSender')
-        self.listen_event(item, item_changed, ValueChangeEvent)
+        self.listen_event(item, item_changed, ValueChangeEventFilter())
 
 
 def item_changed(event: ValueChangeEvent):

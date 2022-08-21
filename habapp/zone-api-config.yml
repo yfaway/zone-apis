@@ -11,18 +11,23 @@ system:
   email-service:
     smtp-server: smtp.gmail.com
     port: 465
-    sender-email: sender@gmail.com
-    sender-password: password
+    sender-email: hvhomeautomation@gmail.com
+    sender-password: 'yfcgyagjknsyepwl'
 
   alerts:
     email:
       owner-email-addresses:
-        - recipient@gmail.com
+        - haipham@gmail.com
+        - vituongvu@gmail.com
+        - nhuepham@gmail.com
+        - anphung.hn@gmail.com
+        - annahienpham@gmail.com
       admin-email-addresses:
-        - recipient@gmail.com
+        - haipham@gmail.com
 
 # Contains the parameters for each named actions.
 action-parameters:
   AlertOnBadComputerStates:
     maxCpuTemperatureInDegree: 60
+    intervalBetweenAlertsInMinutes: 60
     disabled: false

@@ -97,7 +97,7 @@ def parse(config: dict[Hashable, Any], actions_package: str = "zone_api.core.act
     for zone in _parse_zones():
         zone_mappings[zone.get_id()] = zone
 
-    items: List[BaseItem] = Items.get_all_items()
+    items: List[BaseItem] = Items.get_items()
     for item in items:
         for pattern in mappings.keys():
 
@@ -143,7 +143,7 @@ def _parse_zones() -> List[Zone]:
     pattern = 'Zone_([^_]+)'
     zones: List[Zone] = []
 
-    items = Items.get_all_items()
+    items = Items.get_items()
     for item in items:
         match = re.search(pattern, item.name)
         if not match:
