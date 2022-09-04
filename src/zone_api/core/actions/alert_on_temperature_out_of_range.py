@@ -36,7 +36,7 @@ class AlertOnTemperatureOutOfRange(Action):
             raise ValueError('maxTemperature must be greater than minTemperature')
 
         self.rangeAlert = RangeViolationAlert(min_temperature, max_temperature,
-                                              notification_step_value, "temperature", "C", "TEMPERATURE", 30, False)
+                                              notification_step_value, "temperature", "C", "TEMPERATURE", 30)
 
     def on_action(self, event_info):
         zone = event_info.get_zone()
@@ -44,6 +44,6 @@ class AlertOnTemperatureOutOfRange(Action):
 
         # noinspection PyUnresolvedReferences
         percentage = event_info.get_device().get_temperature()
-        self.rangeAlert.update_state(percentage, zone, zone_manager)
+        self.rangeAlert.update_state(self, percentage, zone, zone_manager)
 
         return True

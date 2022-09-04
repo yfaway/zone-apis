@@ -4,7 +4,7 @@ import time
 from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
-    import zone_api.core.zone
+    from zone_api.core.zone import Zone
 
 from zone_api import platform_encapsulator as pe
 

@@ -52,7 +52,7 @@ class AlertOnLowBatteryLevel(Action):
             body += "\r\n  - ".join(low_battery_devices)
 
             alert = Alert.create_info_alert(subject, body)
-            zone_manager.get_alert_manager().process_admin_alert(alert)
+            self.send_notification(zone_manager, alert)
         else:
             pe.log_info(f"No devices with low battery percentage.")
 

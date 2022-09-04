@@ -25,11 +25,11 @@ class SecurityAlertInVacationMode(Action):
         if event_info.get_event_type() in SECURITY_EVENTS:
             alert_message = f'[Vacation] Security system state changed: {event_info.get_event_type().name}.'
             alert = Alert.create_info_alert(alert_message)
-            zone_manager.get_alert_manager().process_alert(alert, zone_manager)
+            self.send_notification(zone_manager, alert)
         else:
             zone = event_info.get_owning_zone()
             alert_message = f'[Vacation] {zone.get_name()} event: {event_info.get_event_type().name}.'
             alert = Alert.create_info_alert(alert_message)
-            zone_manager.get_alert_manager().process_alert(alert, zone_manager)
+            self.send_notification(zone_manager, alert)
 
         return True

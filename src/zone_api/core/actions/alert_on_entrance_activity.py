@@ -72,7 +72,7 @@ class AlertOnEntranceActivity(Action):
             else:
                 alert = Alert.create_audio_warning_alert(msg)
 
-            zone_manager.get_alert_manager().process_alert(alert)
+            self.send_notification(zone_manager, alert)
 
             return True
         else:

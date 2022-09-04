@@ -128,6 +128,12 @@ def percentage_validator(value: Number) -> tuple[bool, str]:
     return 0 <= value <= 100, "must be a percentage"
 
 
+def user_type_notification_validator(value: str) -> tuple[bool, str]:
+    """ A validator to ensure that value is either 'owners' or 'administrators'. """
+
+    return value.lower() == 'owners' or value.lower() == 'administrators', "must be 'owners' or 'administrators'"
+
+
 class ParameterConstraint(object):
     """ Represents a parameter constraints: restrict the name and the value"""
 

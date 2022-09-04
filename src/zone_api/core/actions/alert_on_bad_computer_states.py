@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 from zone_api.alert import Alert
 from zone_api.core.devices.computer import Computer
@@ -23,7 +23,7 @@ class AlertOnBadComputerStates(Action):
         self._thresholds = [max_cpu_temperature_in_degree, max_gpu_temperature_in_degree]
         self._names = ["CPU", "GPU"]
         self._interval_between_alerts_in_minutes = interval_between_alerts_in_minutes
-        self._alerts = [None, None]  # CPU & GPU
+        self._alerts: List[Union[Alert, None]] = [None, None]  # CPU & GPU
 
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
@@ -57,11 +57,11 @@ class AlertOnBadComputerStates(Action):
             alert_module = alert_message
             self._alerts[index] = Alert.create_critical_alert(alert_message, None, [],
                                                               alert_module, self._interval_between_alerts_in_minutes)
-            zone_manager.get_alert_manager().process_alert(self._alerts[index], zone_manager)
+            self.send_notification(zone_manager, self._alerts[index])
         elif self._alerts[index] is not None:
             alert_message = f'{self._names[index]} temperature for {computer.get_item_name()} is back to normal'
             alert = Alert.create_info_alert(alert_message)
-            zone_manager.get_alert_manager().process_alert(alert, zone_manager)
+            self.send_notification(zone_manager, alert)
             # noinspection PyUnresolvedReferences
             self._alerts[index].cancel()
             self._alerts[index] = None

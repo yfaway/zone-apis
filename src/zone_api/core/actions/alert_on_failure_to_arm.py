@@ -39,6 +39,6 @@ class AlertOnFailureToArm(Action):
 
         if alert_message is not None:
             alert = Alert.create_info_alert(alert_message)
-            zone_manager.get_alert_manager().process_alert(alert, zone_manager)
+            self.send_notification(zone_manager, alert)
 
         return True

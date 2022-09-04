@@ -22,6 +22,6 @@ class AlertOnExternalWindowOpen(Action):
             alert_message = f'[Security] The {zone.get_name()} window is now closed.'
 
         alert = Alert.create_info_alert(alert_message)
-        zone_manager.get_alert_manager().process_alert(alert, zone_manager)
+        self.send_notification(zone_manager, alert)
 
         return True

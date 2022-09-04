@@ -1,9 +1,14 @@
 import re
-from typing import Any, List
+from typing import Any, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from zone_api.alert import Alert
+    from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.event_info import EventInfo
-from zone_api.core.parameters import Parameters, ParameterConstraint, boolean_value_validator
+from zone_api.core.parameters import Parameters, ParameterConstraint, boolean_value_validator, \
+    user_type_notification_validator
 from zone_api.core.zone_event import ZoneEvent
 
 
@@ -20,12 +25,20 @@ class Action(object):
       3. Action::on_action is invoked when the specified event is triggered.
       4. Action::on_destroy is invoked with ZoneEvent::DESTROY.
     """
+
+    NOTIFICATION_USERS = 'users'
+    NOTIFICATION_ADMINISTRATORS = 'administrators'
+
+    PARAMETER_NAME_NOTIFICATION_AUDIENCES = 'notificationAudiences'
+
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
         """ Returns the list of parameters common to all actions. """
         return [
             # Disable the action.
-            ParameterConstraint.optional('disabled', boolean_value_validator)
+            ParameterConstraint.optional('disabled', boolean_value_validator),
+            # Determine if notifications should go to 'users' or 'administrators'.
+            ParameterConstraint.optional(Action.PARAMETER_NAME_NOTIFICATION_AUDIENCES, user_type_notification_validator)
         ]
 
     def __init__(self, parameters: Parameters):
@@ -177,6 +190,17 @@ class Action(object):
     def log_error(self, message: str):
         """ Log an error message with the action name prefix. """
         pe.log_error(f"{self.__class__.__name__}: {message}")
+
+    def send_notification(self, zm: 'ImmutableZoneManager', alert: 'Alert',
+                          default_notification_user_type=NOTIFICATION_USERS) -> bool:
+        """
+        Sends a regular alert or an admin alert depending on the notification user type setting.
+        """
+        user_type = self.get_parameter(Action.PARAMETER_NAME_NOTIFICATION_AUDIENCES, default_notification_user_type)
+        if user_type == Action.NOTIFICATION_USERS:
+            return zm.get_alert_manager().process_alert(alert, zm)
+        elif user_type == Action.NOTIFICATION_ADMINISTRATORS:
+            return zm.get_alert_manager().process_admin_alert(alert)
 
 
 def action(devices=None, events=None, internal=True, external=False, levels=None,

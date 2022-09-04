@@ -126,7 +126,7 @@ class AlertOnInactiveDevices(Action):
             body += "\r\n  - ".join(inactive_devices)
 
             alert = Alert.create_info_alert(subject, body)
-            zone_manager.get_alert_manager().process_admin_alert(alert)
+            self.send_notification(zone_manager, alert)
         else:
             pe.log_info(f"No inactive {device_type_string} devices detected.")
 

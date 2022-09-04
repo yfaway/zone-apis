@@ -23,7 +23,7 @@ class Computer(Device):
         """
         Device.__init__(self, pe.create_string_item(f'Computer: {name}'),
                         [cpu_temperature_item, gpu_temperature_item, gpu_fan_speed_item],
-                        False, False, always_on)
+                        battery_powered=False, wifi=False, auto_report=always_on)
 
         self._name = name
 

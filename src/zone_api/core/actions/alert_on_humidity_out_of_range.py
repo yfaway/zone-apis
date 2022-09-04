@@ -27,7 +27,7 @@ class AlertOnHumidityOutOfRange(Action):
             raise ValueError('maxHumidity must be greater than minHumidity')
 
         self.rangeAlert = RangeViolationAlert(min_humidity, max_humidity,
-                                              notification_step_value, "humidity", "%", "HUMIDITY", 60, True)
+                                              notification_step_value, "humidity", "%", "HUMIDITY", 60)
 
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
@@ -43,6 +43,6 @@ class AlertOnHumidityOutOfRange(Action):
         # noinspection PyTypeChecker
         sensor: HumiditySensor = event_info.get_device()
         percentage = sensor.get_humidity()
-        self.rangeAlert.update_state(percentage, zone, zone_manager)
+        self.rangeAlert.update_state(self, percentage, zone, zone_manager)
 
         return True

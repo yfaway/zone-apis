@@ -1,3 +1,7 @@
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from zone_api.core.action import Action
+
 from zone_api.alert import Alert
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 
@@ -10,8 +14,7 @@ class RangeViolationAlert:
     """
 
     def __init__(self, min_value, max_value, notification_step_value=3,
-                 label="value", unit="", module=None,
-                 interval_between_alerts_in_minutes=-1, admin_alert=False):
+                 label="value", unit="", module=None, interval_between_alerts_in_minutes=-1):
         """
         Ctor
         :param int min_value: the minimum good value
@@ -37,14 +40,13 @@ class RangeViolationAlert:
         self.unit = unit
         self.module = module
         self.interval_between_alerts_in_minutes = interval_between_alerts_in_minutes
-        self.adminAlert = admin_alert
         self.sent_alert = False
         self.next_max_notification_threshold = None
         self.next_min_notification_threshold = None
 
         self.reset_states()
 
-    def update_state(self, value, zone, zone_manager: ImmutableZoneManager):
+    def update_state(self, action: 'Action', value, zone, zone_manager: ImmutableZoneManager):
         """
         Update this object with the latest value.
         If the value is outside the range, an warning alert will be sent.
@@ -58,10 +60,7 @@ class RangeViolationAlert:
                       f'({self.min_value}% - {self.max_value}%).'
                 alert = Alert.create_info_alert(msg)
 
-                if self.adminAlert:
-                    zone_manager.get_alert_manager().process_admin_alert(alert)
-                else:
-                    zone_manager.get_alert_manager().process_alert(alert)
+                action.send_notification(zone_manager, alert)
 
         else:
             alert_message = ''
@@ -77,10 +76,7 @@ class RangeViolationAlert:
             if alert_message != '':
                 alert = Alert.create_warning_alert(alert_message, None, [],
                                                    self.module, self.interval_between_alerts_in_minutes)
-                if self.adminAlert:
-                    zone_manager.get_alert_manager().process_admin_alert(alert)
-                else:
-                    zone_manager.get_alert_manager().process_alert(alert)
+                action.send_notification(zone_manager, alert)
 
                 self.sent_alert = True
 

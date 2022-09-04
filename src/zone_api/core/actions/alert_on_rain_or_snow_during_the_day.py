@@ -62,7 +62,7 @@ class AlertOnRainOrSnowDuringTheDay(Action):
 
             alert_message = Alert.create_info_alert(subject, body)
             zm = event_info.get_zone_manager()
-            result = zm.get_alert_manager().process_alert(alert_message, zm)
+            result = self.send_notification(zm, alert_message)
             if not result:
                 pe.log_info('Failed to send rain/snow alert')
 

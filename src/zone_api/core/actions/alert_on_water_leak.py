@@ -37,12 +37,12 @@ class AlertOnWaterLeak(Action):
             alert_module = alert_message
             self._alert = Alert.create_critical_alert(alert_message, None, [],
                                                       alert_module, self._interval_between_alerts_in_minutes)
-            zone_manager.get_alert_manager().process_alert(self._alert, zone_manager)
+            self.send_notification(zone_manager, self._alert)
 
         elif self._alert is not None:
             alert_message = f'No more water leak detected in {zone.get_name()}.'
             alert = Alert.create_info_alert(alert_message)
-            zone_manager.get_alert_manager().process_alert(alert, zone_manager)
+            self.send_notification(zone_manager, alert)
             self._alert.cancel()
 
         return True

@@ -35,19 +35,19 @@ class AlertOnSecurityAlarmTriggered(Action):
 
                 alert_message = f'Security system is on alarm{description}.'
                 self._general_alert = Alert.create_critical_alert(alert_message)
-                zone_manager.get_alert_manager().process_alert(self._general_alert, zone_manager)
+                self.send_notification(zone_manager, self._general_alert)
 
             elif self._general_alert is not None:
                 alert = Alert.create_info_alert("Security system is NO LONGER in alarm")
-                zone_manager.get_alert_manager().process_alert(alert, zone_manager)
+                self.send_notification(zone_manager, alert)
                 self._general_alert.cancel()
         elif event_info.get_event_type() == ZoneEvent.PARTITION_FIRE_ALARM_STATE_CHANGED:
             if partition.is_in_fire_alarm():
                 self._fire_alert = Alert.create_critical_alert('Security system is on FIRE alarm.')
-                zone_manager.get_alert_manager().process_alert(self._fire_alert, zone_manager)
+                self.send_notification(zone_manager, self._fire_alert)
             elif self._fire_alert is not None:
                 alert = Alert.create_info_alert("Security system is NO LONGER in FIRE alarm")
-                zone_manager.get_alert_manager().process_alert(alert, zone_manager)
+                self.send_notification(zone_manager, alert)
                 self._fire_alert.cancel()
 
         return True

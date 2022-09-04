@@ -11,19 +11,15 @@ system:
   email-service:
     smtp-server: smtp.gmail.com
     port: 465
-    sender-email: hvhomeautomation@gmail.com
-    sender-password: 'yfcgyagjknsyepwl'
+    sender-email: noop@gmail.com
+    sender-password: 'asdf'
 
   alerts:
     email:
       owner-email-addresses:
-        - haipham@gmail.com
-        - vituongvu@gmail.com
-        - nhuepham@gmail.com
-        - anphung.hn@gmail.com
-        - annahienpham@gmail.com
+        - owner.gmail.com
       admin-email-addresses:
-        - haipham@gmail.com
+        - admin@gmail.com
 
 # Contains the parameters for each named actions.
 action-parameters:
@@ -31,3 +27,15 @@ action-parameters:
     maxCpuTemperatureInDegree: 60
     intervalBetweenAlertsInMinutes: 60
     disabled: false
+
+  AlertOnHumidityOutOfRange:
+    notificationAudiences: 'administrators'
+
+  AlertOnHighGasLevel:
+    notificationAudiences: 'administrators'
+
+  AlertOnInactiveDevices:
+    notificationAudiences: 'administrators'
+
+  AlertOnLowBatteryLevel:
+    notificationAudiences: 'administrators'

@@ -53,7 +53,7 @@ class SendWeatherAlert(Action):
                 body = f"{alert_message}\nLink: {url}"
 
                 alert = Alert.create_info_alert(subject, body)
-                zone_manager.get_alert_manager().process_alert(alert, zone_manager)
+                self.send_notification(zone_manager, alert)
 
                 return True
             else:
