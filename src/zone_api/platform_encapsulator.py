@@ -9,7 +9,6 @@ from email.mime.text import MIMEText
 from typing import List, Union, Any, TYPE_CHECKING
 
 import HABApp
-from HABApp.core import Items
 from HABApp.core.events import ValueChangeEvent
 from HABApp.core.items import Item
 from HABApp.openhab.definitions import OnOffValue
@@ -57,7 +56,7 @@ def add_zone_manager_to_context(zm):
     :param ImmutableZoneManager zm:
     """
     if is_in_hab_app():
-        if Items.item_exists(ZONE_MANAGER_ITEM_NAME):
+        if HABApp.core.Items.item_exists(ZONE_MANAGER_ITEM_NAME):
             HABApp.core.Items.pop_item(ZONE_MANAGER_ITEM_NAME)
 
         item = OpenhabItem(ZONE_MANAGER_ITEM_NAME, zm)
@@ -247,7 +246,7 @@ def is_player_playing(item: PlayerItem):
 
 def has_item(item_name: str):
     """ Returns true if the item name is present in the back store. """
-    return Items.item_exists(item_name)
+    return HABApp.core.Items.item_exists(item_name)
 
 
 def get_item_name(item):
@@ -309,7 +308,7 @@ def get_event_dispatcher():
         class TestEventDispatcher:
             # noinspection PyMethodMayBeStatic
             def send_command(self, item_name: str, command: Any):
-                item = Items.get_item(item_name)
+                item = HABApp.core.Items.get_item(item_name)
                 if isinstance(item, SwitchItem):
                     item = SwitchItem.get_item(item_name)
 
@@ -330,9 +329,17 @@ def get_event_dispatcher():
         return TestEventDispatcher()
 
 
-def set_in_unit_tests(value: bool):
+def set_in_unit_tests():
     global _in_unit_tests
-    _in_unit_tests = value
+
+    if not is_in_unit_tests():
+        _in_unit_tests = True
+
+        ir = HABApp.core.internals.ItemRegistry()
+        eb = HABApp.core.internals.EventBus()
+        HABApp.core.internals.setup_internals(ir, eb)
+        HABApp.core.Items = ir
+        HABApp.core.EventBus = eb
 
 
 def is_in_unit_tests():

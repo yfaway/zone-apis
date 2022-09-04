@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import List, Tuple
 from unittest.mock import MagicMock
 
-from HABApp.core.Items import ItemAlreadyExistsError
+from HABApp.core.errors import ItemAlreadyExistsError
 
 from zone_api import platform_encapsulator as pe
 from zone_api.alert_manager import AlertManager
@@ -50,7 +50,7 @@ class DeviceTest(unittest.TestCase):
     def setUp(self):
         """ Adds the items to the registry. """
 
-        pe.set_in_unit_tests(True)
+        pe.set_in_unit_tests()
 
         for item in self.items:
             try:
@@ -62,8 +62,6 @@ class DeviceTest(unittest.TestCase):
         """ Removes the items from the registry. """
         for item in self.items:
             pe.unregister_test_item(item)
-
-        pe.set_in_unit_tests(False)
 
     def set_items(self, items: list) -> None:
         """
