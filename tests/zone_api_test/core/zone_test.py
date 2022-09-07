@@ -154,10 +154,12 @@ class ZoneTest(DeviceTest):
 
     def testAddAction_validActionWithDuplicateEvents_actionAddedAndEventsDeduped(self):
         class MyAction(Action):
-            def get_required_events(self):
+            @property
+            def required_events(self):
                 return [ZoneEvent.WINDOW_OPEN]
 
-            def get_external_events(self):
+            @property
+            def external_events(self):
                 return [ZoneEvent.WINDOW_OPEN]
 
         zone = Zone('ff').add_action(MyAction(MapParameters({})))

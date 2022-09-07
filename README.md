@@ -412,7 +412,10 @@ Actions can read parameters from the ```zone-api-config.yml``` file (see section
 Parameters available to all actions:
  - disabled (optional boolean; default: false): if set to true, the action is excluded from all zones. This parameter
    is useful to disable certain actions, either temporarily or permanently when importing a large number of external actions from a library.
-
+ - notificationAudiences (optional string; default: 'users'): configure whether the notification (if any) should go to
+   regular users or the administrators. To take advantage of this parameter, actions need to use
+  ```Action::send_notification(zone_manager, alert)```. Possible values: 'users', or 'administrators'.
+  
 Each actions might also have their own parameters; see the method ```supported_parameters``` in each action.
 
 ## ZoneParser and the default OpenHab item naming conventions

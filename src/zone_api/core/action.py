@@ -1,6 +1,8 @@
 import re
 from typing import Any, List, TYPE_CHECKING
 
+from zone_api.core.devices.activity_times import ActivityType, ActivityTimes
+
 if TYPE_CHECKING:
     from zone_api.alert import Alert
     from zone_api.core.immutable_zone_manager import ImmutableZoneManager
@@ -52,6 +54,8 @@ class Action(object):
         self._zone_name_pattern = None
         self._filtering_disabled = False
         self._priority = 10
+        self._activity_types = None
+        self._excluded_activity_types = None
         self._parameters = parameters
 
     def parameters(self) -> Parameters:
@@ -107,14 +111,16 @@ class Action(object):
                          event_info.get_zone(), event_info.get_zone_manager(),
                          event_info.get_event_dispatcher(), None, None, custom_parameter)
 
-    def get_required_devices(self):
+    @property
+    def required_devices(self):
         """
         :return: list of devices that would generate the events
         :rtype: list(Device)
         """
         return self._devices
 
-    def get_required_events(self):
+    @property
+    def required_events(self):
         """
         :return: list of triggering events this action processes. External events aren't filtered
             through the normal mechanism as they come from different zones.
@@ -122,40 +128,46 @@ class Action(object):
         """
         return self._triggering_events
 
-    def get_external_events(self):
+    @property
+    def external_events(self):
         """
         :return: list of external events that this action processes.
         """
         return self._external_events
 
-    def is_applicable_to_internal_zone(self):
+    @property
+    def applicable_to_internal_zone(self):
         """
         :return: true if the action can be invoked on an internal zone.
         :rtype: bool
         """
         return self._internal
 
-    def is_applicable_to_external_zone(self):
+    @property
+    def applicable_to_external_zone(self):
         """
         :return: true if the action can be invoked on an external zone.
         :rtype: bool
         """
         return self._external
 
-    def get_applicable_levels(self):
+    @property
+    def applicable_levels(self):
         """
         :return: list of applicable zone levels
         :rtype: list(int) 
         """
         return self._levels
 
-    def get_applicable_zone_name_pattern(self):
+    @property
+    def applicable_zone_name_pattern(self):
         """
         :return: the zone name pattern that is applicable for this action.
         :rtype: str
         """
         return self._zone_name_pattern
 
+    @property
     def must_be_unique_instance(self):
         """
         Returns true if the action must be an unique instance for each zone. This must be the case
@@ -163,13 +175,31 @@ class Action(object):
         """
         return self._unique_instance
 
-    def is_filtering_disabled(self):
+    @property
+    def filtering_disabled(self):
         """ Returns true if no filtering shall be performed before the action is invoked. """
         return self._filtering_disabled
 
-    def get_priority(self) -> int:
+    @property
+    def priority(self) -> int:
         """ Returns the specified priority order. Actions with lower order value is executed first. """
         return self._priority
+
+    @property
+    def activity_types(self) -> List[ActivityType]:
+        """
+        Returns the list of activity types. The action will only execute if the current time is in one of these time
+        ranges.
+        """
+        return self._activity_types
+
+    @property
+    def excluded_activity_types(self) -> List[ActivityType]:
+        """
+        Returns the list of excluded activity types. The action will only execute if the current time is not in one of
+        these time ranges.
+        """
+        return self._excluded_activity_types
 
     def disable_filtering(self):
         self._filtering_disabled = True
@@ -205,7 +235,8 @@ class Action(object):
 
 def action(devices=None, events=None, internal=True, external=False, levels=None,
            unique_instance=False, zone_name_pattern: str = None, external_events=None,
-           priority: int = 10):
+           priority: int = 10, activity_types: List[ActivityType] = None,
+           excluded_activity_types: List[ActivityType] = None):
     """
     A decorator that accepts an action class and do the followings:
       - Create a subclass that extends the decorated class and Action.
@@ -229,6 +260,10 @@ def action(devices=None, events=None, internal=True, external=False, levels=None
         events as they come from other zones.
     :param int priority: the action priority with respect to other actions within the same zone.
         Actions with lower priority values are executed first.
+    :param activity_types: the list of ActivityType that the action can triggered. If the current time is not in the
+        time range of one of these activities, the action won't trigger.
+    :param excluded_activity_types: the list of ActivityType that the action won't trigger. If the current time is in
+        the time range of one of these activities, the action won't trigger.
     """
 
     if levels is None:
@@ -239,6 +274,10 @@ def action(devices=None, events=None, internal=True, external=False, levels=None
         external_events = []
     if devices is None:
         devices = []
+    if activity_types is None:
+        activity_types = []
+    if excluded_activity_types is None:
+        excluded_activity_types = []
 
     def action_decorator(clazz):
         def init(self, *args, **kwargs):
@@ -254,6 +293,8 @@ def action(devices=None, events=None, internal=True, external=False, levels=None
             self._external_events = external_events
             self._filtering_disabled = False
             self._priority = priority
+            self._activity_types = activity_types
+            self._excluded_activity_types = excluded_activity_types
 
         subclass = type(clazz.__name__, (clazz, Action), dict(__init__=init))
         subclass.on_action = validate(clazz.on_action)
@@ -272,37 +313,57 @@ def validate(function):
     """
 
     def wrapper(*args, **kwargs):
-        obj = args[0]
+        obj: Action = args[0]
         event_info = args[1]
         zone = event_info.get_zone()
+        zone_manager = event_info.get_zone_manager()
 
-        if obj.is_filtering_disabled() or event_info.get_event_type() == ZoneEvent.TIMER:
+        if obj.filtering_disabled or event_info.get_event_type() == ZoneEvent.TIMER:
             return function(*args, **kwargs)
 
         if zone.contains_open_hab_item(event_info.get_item()):
-            if len(obj.get_required_events()) > 0 \
-                    and not any(e == event_info.get_event_type() for e in obj.get_required_events()):
+            if len(obj.required_events) > 0 \
+                    and not any(e == event_info.get_event_type() for e in obj.required_events):
 
                 return False
-            elif len(obj.get_required_devices()) > 0 \
-                    and not any(len(zone.get_devices_by_type(cls)) > 0 for cls in obj.get_required_devices()):
+            elif len(obj.required_devices) > 0 \
+                    and not any(len(zone.get_devices_by_type(cls)) > 0 for cls in obj.required_devices):
 
                 return False
-            elif zone.is_internal() and not obj.is_applicable_to_internal_zone():
+            elif zone.is_internal() and not obj.applicable_to_internal_zone:
                 return False
-            elif zone.is_external() and not obj.is_applicable_to_external_zone():
+            elif zone.is_external() and not obj.applicable_to_external_zone:
                 return False
-            elif len(obj.get_applicable_levels()) > 0 \
-                    and not any(zone.get_level() == level for level in obj.get_applicable_levels()):
+            elif len(obj.applicable_levels) > 0 \
+                    and not any(zone.get_level() == level for level in obj.applicable_levels):
 
                 return False
-            elif obj.get_applicable_zone_name_pattern() is not None:
-                pattern = obj.get_applicable_zone_name_pattern()
+            elif obj.applicable_zone_name_pattern is not None:
+                pattern = obj.applicable_zone_name_pattern
                 match = re.search(pattern, zone.get_name())
                 if not match:
                     return False
+
+            elif len(obj.activity_types) > 0:
+                activity: ActivityTimes = zone_manager.get_first_device_by_type(ActivityTimes)
+                if activity is None:
+                    obj.log_error('Mission ActivityTimes.')
+                    return False
+
+                if not any(activity.is_at_activity_time(a) for a in obj.activity_types):
+                    return False
+
+            elif len(obj.excluded_activity_types) > 0:
+                activity: ActivityTimes = zone_manager.get_first_device_by_type(ActivityTimes)
+                if activity is None:
+                    obj.log_error('Mission ActivityTimes.')
+                    return False
+
+                if any(activity.is_at_activity_time(a) for a in obj.excluded_activity_types):
+                    return False
+
         else:  # event from other zones
-            if event_info.get_event_type() not in obj.get_external_events():
+            if event_info.get_event_type() not in obj.external_events:
                 return False
 
         return function(*args, **kwargs)

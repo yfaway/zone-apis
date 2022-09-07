@@ -49,6 +49,24 @@ class ActivityTimes(Device):
     def number_of_activities(self) -> int:
         return len(self.timeRangeMap)
 
+    def is_at_activity_time(self, activity_type: ActivityType, epoch_seconds=None):
+        if activity_type == ActivityType.LUNCH:
+            return self.is_lunch_time(epoch_seconds)
+        elif activity_type == ActivityType.DINNER:
+            return self.is_dinner_time(epoch_seconds)
+        elif activity_type == ActivityType.SLEEP:
+            return self.is_sleep_time(epoch_seconds)
+        elif activity_type == ActivityType.QUIET:
+            return self.is_quiet_time(epoch_seconds)
+        elif activity_type == ActivityType.WAKE_UP:
+            return self.is_wakeup_time(epoch_seconds)
+        elif activity_type == ActivityType.AUTO_ARM_STAY:
+            return self.is_auto_arm_stay_time(epoch_seconds)
+        elif activity_type == ActivityType.TURN_OFF_PLUGS:
+            return self.is_turn_off_plugs_time(epoch_seconds)
+        else:
+            raise ValueError(f"Invalid activity type {activity_type}")
+
     def is_lunch_time(self, epoch_seconds=None):
         return self._is_in_time_range(ActivityType.LUNCH, epoch_seconds)
 

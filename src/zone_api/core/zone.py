@@ -251,16 +251,16 @@ class Zone:
         :return: A NEW object.
         :rtype: Zone 
         """
-        if len(action.get_required_events()) == 0:
+        if len(action.required_events) == 0:
             raise ValueError('Action must define at least one triggering event')
 
         new_actions = dict(self.actions)
 
-        events = set(action.get_required_events() + action.get_external_events())
+        events = set(action.required_events + action.external_events)
         for zone_event in events:
             if zone_event in new_actions:
                 new_actions[zone_event].append(action)
-                new_actions[zone_event].sort(key=lambda a: a.get_priority())
+                new_actions[zone_event].sort(key=lambda a: a.priority)
             else:
                 new_actions[zone_event] = [action]
 

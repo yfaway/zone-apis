@@ -209,7 +209,7 @@ def add_actions(zone_mappings: Dict, action_classes: List[Type], parameters: Par
             if not _can_add_action_to_zone(zone, action):
                 continue
 
-            if action.must_be_unique_instance():
+            if action.must_be_unique_instance:
                 local_action: Action = clazz(parameters)
                 zone = zone.add_action(local_action)
             else:
@@ -222,7 +222,7 @@ def add_actions(zone_mappings: Dict, action_classes: List[Type], parameters: Par
 
 def _can_add_action_to_zone(zone: Zone, action: Action) -> bool:
     satisfied = True  # must have all devices
-    for device_type in action.get_required_devices():
+    for device_type in action.required_devices:
         if len(zone.get_devices_by_type(device_type)) == 0:
             satisfied = False
             break
@@ -230,16 +230,16 @@ def _can_add_action_to_zone(zone: Zone, action: Action) -> bool:
     if not satisfied:
         return False
 
-    if zone.is_internal() and not action.is_applicable_to_internal_zone():
+    if zone.is_internal() and not action.applicable_to_internal_zone:
         return False
 
-    if zone.is_external() and not action.is_applicable_to_external_zone():
+    if zone.is_external() and not action.applicable_to_external_zone:
         return False
 
-    if len(action.get_applicable_levels()) > 0 and (zone.get_level() not in action.get_applicable_levels()):
+    if len(action.applicable_levels) > 0 and (zone.get_level() not in action.applicable_levels):
         return False
 
-    zone_name_pattern = action.get_applicable_zone_name_pattern()
+    zone_name_pattern = action.applicable_zone_name_pattern
     if zone_name_pattern is not None:
         match = re.search(zone_name_pattern, zone.get_name())
         if not match:

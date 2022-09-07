@@ -22,16 +22,24 @@ class ActivityTimesTest(DeviceTest):
         self.activity = ActivityTimes(time_map)
 
     def testCtor_invalidKey_throwsError(self):
-        with self.assertRaises(TypeError) as cm:
+        with self.assertRaises(TypeError):
             ActivityTimes({'invalidKey': '8:00 - 9:00'})
 
-    def testIsWakeupTime_lunchTime_returnsTrue(self):
+    def testAtActivityType_wakeupTime_returnsTrue(self):
+        dt = datetime.datetime(2020, 2, 8, 7, 10)
+        self.assertTrue(self.activity.is_at_activity_time(ActivityType.WAKE_UP, time.mktime(dt.timetuple())))
+
+    def testIsWakeupTime_wakeupTime_returnsTrue(self):
         dt = datetime.datetime(2020, 2, 8, 7, 10)
         self.assertTrue(self.activity.is_wakeup_time(time.mktime(dt.timetuple())))
 
     def testIsWakeupTime_notLunchTime_returnsFalse(self):
         dt = datetime.datetime(2020, 2, 8, 10, 00)
         self.assertFalse(self.activity.is_wakeup_time(time.mktime(dt.timetuple())))
+
+    def testAtActivityType_notLunchTime_returnsTrue(self):
+        dt = datetime.datetime(2020, 2, 8, 10, 00)
+        self.assertFalse(self.activity.is_at_activity_time(ActivityType.LUNCH, time.mktime(dt.timetuple())))
 
     def testIsLunchTime_lunchTime_returnsTrue(self):
         dt = datetime.datetime(2020, 2, 8, 12, 10)
@@ -44,6 +52,10 @@ class ActivityTimesTest(DeviceTest):
     def testIsQuietTime_rightTime_returnsTrue(self):
         dt = datetime.datetime(2020, 2, 8, 15, 00)
         self.assertTrue(self.activity.is_quiet_time(time.mktime(dt.timetuple())))
+
+    def testAtActivityType_validQuietTime_returnsTrue(self):
+        dt = datetime.datetime(2020, 2, 8, 15, 00)
+        self.assertTrue(self.activity.is_at_activity_time(ActivityType.QUIET, time.mktime(dt.timetuple())))
 
     def testIsQuietTime_wrongTime_returnsFalse(self):
         dt = datetime.datetime(2020, 2, 8, 10, 00)
@@ -64,3 +76,9 @@ class ActivityTimesTest(DeviceTest):
     def testIsSleepTime_wrongTime_returnsFalse(self):
         dt = datetime.datetime(2020, 2, 8, 10, 00)
         self.assertFalse(self.activity.is_sleep_time(time.mktime(dt.timetuple())))
+
+    def testAtActivityType_invalidType_returnsTrue(self):
+        with self.assertRaises(ValueError) as cm:
+            # noinspection PyTypeChecker
+            self.assertTrue(self.activity.is_at_activity_time(None))
+        self.assertEqual("Invalid activity type None", cm.exception.args[0])

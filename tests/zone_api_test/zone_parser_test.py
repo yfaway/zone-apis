@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, PropertyMock
 
 from zone_api import zone_parser as zp
 from zone_api.core.devices.motion_sensor import MotionSensor
@@ -18,24 +18,24 @@ class ZoneParserTest(unittest.TestCase):
     def testCanAddActionToZone_markForInternalZoneButApplyOnExternalZone_returnsFalse(self):
         zone = Zone.create_external_zone("blah")
         action = self._create_action_mock()
-        action.is_applicable_to_internal_zone.return_value = True
-        action.is_applicable_to_external_zone.return_value = False
+        type(action).applicable_to_internal_zone = PropertyMock(return_value=True)
+        type(action).applicable_to_external_zone = PropertyMock(return_value=False)
 
         self.assertFalse(zp._can_add_action_to_zone(zone, action))
 
     def testCanAddActionToZone_markForExternalZone_returnsTrue(self):
         zone = Zone.create_external_zone("blah")
         action = self._create_action_mock()
-        action.is_applicable_to_internal_zone.return_value = False
-        action.is_applicable_to_external_zone.return_value = True
+        type(action).applicable_to_internal_zone = PropertyMock(return_value=False)
+        type(action).applicable_to_external_zone = PropertyMock(return_value=True)
 
         self.assertTrue(zp._can_add_action_to_zone(zone, action))
 
     def testCanAddActionToZone_markForExternalZoneButApplyOnInternalZone_returnsFalse(self):
         zone = Zone("blah")
         action = self._create_action_mock()
-        action.is_applicable_to_internal_zone.return_value = False
-        action.is_applicable_to_external_zone.return_value = True
+        type(action).applicable_to_internal_zone = PropertyMock(return_value=False)
+        type(action).applicable_to_external_zone = PropertyMock(return_value=True)
 
         self.assertFalse(zp._can_add_action_to_zone(zone, action))
 
@@ -55,7 +55,7 @@ class ZoneParserTest(unittest.TestCase):
         zone.get_devices_by_type.return_value = []
 
         action = self._create_action_mock()
-        action.get_required_devices.return_value = [MotionSensor]
+        type(action).required_devices = PropertyMock(return_value=[MotionSensor])
 
         self.assertFalse(zp._can_add_action_to_zone(zone, action))
 
@@ -71,7 +71,7 @@ class ZoneParserTest(unittest.TestCase):
         zone = Zone("blah", [], Level.THIRD_FLOOR)
 
         action = self._create_action_mock()
-        action.get_applicable_levels.return_value = [Level.FIRST_FLOOR]
+        type(action).applicable_levels = PropertyMock(return_value=[Level.FIRST_FLOOR])
 
         self.assertFalse(zp._can_add_action_to_zone(zone, action))
 
@@ -85,14 +85,14 @@ class ZoneParserTest(unittest.TestCase):
     def testCanAddActionToZone_zoneNotContainCorrectNamePattern_returnsFalse(self):
         zone = Zone("Blah")
         action = self._create_action_mock()
-        action.get_applicable_zone_name_pattern.return_value = '.*Virtual.*'
+        type(action).applicable_zone_name_pattern = PropertyMock(return_value='.*Virtual.*')
 
         self.assertFalse(zp._can_add_action_to_zone(zone, action))
 
     # noinspection PyMethodMayBeStatic
     def _create_action_mock(self):
         action = MagicMock()
-        action.get_applicable_zone_name_pattern.return_value = None
+        type(action).applicable_zone_name_pattern = PropertyMock(return_value=None)
 
         return action
 
