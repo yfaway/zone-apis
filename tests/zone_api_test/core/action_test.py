@@ -1,8 +1,10 @@
 import unittest
 from unittest.mock import MagicMock, PropertyMock
 
+from zone_api.core.devices.activity_times import ActivityType, ActivityTimes
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.event_info import EventInfo
+from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 from zone_api.core.parameters import Parameters
 from zone_api.core.zone import Level
 from zone_api.core.zone_event import ZoneEvent
@@ -128,6 +130,68 @@ class ActionTest(unittest.TestCase):
 
         self.assertTrue(validate(test_action.on_action)(
             test_action, self.create_event_info_for_internal_event(name='Foyer')))
+
+    def testValidate_actionDefineActivityTypeButSystemNotConfigured_notInvokeAction(self):
+        test_action = self.create_action()
+        type(test_action).activity_types = PropertyMock(return_value=[ActivityType.QUIET])
+
+        zm: ImmutableZoneManager = MagicMock()
+        zm.get_first_device_by_type = MagicMock(return_value=None)
+        event_info: EventInfo = self.create_event_info_for_internal_event(name='Foyer')
+        event_info.get_zone_manager = MagicMock(return_value=zm)
+
+        self.assertFalse(validate(test_action.on_action)(test_action, event_info))
+
+    def testValidate_actionDefineExcludedActivityTypeButSystemNotConfigured_notInvokeAction(self):
+        test_action = self.create_action()
+        type(test_action).excluded_activity_types = PropertyMock(return_value=[ActivityType.QUIET])
+
+        zm: ImmutableZoneManager = MagicMock()
+        zm.get_first_device_by_type = MagicMock(return_value=None)
+        event_info: EventInfo = self.create_event_info_for_internal_event(name='Foyer')
+        event_info.get_zone_manager = MagicMock(return_value=zm)
+
+        self.assertFalse(validate(test_action.on_action)(test_action, event_info))
+
+    def testValidate_inActivityTypes_invokeAction(self):
+        test_action = self.create_action()
+        type(test_action).activity_types = PropertyMock(return_value=[ActivityType.QUIET])
+
+        activities = ActivityTimes({})
+        activities.is_quiet_time = MagicMock(return_value=True)
+
+        self.assertTrue(validate(test_action.on_action)(
+            test_action, self.create_event_info_with_activities(activities)))
+
+    def testValidate_notInActivityTypes_notInvokeAction(self):
+        test_action = self.create_action()
+        type(test_action).activity_types = PropertyMock(return_value=[ActivityType.QUIET])
+
+        activities = ActivityTimes({})
+        activities.is_quiet_time = MagicMock(return_value=False)
+
+        self.assertFalse(validate(test_action.on_action)(
+            test_action, self.create_event_info_with_activities(activities)))
+
+    def testValidate_inExcludedActivityTypes_notInvokeAction(self):
+        test_action = self.create_action()
+        type(test_action).excluded_activity_types = PropertyMock(return_value=[ActivityType.QUIET])
+
+        activities = ActivityTimes({})
+        activities.is_quiet_time = MagicMock(return_value=True)
+
+        self.assertFalse(validate(test_action.on_action)(
+            test_action, self.create_event_info_with_activities(activities)))
+
+    def testValidate_notInExcludedActivityTypes_invokeAction(self):
+        test_action = self.create_action()
+        type(test_action).excluded_activity_types = PropertyMock(return_value=[ActivityType.QUIET])
+
+        activities = ActivityTimes({})
+        activities.is_quiet_time = MagicMock(return_value=False)
+
+        self.assertTrue(validate(test_action.on_action)(
+            test_action, self.create_event_info_with_activities(activities)))
 
     def testValidate_comprehensiveTestWithAllCriteriaMatched_invokeAction(self):
         test_action = self.create_action()
@@ -287,5 +351,16 @@ class ActionTest(unittest.TestCase):
         event_info = MagicMock()
         event_info.get_zone = MagicMock(return_value=zone)
         event_info.get_event_type = MagicMock(return_value=event)
+
+        return event_info
+
+    @staticmethod
+    def create_event_info_with_activities(activities: ActivityTimes) -> EventInfo:
+        """ Create an event info with a mocked zone manager that return 'activities' when
+        method get_first_device_by_type is invoked. """
+        zm: ImmutableZoneManager = MagicMock()
+        zm.get_first_device_by_type = MagicMock(return_value=activities)
+        event_info: EventInfo = ActionTest.create_event_info_for_internal_event(name='Foyer')
+        event_info.get_zone_manager = MagicMock(return_value=zm)
 
         return event_info
