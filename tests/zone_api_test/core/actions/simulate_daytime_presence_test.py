@@ -42,8 +42,9 @@ class SimulateDaytimePresenceTest(DeviceTest):
         self.assertFalse(value)
 
     def testOnAction_motionEventOnInternalZone_returnsFalse(self):
-        event_info = EventInfo(ZoneEvent.MOTION, self.motion_sensor.get_item(), Zone('porch'),
-                               None, pe.get_event_dispatcher())
+        (porch, greatRoom, zm, _) = self.create_test_data()
+        event_info = EventInfo(ZoneEvent.MOTION, self.motion_sensor.get_item(), greatRoom,
+                               zm, pe.get_event_dispatcher())
         value = self.action.on_action(event_info)
         self.assertFalse(value)
 
@@ -68,8 +69,7 @@ class SimulateDaytimePresenceTest(DeviceTest):
 
     def testOnAction_sleepTime_returnsFalse(self):
         time_map = {ActivityType.SLEEP: '0:00 - 23:59'}
-        (porch, greatRoom, zm, event_info) = self.create_test_data(
-            [], [ActivityTimes(time_map)])
+        (porch, greatRoom, zm, event_info) = self.create_test_data([], [ActivityTimes(time_map)])
 
         value = self.action.on_action(event_info)
         self.assertFalse(value)
@@ -98,7 +98,7 @@ class SimulateDaytimePresenceTest(DeviceTest):
         self.assertTrue(value)
         self.assertEqual("playStream", self.audioSink._get_last_test_command())
 
-    def create_test_data(self, excluded_devices=None, extra_included_devices=None):
+    def create_test_data(self, excluded_devices=None, extra_included_devices=[ActivityTimes({})]):
         """
         :return: a list of two zones, the mocked zone manager, and the event dispatcher
         :rtype: list

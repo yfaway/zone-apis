@@ -9,10 +9,11 @@ from zone_api.core.action import action, Action
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.parameters import ParameterConstraint, percentage_validator, positive_number_validator, Parameters
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.devices.activity_times import ActivityTimes
+from zone_api.core.devices.activity_times import ActivityType
 
 
-@action(events=[ZoneEvent.MOTION], devices=[MotionSensor], internal=False, external=True)
+@action(events=[ZoneEvent.MOTION], devices=[MotionSensor], internal=False, external=True,
+        excluded_activity_types=[ActivityType.SLEEP])
 class SimulateDaytimePresence(Action):
     """
     Play the provided URL stream when an external motion sensor is triggered
@@ -51,11 +52,6 @@ class SimulateDaytimePresence(Action):
         if audio_sink is None:
             pe.log_info(f"{self.__module__} - No audio sink available")
             return False
-
-        activities = zone_manager.get_devices_by_type(ActivityTimes)
-        if len(activities) > 0:
-            if activities[0].is_sleep_time():
-                return False
 
         audio_sink.play_stream(self.music_url, self.music_volume)
 

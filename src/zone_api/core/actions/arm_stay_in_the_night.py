@@ -1,6 +1,6 @@
 
 from zone_api import security_manager as sm
-from zone_api.core.devices.activity_times import ActivityTimes
+from zone_api.core.devices.activity_times import ActivityType
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.event_info import EventInfo
 from zone_api.core.zone_event import ZoneEvent
@@ -8,7 +8,7 @@ from zone_api.core.action import action, Action
 from zone_api.core.devices.alarm_partition import AlarmPartition
 
 
-@action(events=[ZoneEvent.TIMER], devices=[AlarmPartition, MotionSensor])
+@action(events=[ZoneEvent.TIMER], devices=[AlarmPartition, MotionSensor], activity_types=[ActivityType.AUTO_ARM_STAY])
 class ArmStayInTheNight(Action):
     """
     Automatically arm-stay the house when the current time is within an auto-arm period. Continue to
@@ -34,14 +34,5 @@ class ArmStayInTheNight(Action):
         if not sm.is_unarmed(zone_manager):
             return False
 
-        activities = zone_manager.get_devices_by_type(ActivityTimes)
-        if len(activities) == 0:
-            self.log_warning("Missing activities time; can't determine wake-up time.")
-            return False
-
-        activity = activities[0]
-        if activity.is_auto_arm_stay_time():
-            sm.arm_stay(zone_manager, events)
-            return True
-        else:
-            return False
+        sm.arm_stay(zone_manager, events)
+        return True

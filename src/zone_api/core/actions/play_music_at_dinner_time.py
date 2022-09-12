@@ -8,10 +8,11 @@ from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.event_info import EventInfo
 from zone_api.core.parameters import positive_number_validator, ParameterConstraint, Parameters
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.devices.activity_times import ActivityTimes
+from zone_api.core.devices.activity_times import ActivityType
 
 
-@action(events=[ZoneEvent.MOTION], devices=[MotionSensor], zone_name_pattern='.*Kitchen.*')
+@action(events=[ZoneEvent.MOTION], devices=[MotionSensor], activity_types=[ActivityType.DINNER],
+        zone_name_pattern='.*Kitchen.*')
 class PlayMusicAtDinnerTime(Action):
     """
     Chooses a random URL stream when the motion sensor in the kitchen is triggered at dinner time.
@@ -35,27 +36,21 @@ class PlayMusicAtDinnerTime(Action):
         zone = event_info.get_zone()
         zone_manager = event_info.get_zone_manager()
 
-        activity = zone_manager.get_first_device_by_type(ActivityTimes)
-        if activity is None:
-            self.log_warning("Missing ActivityTimes; can't determine if this is dinner time.")
-            return False
-
         sink = get_nearby_audio_sink(zone, zone_manager)
         if sink is None:
             self.log_warning("Missing audio device; can't play music.")
             return False
 
-        if activity.is_dinner_time():
-            if not self._in_session:
-                sink.play_stream(random.choice(self._music_streams), 40)
+        if not self._in_session:
+            sink.play_stream(random.choice(self._music_streams), 40)
 
-                self._in_session = True
+            self._in_session = True
 
-                def stop_music_session():
-                    sink.pause()
-                    self._in_session = False
+            def stop_music_session():
+                sink.pause()
+                self._in_session = False
 
-                self._timer = Timer(self._duration_in_minutes * 60, stop_music_session)
-                self._timer.start()
+            self._timer = Timer(self._duration_in_minutes * 60, stop_music_session)
+            self._timer.start()
 
         return True

@@ -9,11 +9,11 @@ from zone_api.environment_canada import EnvCanada
 from zone_api.core.action import action, Action
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.zone_event import ZoneEvent
-from zone_api.core.devices.activity_times import ActivityTimes
+from zone_api.core.devices.activity_times import ActivityType
 
 
 @action(events=[ZoneEvent.MOTION], external_events=[ZoneEvent.DOOR_CLOSED],
-        devices=[MotionSensor], zone_name_pattern='.*Kitchen.*')
+        devices=[MotionSensor], activity_types=[ActivityType.WAKE_UP], zone_name_pattern='.*Kitchen.*')
 class AnnounceMorningWeatherAndPlayMusic(Action):
     """
     Announces the current weather and plays a random music stream twice during the wake up period.
@@ -46,11 +46,6 @@ class AnnounceMorningWeatherAndPlayMusic(Action):
         zone = event_info.get_zone()
         zone_manager = event_info.get_zone_manager()
 
-        activity = zone_manager.get_first_device_by_type(ActivityTimes)
-        if activity is None:
-            self.log_warning("Missing ActivityTimes; can't determine if this is morning time.")
-            return False
-
         def stop_music_session():
             self._sink.pause()
             self._in_session = False
@@ -69,8 +64,7 @@ class AnnounceMorningWeatherAndPlayMusic(Action):
                 self.log_warning("Missing audio device; can't play music.")
                 return False
 
-            if activity.is_wakeup_time() and \
-                    not self._in_session and \
+            if not self._in_session and \
                     self._start_count < self._max_start_count:
 
                 self._in_session = True

@@ -2,7 +2,7 @@ from zone_api import security_manager as sm
 from zone_api.audio_manager import get_nearby_audio_sink
 from zone_api.audio_manager import get_main_audio_sink
 from zone_api.core.action import action, Action
-from zone_api.core.devices.activity_times import ActivityTimes
+from zone_api.core.devices.activity_times import ActivityTimes, ActivityType
 from zone_api.core.devices.chromecast_audio_sink import ChromeCastAudioSink
 from zone_api.core.event_info import EventInfo
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
@@ -10,7 +10,8 @@ from zone_api.core.zone import Level
 from zone_api.core.zone_event import ZoneEvent
 
 
-@action(events=[ZoneEvent.TIMER], devices=[ChromeCastAudioSink], levels=[Level.FIRST_FLOOR])
+@action(events=[ZoneEvent.TIMER], devices=[ChromeCastAudioSink], levels=[Level.FIRST_FLOOR],
+        excluded_activity_types=[ActivityType.SLEEP])
 class PlayMindfulnessBell(Action):
     """
     Play a bell sound every x minutes. This is a Zen Buddhist practice. When the bell rings, stop if
@@ -37,16 +38,9 @@ class PlayMindfulnessBell(Action):
             return False
 
         activity = zone_manager.get_first_device_by_type(ActivityTimes)
-        if activity is None:
-            self.log_info("Missing activities time; can't play meditation bell.")
-            return False
-
         sink = get_nearby_audio_sink(zone, zone_manager)
         if sink is None:
             self.log_warning("Missing audio device; can't play music.")
-            return False
-
-        if activity.is_sleep_time():
             return False
 
         if activity.is_quiet_time():

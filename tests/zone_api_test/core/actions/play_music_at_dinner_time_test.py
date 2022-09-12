@@ -41,7 +41,7 @@ class PlayMusicAtDinnerTimeTest(DeviceTest):
         super(PlayMusicAtDinnerTimeTest, self).tearDown()
 
     def testOnAction_noAudioSink_returnsFalse(self):
-        zone1 = Zone('Kitchen').add_device(self.motion).add_action(self.action)
+        zone1 = Zone('Kitchen').add_device(self.motion).add_device(self.activity_times).add_action(self.action)
         event_info = EventInfo(ZoneEvent.MOTION, self.motion_item, zone1,
                                create_zone_manager([zone1]), pe.get_event_dispatcher())
         value = self.action.on_action(event_info)

@@ -318,7 +318,29 @@ def validate(function):
         zone = event_info.get_zone()
         zone_manager = event_info.get_zone_manager()
 
-        if obj.filtering_disabled or event_info.get_event_type() == ZoneEvent.TIMER:
+        if obj.filtering_disabled:
+            return function(*args, **kwargs)
+
+        # Activity types are special. They are not dependent on the device type or whether it belongs to the right zone
+        if len(obj.activity_types) > 0:
+            activity: ActivityTimes = zone_manager.get_first_device_by_type(ActivityTimes)
+            if activity is None:
+                obj.log_error('Missing ActivityTimes.')
+                return False
+
+            if not any(activity.is_at_activity_time(a) for a in obj.activity_types):
+                return False
+
+        if len(obj.excluded_activity_types) > 0:
+            activity: ActivityTimes = zone_manager.get_first_device_by_type(ActivityTimes)
+            if activity is None:
+                obj.log_error('Missing ActivityTimes.')
+                return False
+
+            if any(activity.is_at_activity_time(a) for a in obj.excluded_activity_types):
+                return False
+
+        if event_info.get_event_type() == ZoneEvent.TIMER:
             return function(*args, **kwargs)
 
         if zone.contains_open_hab_item(event_info.get_item()):
@@ -342,24 +364,6 @@ def validate(function):
                 pattern = obj.applicable_zone_name_pattern
                 match = re.search(pattern, zone.get_name())
                 if not match:
-                    return False
-
-            elif len(obj.activity_types) > 0:
-                activity: ActivityTimes = zone_manager.get_first_device_by_type(ActivityTimes)
-                if activity is None:
-                    obj.log_error('Mission ActivityTimes.')
-                    return False
-
-                if not any(activity.is_at_activity_time(a) for a in obj.activity_types):
-                    return False
-
-            elif len(obj.excluded_activity_types) > 0:
-                activity: ActivityTimes = zone_manager.get_first_device_by_type(ActivityTimes)
-                if activity is None:
-                    obj.log_error('Mission ActivityTimes.')
-                    return False
-
-                if any(activity.is_at_activity_time(a) for a in obj.excluded_activity_types):
                     return False
 
         else:  # event from other zones

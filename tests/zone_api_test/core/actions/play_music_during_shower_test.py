@@ -1,4 +1,5 @@
 from zone_api import platform_encapsulator as pe
+from zone_api.core.devices.activity_times import ActivityTimes
 from zone_api.core.devices.switch import Fan
 from zone_api.core.map_parameters import MapParameters
 
@@ -23,33 +24,35 @@ class PlayMusicDuringShowerTest(DeviceTest):
         super(PlayMusicDuringShowerTest, self).setUp()
 
         self.fan = Fan(self.fan_item, 2)
+        self.activity_times = ActivityTimes({})
         self.action = PlayMusicDuringShower(MapParameters({}))
 
     def testOnAction_wrongEventType_returnsFalse(self):
-        self.zone = Zone('innerZone').add_action(self.action)
+        self.zone = Zone('innerZone').add_device(self.activity_times).add_action(self.action)
         event_info = EventInfo(ZoneEvent.DOOR_OPEN, self.fan_item, self.zone,
                                create_zone_manager([self.zone]), pe.get_event_dispatcher())
         value = self.action.on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_noAudioSink_returnsFalse(self):
-        self.zone = Zone('innerZone').add_action(self.action)
+        self.zone = Zone('innerZone').add_action(self.action).add_device(self.activity_times)
         event_info = EventInfo(ZoneEvent.SWITCH_TURNED_ON, self.fan_item, self.zone,
                                create_zone_manager([self.zone]), pe.get_event_dispatcher())
         value = self.action.on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_switchOnEventAndAudioSinkInZone_playsStreamAndReturnsTrue(self):
-        zone1 = Zone('shower').add_device(self.sink).add_device(self.fan).add_action(self.action)
+        zone1 = Zone('shower').add_device(self.sink).add_device(self.fan).add_device(self.activity_times)\
+            .add_action(self.action)
 
         event_info = EventInfo(ZoneEvent.SWITCH_TURNED_ON, self.fan_item, zone1,
-                               None, pe.get_event_dispatcher())
+                               create_zone_manager([zone1]), pe.get_event_dispatcher())
         value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertEqual('playStream', self.sink._get_last_test_command())
 
     def testOnAction_switchOnEventAndAudioSinkInNeighborZone_playsStreamAndReturnsTrue(self):
-        zone1 = Zone('shower').add_device(self.fan).add_action(self.action)
+        zone1 = Zone('shower').add_device(self.fan).add_device(self.activity_times).add_action(self.action)
         zone2 = Zone('washroom').add_device(self.sink)
 
         zone1 = zone1.add_neighbor(Neighbor(zone2.get_id(), NeighborType.OPEN_SPACE))
@@ -61,10 +64,11 @@ class PlayMusicDuringShowerTest(DeviceTest):
         self.assertEqual('playStream', self.sink._get_last_test_command())
 
     def testOnAction_switchOffEvent_pauseStreamAndReturnsTrue(self):
-        zone1 = Zone('shower').add_device(self.sink).add_device(self.fan).add_action(self.action)
+        zone1 = Zone('shower').add_device(self.sink).add_device(self.fan).add_device(self.activity_times)\
+            .add_action(self.action)
+        zm = create_zone_manager([zone1])
 
-        event_info = EventInfo(ZoneEvent.SWITCH_TURNED_OFF, self.fan_item, zone1,
-                               None, pe.get_event_dispatcher())
+        event_info = EventInfo(ZoneEvent.SWITCH_TURNED_OFF, self.fan_item, zone1, zm, pe.get_event_dispatcher())
         value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertEqual('pause', self.sink._get_last_test_command())

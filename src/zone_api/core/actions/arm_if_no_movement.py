@@ -1,7 +1,7 @@
 from typing import List
 
 from zone_api import security_manager as sm
-from zone_api.core.devices.activity_times import ActivityTimes
+from zone_api.core.devices.activity_times import ActivityType
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.devices.network_presence import NetworkPresence
 from zone_api.core.event_info import EventInfo
@@ -11,7 +11,8 @@ from zone_api.core.action import action, Action
 from zone_api.core.devices.alarm_partition import AlarmPartition
 
 
-@action(events=[ZoneEvent.TIMER], devices=[AlarmPartition, MotionSensor])
+@action(events=[ZoneEvent.TIMER], devices=[AlarmPartition, MotionSensor],
+        excluded_activity_types=[ActivityType.AUTO_ARM_STAY])
 class ArmIfNoMovement(Action):
     """
     Automatically arm-stay the house if there has been no occupancy event in the last x minutes.
@@ -39,14 +40,6 @@ class ArmIfNoMovement(Action):
         zone_manager = event_info.get_zone_manager()
 
         if not sm.is_unarmed(zone_manager):
-            return False
-
-        activity = zone_manager.get_first_device_by_type(ActivityTimes)
-        if activity is None:
-            self.log_warning("Missing activities time; can't determine wake-up time.")
-            return False
-
-        if activity.is_auto_arm_stay_time():  # taken care by another deterministic rule.
             return False
 
         for z in zone_manager.get_zones():
