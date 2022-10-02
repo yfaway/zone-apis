@@ -3,7 +3,7 @@ from typing import Union, Dict, Any
 
 import HABApp
 from HABApp.core import Items
-from HABApp.core.events import ValueUpdateEventFilter, ValueChangeEventFilter, ValueChangeEvent, ValueUpdateEvent
+from HABApp.core.events import ValueUpdateEventFilter, ValueChangeEventFilter, ValueChangeEvent
 from HABApp.core.events.filter.event import TypeBoundEventFilter
 from HABApp.core.items.base_item import BaseItem
 from HABApp.openhab.events import ItemCommandEvent
@@ -242,7 +242,6 @@ def create_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> ChromeCast
         if event.value in event_map.keys():
             event = event_map[event.value]
             dispatch_event(zm, event, device, player_item)
-
 
     class ItemCommandEventFilter(TypeBoundEventFilter):
         def __init__(self):
@@ -718,7 +717,8 @@ def create_auto_report_notification_setting(zm: ImmutableZoneManager, device_nam
 
     device_name_item.listen_event(
         lambda event: dispatch_event(
-            zm, ZoneEvent.DEFERRED_NOTIFICATION_DEVICE_NAME_CHANGED, device, device_name_item), ValueChangeEventFilter())
+            zm, ZoneEvent.DEFERRED_NOTIFICATION_DEVICE_NAME_CHANGED, device, device_name_item),
+        ValueChangeEventFilter())
 
     # noinspection PyTypeChecker
     return device

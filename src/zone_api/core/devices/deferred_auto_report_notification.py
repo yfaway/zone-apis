@@ -26,3 +26,7 @@ class DeferredAutoReportNotification(Device):
     @property
     def deferred_duration_in_hours(self) -> float:
         return pe.get_number_value(self._duration_in_hour_item)
+
+    @property
+    def duration_in_hour_item_name(self) -> str:
+        return pe.get_item_name(self._duration_in_hour_item)

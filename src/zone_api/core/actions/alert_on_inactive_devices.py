@@ -59,13 +59,11 @@ class AlertOnInactiveDevices(Action):
         scheduler.every(self._auto_report_period_in_hours).hours.do(auto_report_device_timer_handler)
 
         # Set some initial values.
-        duration_item_name = 'FF_Virtual_Notification_DurationInHour'
-        if pe.has_item(duration_item_name):
-            pe.set_number_value(duration_item_name, 0)
-
-        device_item_name = 'FF_Virtual_Notification_AutoReportDeviceName'
-        if pe.has_item(device_item_name):
-            pe.set_string_value(device_item_name, '')
+        zm = event_info.get_zone_manager()
+        setting: DeferredAutoReportNotification = zm.get_first_device_by_type(DeferredAutoReportNotification)
+        if setting is not None:
+            pe.set_number_value(setting.duration_in_hour_item_name, 0)
+            pe.set_string_value(setting.get_item_name(), '')
 
     def on_action(self, event_info):
         zone_manager = event_info.get_zone_manager()
@@ -91,6 +89,9 @@ class AlertOnInactiveDevices(Action):
         Creates the timer to defer auto-report notification.
         """
 
+        if len(setting.device_name) == 0:
+            return
+
         def remove_deferral():
             self._deferred_auto_report_devices.pop(setting.device_name)
 
@@ -107,6 +108,9 @@ class AlertOnInactiveDevices(Action):
         self._deferred_auto_report_devices[setting.device_name] = timer
         self.log_info(f"Defer auto-report error reporting for device '{setting.device_name}' "
                       f"for {setting.deferred_duration_in_hours} hours")
+
+        # reset
+        pe.set_string_value(setting.get_item_name(), '')
 
     def _cancel_all_auto_report_defer_timer(self):
         for timer in self._deferred_auto_report_devices.values():
