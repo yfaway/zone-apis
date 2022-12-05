@@ -243,6 +243,8 @@ class Light(Switch):
 class ColorLight(Light):
     """ Represents a color bulb (modeled as a light switch).  """
 
+    DURATION_IN_MINUTES_FOR_HOLIDAY_MODE = 5 * 60  # 5 hours
+
     def __init__(self, switch_item, color_item, duration_in_minutes: float, illuminance_level: int = None,
                  no_premature_turn_off_time_range: str = None):
         """
@@ -255,9 +257,26 @@ class ColorLight(Light):
         """
         Light.__init__(self, switch_item, duration_in_minutes, illuminance_level, no_premature_turn_off_time_range)
         self._color_item = color_item
+        self._original_duration_in_minutes = self.duration_in_minutes
+
+    def turn_on_holiday_mode(self, events):
+        """
+        Turns the light on, but override the timer to a large value. This is specifically for the holiday mode.
+        Effectively, the timer won't kick in, and the light won't be turned off until turn_off_holiday_mode is called.
+        """
+        self.duration_in_minutes = ColorLight.DURATION_IN_MINUTES_FOR_HOLIDAY_MODE
+        self.turn_on(events)
+
+    def turn_off_holiday_mode(self, events):
+        """ Turns off the light, and restore the original timer duration. """
+        self.duration_in_minutes = self._original_duration_in_minutes
+        self.turn_off(events)
 
     def turn_on(self, events):
-        """ Turns on the light. If the light was off, also change to a random colour. """
+        """
+        Turns on the light. If the light was off, also change to a random colour.
+        @override
+        """
         was_on = self.is_on()
         super(ColorLight, self).turn_on(events)
 

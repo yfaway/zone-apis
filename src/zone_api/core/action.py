@@ -260,7 +260,7 @@ def action(devices=None, events=None, internal=True, external=False, levels=None
         events as they come from other zones.
     :param int priority: the action priority with respect to other actions within the same zone.
         Actions with lower priority values are executed first.
-    :param activity_types: the list of ActivityType that the action can triggered. If the current time is not in the
+    :param activity_types: the list of ActivityType that the action can trigger. If the current time is not in the
         time range of one of these activities, the action won't trigger.
     :param excluded_activity_types: the list of ActivityType that the action won't trigger. If the current time is in
         the time range of one of these activities, the action won't trigger.

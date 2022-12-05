@@ -362,6 +362,10 @@ Below are the currently supported decorator parameters:
 7. *zone_name_pattern* - if set, the zone name regular expression that is applicable to this action.
 8. *external_events* - the list of events from other zones that this action processes. These events won't be filtered using the same mechanism as the internal events as they come from other zones.
 9. *priority* - the action priority with respect to other actions within the same zone. Actions with lower priority values are executed first.
+10. *activity_types* - the list of ActivityType that the action can trigger. If the current time is not in the
+time range of one of these activities, the action won't trigger.
+11. *excluded_activity_types* - the list of ActivityType that the action won't trigger. If the current time is in
+    the time range of one of these activities, the action won't trigger.
 
 These parameters are also available to the action and can be used as a filtering mechanism
 to ensure that the action is only added to the applicable zones. See [ZoneParser::add_actions](https://github.com/yfaway/zone-apis/blob/dc3894780a1715b8845460be87ffff5c0c219afa/src/zone_api/zone_parser.py#L176).
