@@ -1,3 +1,4 @@
+from _curses import init_color
 from random import randint
 from threading import Timer
 from typing import List
@@ -9,7 +10,7 @@ from zone_api.core.parameters import Parameters, ParameterConstraint, positive_n
 from zone_api.core.zone_event import ZoneEvent
 
 
-@action(events=[ZoneEvent.SWITCH_TURNED_ON], devices=[ColorLight])
+@action(events=[ZoneEvent.SWITCH_TURNED_ON], devices=[ColorLight], internal=True, external=True)
 class RandomizeLightBulbColor(Action):
     """
     On triggered, change the bulb color immediately. Then starts a timer with a random duration to change the
