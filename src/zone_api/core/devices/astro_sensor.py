@@ -43,3 +43,13 @@ class AstroSensor(Device):
             value = pe.get_string_value(self.get_item())
 
         return value == self.BED_TIME
+
+    def current_period(self) -> str:
+        return pe.get_string_value(self.get_item())
+
+    def _set_current_period(self, value: str) -> None:
+        """
+        Sets the current period of the day. This method is meant for an internal action, and shall not be invoked
+        in the public context.
+        """
+        pe.set_string_value(self.get_item(), value)

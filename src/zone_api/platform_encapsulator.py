@@ -174,7 +174,7 @@ def set_datetime_value(item: DatetimeItem, value: datetime.datetime):
         item.oh_send_command(value)
 
 
-def get_datetime_value(item_or_item_name: Union[DatetimeItem, str]) -> str:
+def get_datetime_value(item_or_item_name: Union[DatetimeItem, str]) -> datetime.datetime:
     if isinstance(item_or_item_name, str):
         item_or_item_name = DatetimeItem.get_item(item_or_item_name)
 
