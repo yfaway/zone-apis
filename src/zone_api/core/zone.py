@@ -518,15 +518,13 @@ class Zone:
                                immutable_zone_manager, event_dispatcher, owning_zone, device)
 
         if zone_event == ZoneEvent.STARTUP:
-            for action_list in self.actions.values():
-                for action in action_list:
-                    action.on_startup(event_info)
+            for action in self._unique_actions():
+                action.on_startup(event_info)
 
             processed = True
         elif zone_event == ZoneEvent.DESTROY:
-            for action_list in self.actions.values():
-                for action in action_list:
-                    action.on_destroy(event_info)
+            for action in self._unique_actions():
+                action.on_destroy(event_info)
 
             processed = True
         else:
@@ -535,6 +533,15 @@ class Zone:
                     processed = True
 
         return processed
+
+    def _unique_actions(self) -> List:
+        """ Returns a list of unique actions (the same action might be mapped to multiple events). """
+        result = []
+        for action_list in self.actions.values():
+            for action in action_list:
+                if not any(id(added_action) == id(action) for added_action in result):
+                    result.append(action)
+        return result
 
     def __str__(self):
         value = u"Zone: {}, floor: {}, {}, displayIcon: {}, displayOrder: {}, {} devices".format(
