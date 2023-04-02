@@ -103,7 +103,7 @@ class EnvCanada(object):
     Mapping from lowercase city name to the env canada identifier.
     """
 
-    CITY_ALERT_MAPPING = {'ottawa': 'on41'}
+    CITY_ALERT_MAPPING = {'ottawa': 'onrm104'}
 
     @staticmethod
     def is_alert_url(url):
@@ -146,7 +146,7 @@ class EnvCanada(object):
         time_struct = time.localtime()
         hour_of_day = time_struct[3]
 
-        pattern = r"""header2.*?\>(-?\d+)<           # temp 
+        pattern = r"""header2.*?\>\s*(-?\d+)\s*<           # temp 
                       .*?<p>(.*?)</p>                # condition
                       .*?header4.*?>(.+?)<           # precipitation probability
                       .*?abbr.*?>(.+?)</abbr> (.*?)< # wind direction and speed
@@ -158,7 +158,7 @@ class EnvCanada(object):
             hour_string = ("0" + str(hour)) if hour < 10 else str(hour)
             hour_string += ":00"
 
-            search_string = '<td headers="header1" class="text-center">{}</td>'.format(hour_string)
+            search_string = '<td headers="header1" class="text-center"> {} </td>'.format(hour_string)
             index = data.find(search_string, index)
 
             subdata = data[index:]
@@ -198,9 +198,9 @@ class EnvCanada(object):
         raw_data: str = requests.get(url).text
         data = raw_data
 
-        start_keyword = "<div class=\"col-xs-12\">"
+        start_keyword = "<h1 id=\"wb-cont\" property=\"name\">"
         start_idx = data.index(start_keyword)
-        end_idx = data.index("<section class=\"followus hidden-print\">")
+        end_idx = data.index("<div class=\"followus hidden-print mrgn-tp-md\"")
 
         data = data[start_idx + len(start_keyword): end_idx]
         data = data.replace("<br/>", "\n")

@@ -17,7 +17,7 @@ entry1.published_parsed = (2002, 9, 7, 0, 0, 1, 5, 250, 0)
 
 entry2 = Zone
 entry2.title = "N/A"
-entry2.link = 'https://www.weather.gc.ca/warnings/report_e.html?on41'
+entry2.link = 'https://www.weather.gc.ca/warnings/report_e.html?onrm104'
 entry2.published_parsed = (2002, 9, 7, 0, 0, 1, 5, 250, 0)
 
 feed = Zone
