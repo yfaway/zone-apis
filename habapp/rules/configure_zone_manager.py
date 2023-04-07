@@ -18,7 +18,7 @@ class ConfigureZoneManagerRule(HABApp.Rule):
     # noinspection PyMethodMayBeStatic
     def configure_zone_manager(self):
         # When running on the PI
-        config_file = '/home/pi/git/zone-apis/habapp/zone-api-config.yml'
+        config_file = '/home/yf/git/zone-apis/habapp/zone-api-config.yml'
         if not os.path.exists(config_file):  # In development machine
             config_file = './habapp/zone-api-config.yml'
             if not os.path.exists(config_file):
