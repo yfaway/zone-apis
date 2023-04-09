@@ -28,7 +28,7 @@ class SendWeatherAlert(Action):
         super().__init__(parameters)
 
         self._alert_rss_url = self.parameters().get(
-            self, self.supported_parameters()[-2].name(), 'https://www.weather.gc.ca/warnings/report_e.html?onrm104')
+            self, self.supported_parameters()[-2].name(), 'https://www.weather.gc.ca/rss/battleboard/onrm104_e.xml')
         self._feed_refresh_interval_in_minutes = self.parameters().get(self, self.supported_parameters()[-1].name(), 5)
 
     def on_startup(self, event_info: EventInfo):
