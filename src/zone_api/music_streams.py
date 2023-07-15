@@ -24,7 +24,7 @@ class MusicStreams(Enum):
     VENICE_CLASSICAL = MusicStream("Venice Classical", Genre.CLASSICAL, "http://174.36.206.197:8000/stream")
     PORTLAND_ALL_CLASSICAL = MusicStream("Portland All Classical", Genre.CLASSICAL, "http://player.allclassical.org/streamplaylist/ac96k.pls")
 
-    MUSIC_LAKE_INSTRUMENTAL = MusicStream("Music Lake Instrumental", Genre.INSTRUMENT, "http://104.251.118.50:8626/listen.pls?sid=1&t=.pls")
+    MUSIC_LAKE_INSTRUMENTAL = MusicStream("Music Lake Instrumental", Genre.INSTRUMENT, "http://nap.casthost.net:8626/listen.pls?sid=1")
 
     FM113_SMOOTH_JAZZ = MusicStream("FM113 Smooth Jazz", Genre.JAZZ, "http://113fm-edge2.cdnstream.com:80/1725_128")
     CD101_9_NY_SMOOTH_JAZZ = MusicStream("CD101.9 NY Smooth Jazz", Genre.JAZZ, "http://hestia2.cdnstream.com:80/1277_192")
