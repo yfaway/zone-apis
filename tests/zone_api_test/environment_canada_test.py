@@ -47,7 +47,7 @@ class EnvCanadaTest(unittest.TestCase):
         alert, url, raw_data = EnvCanada.retrieve_alert('ottawa')
         self.assertTrue(len(url) > 0)
 
-        if 'No Alerts in effect.' in raw_data:
+        if 'No alerts in effect.' in raw_data:
             self.assertTrue(alert is None)
         else:
             self.assertTrue(len(alert) > 0)

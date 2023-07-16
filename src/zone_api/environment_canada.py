@@ -209,7 +209,7 @@ class EnvCanada(object):
         data = re.sub("(?s)<[^>]*>(\\s*<[^>]*>)*", " ", data)
         data = data.strip()
 
-        if 'No Alerts in effect.' in data:
+        if 'No alerts in effect.' in data:
             return None, url, raw_data
         else:
             return data, url, raw_data
