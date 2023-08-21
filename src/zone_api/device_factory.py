@@ -7,7 +7,7 @@ from HABApp.core.events import ValueUpdateEventFilter, ValueChangeEventFilter, V
 from HABApp.core.events.filter.event import TypeBoundEventFilter
 from HABApp.core.items.base_item import BaseItem
 from HABApp.openhab.events import ItemCommandEvent
-from HABApp.openhab.events import ItemStateEvent
+from HABApp.openhab.events import ItemStateUpdatedEvent
 from HABApp.openhab.items import ColorItem, DimmerItem, NumberItem, SwitchItem, StringItem
 
 from zone_api import platform_encapsulator as pe
@@ -747,12 +747,12 @@ def _configure_device(device: Device, zm: ImmutableZoneManager) -> Device:
     # and that wouldn't trigger the item changed event.
     # However, we need to exclude a few sensor types that would falsely flag occupancy (occupancy determination is
     # based on the ON state in the last number of minutes).
-    class ItemStateEventFilter(TypeBoundEventFilter):
+    class ItemStateUpdatedEventFilter(TypeBoundEventFilter):
         def __init__(self):
-            super().__init__(ItemStateEvent)
+            super().__init__(ItemStateUpdatedEvent)
 
     if not isinstance(device, MotionSensor) and not isinstance(device, NetworkPresence):
         for item in device.get_all_items():
-            item.listen_event(lambda event: device.update_last_activated_timestamp(), ItemStateEventFilter())
+            item.listen_event(lambda event: device.update_last_activated_timestamp(), ItemStateUpdatedEventFilter())
 
     return device
