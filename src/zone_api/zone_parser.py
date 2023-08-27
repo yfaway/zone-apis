@@ -84,6 +84,7 @@ def parse(config: dict[Hashable, Any], actions_package: str = "zone_api.core.act
         '.*_Computer_[^_]+$': df.create_computer,
         '.*_Weather_Temperature$': df.create_weather,
         '[^g].*_AutoReportDeviceName$': df.create_auto_report_notification_setting,
+        '^FF_Virtual_FlashMessage$': df.create_flash_message,
     }
 
     action_parameters: Parameters = _read_zone_api_configurations(config)

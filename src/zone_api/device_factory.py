@@ -20,6 +20,7 @@ from zone_api.core.devices.chromecast_audio_sink import ChromeCastAudioSink
 from zone_api.core.devices.computer import Computer
 from zone_api.core.devices.contact import Door, GarageDoor, Window
 from zone_api.core.devices.dimmer import Dimmer
+from zone_api.core.devices.flash_message import FlashMessage
 from zone_api.core.devices.gas_sensor import GasSensor
 from zone_api.core.devices.humidity_sensor import HumiditySensor
 from zone_api.core.devices.ikea_remote_control import IkeaRemoteControl
@@ -722,6 +723,11 @@ def create_auto_report_notification_setting(zm: ImmutableZoneManager, device_nam
 
     # noinspection PyTypeChecker
     return device
+
+
+def create_flash_message(zm: ImmutableZoneManager, item: StringItem) -> Tv:
+    # noinspection PyTypeChecker
+    return _configure_device(FlashMessage(item), zm)
 
 
 def dispatch_event(zm: ImmutableZoneManager, zone_event: ZoneEvent, device: Device, item: BaseItem):

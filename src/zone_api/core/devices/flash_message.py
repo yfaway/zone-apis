@@ -20,7 +20,7 @@ class FlashMessage(Device):
         Device.__init__(self, value_item, [], False, False, False)
 
         self.timer = None
-        self.set_value("", 3)  # by default the value with OH would be UNDEF
+        pe.set_string_value(value_item, '')  # by default the value with OH would be UNDEF
 
     def get_value(self):
         """
@@ -29,7 +29,7 @@ class FlashMessage(Device):
         """
         return pe.get_string_value(self.get_item())
 
-    def set_value(self, value: str, display_time_in_seconds: float):
+    def set_value(self, value: str, display_time_in_seconds=10.0):
         """
         Set the message and retain the value for the specified time, after which the message will be reset to an
         empty string.

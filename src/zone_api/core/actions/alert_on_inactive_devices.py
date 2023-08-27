@@ -5,7 +5,9 @@ from typing import List
 from zone_api.alert import Alert
 from zone_api import platform_encapsulator as pe
 from zone_api.core.devices.deferred_auto_report_notification import DeferredAutoReportNotification
+from zone_api.core.devices.flash_message import FlashMessage
 from zone_api.core.event_info import EventInfo
+from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 from zone_api.core.parameters import ParameterConstraint, positive_number_validator, Parameters
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.action import action, Action
@@ -19,6 +21,7 @@ class AlertOnInactiveDevices(Action):
     duration.
     There are different thresholds for these types of devices as battery-powered devices tend to not auto-report (cause
     rapid battery drain). As such, the inactivity timer for those devices are much bigger than for auto-report devices.
+    This action also handles the UI interface to defer auto-report devices for a specific period.
     """
 
     @unique
@@ -80,11 +83,12 @@ class AlertOnInactiveDevices(Action):
 
         elif event_info.get_event_type() == ZoneEvent.DEFERRED_NOTIFICATION_DEVICE_NAME_CHANGED:
             # noinspection PyTypeChecker
-            self._start_auto_report_defer_timer(event_info.get_device())
+            self._start_auto_report_defer_timer(zone_manager, event_info.get_device())
 
         return True
 
-    def _start_auto_report_defer_timer(self, setting: DeferredAutoReportNotification):
+    def _start_auto_report_defer_timer(self, zone_manager: 'ImmutableZoneManager',
+                                       setting: DeferredAutoReportNotification):
         """
         Creates the timer to defer auto-report notification.
         """
@@ -106,8 +110,14 @@ class AlertOnInactiveDevices(Action):
         timer.start()
 
         self._deferred_auto_report_devices[setting.device_name] = timer
-        self.log_info(f"Defer auto-report error reporting for device '{setting.device_name}' "
-                      f"for {setting.deferred_duration_in_hours} hours")
+        msg = f"Defer auto-report error reporting for device '{setting.device_name} for " \
+              f"{setting.deferred_duration_in_hours} hours"
+        self.log_info(msg)
+
+        # update UI
+        flash_message: FlashMessage = zone_manager.get_first_device_by_type(FlashMessage)
+        if flash_message:
+            flash_message.set_value(msg)
 
         # reset
         pe.set_string_value(setting.get_item_name(), '')
