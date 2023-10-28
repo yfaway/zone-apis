@@ -9,7 +9,6 @@ from email.mime.text import MIMEText
 from typing import List, Union, Any, TYPE_CHECKING
 
 import HABApp
-from HABApp.core.events import ValueChangeEvent
 from HABApp.core.items import Item
 from HABApp.openhab.definitions import OnOffValue
 from HABApp.openhab.errors import ItemNotFoundError
@@ -253,10 +252,6 @@ def get_item_name(item):
     return item.name
 
 
-def register_value_change_event(item: Item, handler):
-    item.listen_event(handler, ValueChangeEvent)
-
-
 def log_debug(message: str):
     """ Log a debug message. """
     logger.debug(message)
@@ -288,10 +283,11 @@ def get_channel(item) -> Union[str, None]:
         return None
     else:
         try:
-            item_def = HABApp.openhab.interface.get_item(item.name, "channel")
-            metadata = item_def.metadata
-            value = metadata.get("channel")
-            return value['value'] if value is not None else None
+            item_def: HABApp.openhab.definitions.rest.items.ItemResp = HABApp.openhab.interface_sync.get_item(item.name)
+            if item_def:
+                metadata = item_def.metadata
+                value = metadata.get("channel")
+                return value['value'] if value is not None else None
         except ItemNotFoundError:
             return None
 
@@ -301,7 +297,7 @@ def get_event_dispatcher():
         class EventDispatcher:
             # noinspection PyMethodMayBeStatic
             def send_command(self, item_name: str, command: Any):
-                HABApp.openhab.interface.send_command(item_name, command)
+                HABApp.openhab.interface_sync.send_command(item_name, command)
 
         return EventDispatcher()
     else:

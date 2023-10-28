@@ -151,10 +151,7 @@ def _parse_zones() -> List[Zone]:
             continue
 
         zone_name = match.group(1)
-        item_def = HABApp.openhab.interface.get_item(
-            item.name,
-            "level, external, openSpaceNeighbors, openSpaceMasterNeighbors, openSpaceSlaveNeighbors, displayIcon, "
-            "displayOrder")
+        item_def = HABApp.openhab.interface_sync.get_item(item.name)
         metadata = item_def.metadata
 
         level = Level(df.get_meta_value(metadata, "level"))

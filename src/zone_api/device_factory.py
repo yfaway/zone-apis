@@ -68,9 +68,7 @@ def create_switches(zm: ImmutableZoneManager,
     duration_in_minutes_key = 'durationInMinutes'
     disable_triggering_key = "disableTriggeringFromMotionSensor"
 
-    item_def = HABApp.openhab.interface.get_item(
-        item.name, f"noPrematureTurnOffTimeRange, {duration_in_minutes_key}, {dimmable_key}, {disable_triggering_key}, "
-                   f"{color_bulb_key}")
+    item_def = HABApp.openhab.interface_sync.get_item(item.name)
     metadata = item_def.metadata
 
     if device_name.endswith('LightSwitch') or device_name.endswith('FanSwitch') or 'Wled_MasterControls' in device_name:
@@ -220,7 +218,7 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
 
 
 def create_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> ChromeCastAudioSink:
-    item_def = HABApp.openhab.interface.get_item(item.name, "sinkName")
+    item_def = HABApp.openhab.interface_sync.get_item(item.name)
     metadata = item_def.metadata
 
     sink_name = get_meta_value(metadata, "sinkName", None)
@@ -307,7 +305,7 @@ def create_motion_sensor(zm: ImmutableZoneManager, item) -> MotionSensor:
         battery_percentage_item = Items.get_item(battery_percentage_name)
 
     key_disable_triggering_switches = "disableTriggeringSwitches"
-    item_def = HABApp.openhab.interface.get_item(item.name, f"{key_disable_triggering_switches}")
+    item_def = HABApp.openhab.interface_sync.get_item(item.name)
     metadata = item_def.metadata
     can_trigger_switches = False if "true" == get_meta_value(metadata, key_disable_triggering_switches) else True
 
@@ -437,7 +435,7 @@ def create_plug(zm: ImmutableZoneManager, item) -> Plug:
     else:
         power_item = None
 
-    item_def = HABApp.openhab.interface.get_item(item.name, "alwaysOn")
+    item_def = HABApp.openhab.interface_sync.get_item(item.name)
     metadata = item_def.metadata
     always_on = True if "true" == get_meta_value(metadata, "alwaysOn") else False
 
@@ -610,7 +608,7 @@ def create_television_device(zm: ImmutableZoneManager, item) -> Tv:
 
 def create_computer(zm: ImmutableZoneManager, item) -> Computer:
     """ Create an computer device. """
-    item_def = HABApp.openhab.interface.get_item(item.name, "name, alwaysOn")
+    item_def = HABApp.openhab.interface_sync.get_item(item.name)
     metadata = item_def.metadata
 
     name = get_meta_value(metadata, "name", None)
