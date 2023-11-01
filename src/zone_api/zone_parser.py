@@ -6,7 +6,7 @@ import importlib
 
 import HABApp
 from HABApp.core import Items
-from HABApp.core.items.base_item import BaseItem
+from HABApp.core.internals.item_registry import ItemRegistryItem
 
 import zone_api.core.actions as actions
 from zone_api import platform_encapsulator as pe
@@ -98,7 +98,7 @@ def parse(config: dict[Hashable, Any], actions_package: str = "zone_api.core.act
     for zone in _parse_zones():
         zone_mappings[zone.get_id()] = zone
 
-    items: List[BaseItem] = Items.get_items()
+    items: tuple[ItemRegistryItem] = Items.get_items()
     for item in items:
         for pattern in mappings.keys():
 

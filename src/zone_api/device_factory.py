@@ -66,7 +66,7 @@ def create_switches(zm: ImmutableZoneManager,
     dimmable_key = 'dimmable'
     color_bulb_key = 'colorBulb'
     duration_in_minutes_key = 'durationInMinutes'
-    disable_triggering_key = "disableTriggeringFromMotionSensor"
+    # disable_triggering_key = "disableTriggeringFromMotionSensor"
 
     item_def = HABApp.openhab.interface_sync.get_item(item.name)
     metadata = item_def.metadata
@@ -151,7 +151,7 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
     :param item: SwitchItem
     :return: AlarmPartition
     """
-    arm_mode_item = Items.get_item(item.name + '_ArmMode')
+    arm_mode_item = BaseItem.get_item(item.name + '_ArmMode')
     send_command_item = Items.get_item(item.name + '_SendCommand')
     # noinspection PyTypeChecker
     panel_fire_key_alarm_item: SwitchItem = Items.get_item(item.name + '_PanelFireKeyAlarm')
@@ -209,9 +209,9 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
 
         dsc_item.listen_event(handler, ValueChangeEventFilter())
 
-    wire_soft_panel_events(Items.get_item(item.name + '_DscPanelFireKeyAlarm'), panel_fire_key_alarm_item)
-    wire_soft_panel_events(Items.get_item(item.name + '_DscPanelAmbulanceKeyAlarm'), panel_ambulance_key_alarm_item)
-    wire_soft_panel_events(Items.get_item(item.name + '_DscPanelPoliceKeyAlarm'), panel_police_key_alarm_item)
+    wire_soft_panel_events(BaseItem.get_item(item.name + '_DscPanelFireKeyAlarm'), panel_fire_key_alarm_item)
+    wire_soft_panel_events(BaseItem.get_item(item.name + '_DscPanelAmbulanceKeyAlarm'), panel_ambulance_key_alarm_item)
+    wire_soft_panel_events(BaseItem.get_item(item.name + '_DscPanelPoliceKeyAlarm'), panel_police_key_alarm_item)
 
     # noinspection PyTypeChecker
     return device
@@ -222,10 +222,10 @@ def create_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> ChromeCast
     metadata = item_def.metadata
 
     sink_name = get_meta_value(metadata, "sinkName", None)
-    player_item = Items.get_item(item.name + "Player")
-    volume_item = Items.get_item(item.name + "Volume")
-    title_item = Items.get_item(item.name + "Title")
-    idling_item = Items.get_item(item.name + "Idling")
+    player_item = BaseItem.get_item(item.name + "Player")
+    volume_item = BaseItem.get_item(item.name + "Volume")
+    title_item = BaseItem.get_item(item.name + "Title")
+    idling_item = BaseItem.get_item(item.name + "Idling")
 
     stream_title_name = item.name + "StreamTitle"
     stream_title_item = None
@@ -449,7 +449,7 @@ def create_gas_sensor(cls):
     """
 
     def inner_fcn(zm: ImmutableZoneManager, item) -> GasSensor:
-        state_item = Items.get_item(item.name + 'State')
+        state_item = BaseItem.get_item(item.name + 'State')
 
         sensor = _configure_device(cls(item, state_item), zm)
 
@@ -546,12 +546,13 @@ def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> EcobeeThermostat
     """
 
     event_item_name = item.name.replace("EcobeeName", "FirstEvent_Type")
-    event_item = Items.get_item(event_item_name)
+    event_item = BaseItem.get_item(event_item_name)
 
     # noinspection PyTypeChecker
     device: EcobeeThermostat = _configure_device(EcobeeThermostat(item, event_item), zm)
 
     display_item_name = 'Out_Vacation'
+
     def handler(event: ValueChangeEvent):
 
         if device.is_in_vacation():
@@ -618,13 +619,13 @@ def create_computer(zm: ImmutableZoneManager, item) -> Computer:
     always_on = True if get_meta_value(metadata, "alwaysOn", None) == "true" else False
 
     tmp_item_name = item.name + "_CpuTemperature"
-    cpu_temperature_item = Items.get_item(tmp_item_name) if pe.has_item(tmp_item_name) else None
+    cpu_temperature_item = BaseItem.get_item(tmp_item_name) if pe.has_item(tmp_item_name) else None
 
     tmp_item_name = item.name + "_GpuTemperature"
-    gpu_temperature_item = Items.get_item(tmp_item_name) if pe.has_item(tmp_item_name) else None
+    gpu_temperature_item = BaseItem.get_item(tmp_item_name) if pe.has_item(tmp_item_name) else None
 
     tmp_item_name = item.name + "_GpuFanSpeed"
-    gpu_fan_speed_item = Items.get_item(tmp_item_name) if pe.has_item(tmp_item_name) else None
+    gpu_fan_speed_item = BaseItem.get_item(tmp_item_name) if pe.has_item(tmp_item_name) else None
 
     device = _configure_device(Computer(
         name, cpu_temperature_item, gpu_temperature_item, gpu_fan_speed_item, always_on), zm)
@@ -660,20 +661,20 @@ def create_weather(zm: ImmutableZoneManager, temperature_item: NumberItem) -> Un
         return None
 
     device_name = match.group(1)
-    humidity_item = Items.get_item(f"{device_name}_Humidity")
-    condition_item = Items.get_item(f"{device_name}_Condition")
+    humidity_item = BaseItem.get_item(f"{device_name}_Humidity")
+    condition_item = BaseItem.get_item(f"{device_name}_Condition")
 
     item_name = f"{device_name}_Alert_Title"
-    alert_title_item = Items.get_item(item_name) if pe.has_item(item_name) else None
+    alert_title_item = BaseItem.get_item(item_name) if pe.has_item(item_name) else None
 
     item_name = f"{device_name}_Alert_Date"
-    alert_datetime_item = Items.get_item(item_name) if pe.has_item(item_name) else None
+    alert_datetime_item = BaseItem.get_item(item_name) if pe.has_item(item_name) else None
 
     item_name = f"{device_name}_ForecastTempMin"
-    forecast_min_temp_item = Items.get_item(item_name) if pe.has_item(item_name) else None
+    forecast_min_temp_item = BaseItem.get_item(item_name) if pe.has_item(item_name) else None
 
     item_name = f"{device_name}_ForecastTempMax"
-    forecast_max_temp_item = Items.get_item(item_name) if pe.has_item(item_name) else None
+    forecast_max_temp_item = BaseItem.get_item(item_name) if pe.has_item(item_name) else None
 
     device = Weather(temperature_item, humidity_item, condition_item, alert_title_item, alert_datetime_item,
                      forecast_min_temp_item, forecast_max_temp_item)
