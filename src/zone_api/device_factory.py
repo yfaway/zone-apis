@@ -551,8 +551,8 @@ def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> EcobeeThermostat
     # noinspection PyTypeChecker
     device: EcobeeThermostat = _configure_device(EcobeeThermostat(item, event_item), zm)
 
+    display_item_name = 'Out_Vacation'
     def handler(event: ValueChangeEvent):
-        display_item_name = 'Out_Vacation'
 
         if device.is_in_vacation():
             dispatch_event(zm, ZoneEvent.VACATION_MODE_ON, device, event_item)
@@ -564,6 +564,9 @@ def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> EcobeeThermostat
                 pe.set_switch_state(display_item_name, False)
 
     event_item.listen_event(handler, ValueChangeEventFilter())
+
+    # Set to the correct state on start-up.
+    pe.set_switch_state(display_item_name, device.is_in_vacation())
 
     # noinspection PyTypeChecker
     return device
