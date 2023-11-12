@@ -7,7 +7,7 @@ class Plug(Device):
     Represents a smart plug with optional power reading in Watt.
     """
 
-    POWER_USAGE_THRESHOLD_IN_WATT = 8
+    POWER_USAGE_THRESHOLD_IN_WATT = 14
     """
     The plug power usage threshold; if it is above this value, the zone 
     containing this plug is considered to be occupied.
