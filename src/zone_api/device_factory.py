@@ -24,7 +24,7 @@ from zone_api.core.devices.flash_message import FlashMessage
 from zone_api.core.devices.gas_sensor import GasSensor
 from zone_api.core.devices.humidity_sensor import HumiditySensor
 from zone_api.core.devices.ikea_remote_control import IkeaRemoteControl
-from zone_api.core.devices.illuminance_sensor import IlluminanceSensor
+from zone_api.core.devices.illuminance_sensor import IlluminanceSensor, FixedValueIlluminanceSensor
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.devices.network_presence import NetworkPresence
 from zone_api.core.devices.plug import Plug
@@ -532,10 +532,19 @@ def create_water_leak_sensor(zm: ImmutableZoneManager, item) -> WaterLeakSensor:
     return sensor
 
 
-def create_illuminance_sensor(zm: ImmutableZoneManager, item) -> IlluminanceSensor:
+def create_illuminance_sensor(zm: ImmutableZoneManager, item: BaseItem) -> IlluminanceSensor:
     """ Create an illuminance sensor. """
-    # noinspection PyTypeChecker
-    return _configure_device(IlluminanceSensor(item), zm)
+    if 'FixedValue' in item.name:
+        item_def = HABApp.openhab.interface_sync.get_item(item.name)
+        metadata = item_def.metadata
+        luminance_value = float(get_meta_value(metadata, 'luminanceValue', 5))
+
+        # noinspection PyTypeChecker
+
+        return _configure_device(FixedValueIlluminanceSensor(item, luminance_value), zm)
+    else:
+        # noinspection PyTypeChecker
+        return _configure_device(IlluminanceSensor(item), zm)
 
 
 def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> EcobeeThermostat:
