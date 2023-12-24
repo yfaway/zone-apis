@@ -16,7 +16,7 @@ class ManagePlugsTest(DeviceTest):
 
     def setUp(self):
         self.alarm_partition, items = self.create_alarm_partition()
-        items = items + [pe.create_switch_item('_Motion1'), pe.create_switch_item('_Plug1') ]
+        items = items + [pe.create_switch_item('_Motion1'), pe.create_switch_item('_Plug1')]
         self.set_items(items)
         super(ManagePlugsTest, self).setUp()
 
@@ -88,6 +88,34 @@ class ManagePlugsTest(DeviceTest):
         self.assertTrue(value)
         self.assertFalse(self.plug.is_on())
 
+    def testOnAction_armedAway_actionNotTriggeredOnExternalZone(self):
+        self.plug.turn_on(pe.get_event_dispatcher())
+
+        self.zm = self._setup_zone_manager({ActivityType.WAKE_UP: '0:00 - 23:59', }, external=True)
+
+        event_info = EventInfo(ZoneEvent.PARTITION_ARMED_AWAY, self.alarm_partition.get_item(),
+                               self.zone1, self.zm, pe.get_event_dispatcher())
+        value = self.action.on_action(event_info)
+        self.assertFalse(value)
+
+    def testOnAction_armedAway_externalPlugNotTurnedOff(self):
+        self.activity_times = ActivityTimes({ActivityType.WAKE_UP: '0:00 - 23:59', })
+
+        self.action = ManagePlugs(MapParameters({}))
+        self.zone1 = Zone(name='foyer',
+                          devices=[self.motionSensor, self.alarm_partition, self.activity_times]) \
+            .add_action(self.action)
+        self.zone2 = Zone(name='porch', devices=[self.plug], external=True)
+        self.zm = create_zone_manager([self.zone1, self.zone2])
+
+        self.plug.turn_on(pe.get_event_dispatcher())
+
+        event_info = EventInfo(ZoneEvent.PARTITION_ARMED_AWAY, self.alarm_partition.get_item(),
+                               self.zone1, self.zm, pe.get_event_dispatcher())
+        value = self.action.on_action(event_info)
+        self.assertTrue(value)
+        self.assertTrue(self.plug.is_on())
+
     def testOnAction_armedAway_notTurningOffAlwaysOnPlug(self):
         self.plug = Plug(self.plug.get_item(), None, True)
         self.plug.turn_on(pe.get_event_dispatcher())
@@ -118,11 +146,13 @@ class ManagePlugsTest(DeviceTest):
         self.assertTrue(value)
         self.assertFalse(self.plug.is_on())
 
-    def _setup_zone_manager(self, time_map):
+    def _setup_zone_manager(self, time_map, external=False):
         self.activity_times = ActivityTimes(time_map)
 
         self.action = ManagePlugs(MapParameters({}))
-        self.zone1 = Zone('foyer', [self.plug, self.motionSensor, self.alarm_partition, self.activity_times]) \
+        self.zone1 = Zone(name='foyer',
+                          devices=[self.plug, self.motionSensor, self.alarm_partition, self.activity_times],
+                          external=external) \
             .add_action(self.action)
 
         return create_zone_manager([self.zone1])

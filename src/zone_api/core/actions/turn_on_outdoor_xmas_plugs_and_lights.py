@@ -17,7 +17,6 @@ class TurnOnOutdoorXmasPlugsAndLights(Action):
 
     # noinspection PyMethodMayBeStatic
     def on_action(self, event_info: EventInfo):
-        self.log_info("**** invoked")
         plugs: List[Plug] = event_info.get_zone().get_devices_by_type(Plug)
         color_lights: List[ColorLight] = event_info.get_zone().get_devices_by_type(ColorLight)
 

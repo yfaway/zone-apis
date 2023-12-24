@@ -68,8 +68,8 @@ class TurnOnSwitch(Action):
                 continue
 
             if not motion_sensor.can_trigger_switches():
-                # A special case: if a switch is configured not to be # triggered by a motion sensor, it means there is
-                # already another switch sharing that motion sensor. In this case, we # don't want to turn off the
+                # A special case: if a switch is configured not to be triggered by a motion sensor, it means there is
+                # already another switch sharing that motion sensor. In this case, we don't want to turn off the
                 # other switch.
                 can_turn_off_adjacent_zones = False
                 if DEBUG:

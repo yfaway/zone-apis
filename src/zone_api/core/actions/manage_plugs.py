@@ -61,9 +61,11 @@ class ManagePlugs(Action):
             return True
 
         elif zone_event == ZoneEvent.PARTITION_ARMED_AWAY:
-            for p in zm.get_devices_by_type(Plug):
-                if not p.is_always_on():
-                    p.turn_off(events)
+            for z in zm.get_zones():
+                if z.is_internal():
+                    for p in z.get_devices_by_type(Plug):
+                        if not p.is_always_on():
+                            p.turn_off(events)
 
             return True
 
