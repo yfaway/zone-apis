@@ -1,3 +1,5 @@
+import time
+
 from zone_api import platform_encapsulator as pe
 from zone_api.core.action import Action
 from zone_api.core.actions.announce_morning_weather_and_play_music import AnnounceMorningWeatherAndPlayMusic
@@ -34,16 +36,18 @@ class ZoneTest(DeviceTest):
                  pe.create_switch_item('TestFanName'),
                  pe.create_switch_item('TestPlug'),
                  pe.create_number_item('TestPlugPower'),
+                 pe.create_switch_item('SecondTestLightName'),
                  ]
         self.set_items(items)
         super(ZoneTest, self).setUp()
 
         [self.lightItem, self.motionSensorItem,
          self.illuminanceSensorItem, self.astroSensorItem, self.dimmerItem,
-         self.fanItem, self.plugItem, self.plugPowerItem] = items
+         self.fanItem, self.plugItem, self.plugPowerItem, self.secondLightItem] = items
 
         self.illuminanceSensor = IlluminanceSensor(self.illuminanceSensorItem)
-        self.light = Light(self.lightItem, 2)
+        self.light = Light(self.lightItem, 0.5)
+        self.light2 = Light(self.secondLightItem, 0.5)
         self.lightWithIlluminance = Light(self.lightItem, 2,
                                           ILLUMINANCE_THRESHOLD_IN_LUX)
         self.motionSensor = MotionSensor(self.motionSensorItem)
@@ -253,6 +257,20 @@ class ZoneTest(DeviceTest):
 
         is_processed = zone.on_switch_turned_off(pe.get_event_dispatcher(), self.lightItem, None)
         self.assertTrue(is_processed)
+
+    def testOnSwitchedTurnedOff_multipleSwitches_onlyAffectedSwitchTriggered(self):
+        zone = Zone('ff', [self.light, self.light2])
+
+        self.light.on_switch_turned_on(pe.get_event_dispatcher(), self.lightItem.name)
+        self.light2.on_switch_turned_on(pe.get_event_dispatcher(), self.secondLightItem.name)
+
+        is_processed = zone.on_switch_turned_off(pe.get_event_dispatcher(), self.lightItem, None)
+        self.assertTrue(is_processed)
+        self.assertTrue(self.light.timer is None)
+        self.assertTrue(self.light2.timer is not None)
+
+        # turn off the timer so unit test can quit
+        zone.on_switch_turned_off(pe.get_event_dispatcher(), self.secondLightItem, None)
 
     def testOnMotionSensorTurnedOn_validItemNameNoIlluminanceSensorNoAstroSensor_returnsFalse(self):
         self.assertFalse(self.light.is_on())

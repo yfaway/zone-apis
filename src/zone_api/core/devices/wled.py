@@ -22,7 +22,7 @@ class Wled(Light):
         :raise ValueError: if any parameter is invalid
         """
         Light.__init__(self, master_control_item, duration_in_minutes,
-                       0, True)
+                       0, None)
 
         self.effect_item = effect_item
         self.primary_color_item = primary_color_item

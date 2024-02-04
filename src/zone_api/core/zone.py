@@ -479,7 +479,7 @@ class Zone:
         """
         If item belongs to this zone, dispatches the event to the associated
         Switch object, execute the associated actions, and returns True.
-        Otherwise return False.
+        Otherwise, return False.
 
         See :meth:`.Switch.onSwitchTurnedOff`
 
@@ -493,11 +493,12 @@ class Zone:
 
         switches = self.get_devices_by_type(Switch)
         for switch in switches:
-            if switch.on_switch_turned_off(events, pe.get_item_name(item)):
-                for a in actions:
-                    a.on_action(event_info)
+            if switch.get_item().name == item.name:
+                if switch.on_switch_turned_off(events, pe.get_item_name(item)):
+                    for a in actions:
+                        a.on_action(event_info)
 
-                is_processed = True
+                    is_processed = True
 
         return is_processed
 
