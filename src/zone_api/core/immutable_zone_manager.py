@@ -230,6 +230,15 @@ class ImmutableZoneManager:
         """
         return self.get_zones_fcn()
 
+    def get_internal_zones(self) -> List[Zone]:
+        """
+        Returns a new list of all internal zones
+
+        :rtype: list(Zone)
+        """
+        zones = [z for z in self.get_zones() if z.is_internal()]
+        return zones
+
     def get_zone_by_id(self, zone_id):
         """
         Returns the zone associated with the given zone_id.

@@ -46,34 +46,38 @@ class ManagePlugs(Action):
                 for z in zm.get_zones():
                     occupied, device = z.is_occupied([Plug])
                     if not occupied:
-                        for p in z.get_devices_by_type(Plug):
-                            if not p.is_always_on():
+                        for p in z.get_devices_by_type(Plug):  # type: Plug
+                            if not p.is_always_on() \
+                                    and not p.is_reversed():  # managed by the security armed / disarmed event
                                 p.turn_off(events)
 
             return True
         elif zone_event == ZoneEvent.MOTION:
             if activity.is_wakeup_time():
-                for z in zm.get_zones():
-                    if z.is_internal():
-                        for p in z.get_devices_by_type(Plug):
+                for z in zm.get_internal_zones():
+                    for p in z.get_devices_by_type(Plug):  # type: Plug
+                        if not p.is_reversed():  # managed by the security armed / disarmed event
                             p.turn_on(events)
 
             return True
 
         elif zone_event == ZoneEvent.PARTITION_ARMED_AWAY:
-            for z in zm.get_zones():
-                if z.is_internal():
-                    for p in z.get_devices_by_type(Plug):
-                        if not p.is_always_on():
-                            p.turn_off(events)
+            for z in zm.get_internal_zones():
+                for p in z.get_devices_by_type(Plug):  # type: Plug
+                    if p.is_reversed():
+                        p.turn_on(events)
+                    elif not p.is_always_on():
+                        p.turn_off(events)
 
             return True
 
         elif zone_event == ZoneEvent.PARTITION_DISARMED_FROM_AWAY:
             if not activity.is_turn_off_plugs_time():
-                for z in zm.get_zones():
-                    if z.is_internal():
-                        for p in z.get_devices_by_type(Plug):
+                for z in zm.get_internal_zones():
+                    for p in z.get_devices_by_type(Plug):  # type: Plug
+                        if p.is_reversed():
+                            p.turn_off(events)
+                        else:
                             p.turn_on(events)
 
             return True

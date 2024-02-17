@@ -70,7 +70,7 @@ def parse(config: dict[Hashable, Any], actions_package: str = "zone_api.core.act
             brightness_up_hold_event=ZoneEvent.MANUALLY_TRIGGER_FIRE_ALARM,
             brightness_down_hold_event=ZoneEvent.CANCEL_PANIC_ALARM),
         '[^g].*_NetworkPresence.*': df.create_network_presence_device,
-        '[^g].*_Plug(\\d*)$': df.create_plug,
+        '[^g].*_.*Plug(\\d*)$': df.create_plug,
         '[^g].*_Co2$': df.create_gas_sensor(Co2GasSensor),
         '[^g].*_NaturalGas$': df.create_gas_sensor(NaturalGasSensor),
         '[^g].*_RadonGas$': df.create_gas_sensor(RadonGasSensor),

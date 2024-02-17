@@ -128,6 +128,31 @@ class ManagePlugsTest(DeviceTest):
         self.assertTrue(value)
         self.assertTrue(self.plug.is_on())
 
+    def testOnAction_armedAway_turnOnReversedControlPlug(self):
+        self.plug = Plug(self.plug.get_item(), reversed_security_control=True)
+        self.plug.turn_off(pe.get_event_dispatcher())
+
+        self.zm = self._setup_zone_manager({ActivityType.WAKE_UP: '0:00 - 23:59', })
+
+        event_info = EventInfo(ZoneEvent.PARTITION_ARMED_AWAY, self.alarm_partition.get_item(),
+                               self.zone1, self.zm, pe.get_event_dispatcher())
+        value = self.action.on_action(event_info)
+        self.assertTrue(value)
+        self.assertTrue(self.plug.is_on())
+
+    def testOnAction_disarmed_turnOffReversedControlPlug(self):
+        self.plug = Plug(self.plug.get_item(), reversed_security_control=True)
+        self.plug.turn_on(pe.get_event_dispatcher())
+        self.assertTrue(self.plug.is_on())
+
+        self.zm = self._setup_zone_manager({ActivityType.WAKE_UP: '0:00 - 23:59', })
+
+        event_info = EventInfo(ZoneEvent.PARTITION_DISARMED_FROM_AWAY, self.alarm_partition.get_item(),
+                               self.zone1, self.zm, pe.get_event_dispatcher())
+        value = self.action.on_action(event_info)
+        self.assertTrue(value)
+        self.assertFalse(self.plug.is_on())
+
     def testOnAction_disarmedNotInTurnOffPeriod_turnOff(self):
         self.zm = self._setup_zone_manager({ActivityType.TURN_OFF_PLUGS: self.create_outside_time_range()})
 

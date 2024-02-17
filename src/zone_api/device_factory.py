@@ -414,6 +414,11 @@ def create_temperature_sensor(zm: ImmutableZoneManager, item) -> TemperatureSens
 def create_plug(zm: ImmutableZoneManager, item) -> Plug:
     """
     Creates a smart plug.
+    Supported metadata keys:
+      - alwaysOn: the plug shall never be turned off by various rules.
+      - reverseSecurityControl: normally a plug is turned off when the house is armed. When this value is set to 'true'
+            the plug is turned on when the house is armed, and off when the house is disarmed. This is suitable for
+            indoor camera control.
     :param zm: the zone manager instance to dispatch the event.
     :param item: SwitchItem
     :return: Plug
@@ -427,9 +432,10 @@ def create_plug(zm: ImmutableZoneManager, item) -> Plug:
     item_def = HABApp.openhab.interface_sync.get_item(item.name)
     metadata = item_def.metadata
     always_on = True if "true" == get_meta_value(metadata, "alwaysOn") else False
+    reversed_control = True if "true" == get_meta_value(metadata, "reversedSecurityControl") else False
 
     # noinspection PyTypeChecker
-    return _configure_device(Plug(item, power_item, always_on), zm)
+    return _configure_device(Plug(item, power_item, always_on, reversed_security_control=reversed_control), zm)
 
 
 def create_gas_sensor(cls):

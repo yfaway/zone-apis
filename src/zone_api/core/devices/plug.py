@@ -13,19 +13,23 @@ class Plug(Device):
     containing this plug is considered to be occupied.
     """
 
-    def __init__(self, plug_item, power_reading_item=None, always_on=False):
+    def __init__(self, plug_item, power_reading_item=None, always_on=False, reversed_security_control=False):
         """
         Ctor
 
         :param SwitchItem plug_item:
         :param NumberItem power_reading_item: the optional item to get the wattage reading
         :param Bool always_on: indicates if the plug should be on all the time
+        :param Bool reversed_security_control: normally a plug is turned off when the house is armed. When this value is
+            set to 'true' the plug is turned on when the house is armed, and off when the house is disarmed. This is
+            suitable for indoor camera control.
         :raise ValueError: if plug_item is invalid
         """
         Device.__init__(self, plug_item)
 
         self.power_reading_item = power_reading_item
         self.always_on = always_on
+        self.reverse_security_control = reversed_security_control
 
     def is_on(self):
         """
@@ -51,9 +55,16 @@ class Plug(Device):
 
         return pe.get_number_value(self.power_reading_item)
 
-    def is_always_on(self):
+    def is_always_on(self) -> bool:
         """ Returns true if this plug should not be turned off automatically. """
         return self.always_on
+
+    def is_reversed(self) -> bool:
+        """
+        Returns true if this plug is controlled to turn on / off reversedly with respect to the security system.
+        I.e. it is turned on when the house is armed and off when the house is disarmed.
+        """
+        return self.reverse_security_control
 
     def is_occupied(self, seconds_from_last_event=5 * 60):
         """
@@ -81,5 +92,7 @@ class Plug(Device):
 
     def __str__(self):
         """ @override """
-        return u"{}{}".format(
-            super(Plug, self).__str__(), ", always on" if self.is_always_on() else "")
+        return u"{}{}{}".format(
+            super(Plug, self).__str__(),
+            ", always on" if self.is_always_on() else "",
+            ", reversed control" if self.is_reversed() else "")
