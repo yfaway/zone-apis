@@ -70,7 +70,7 @@ class Wled(Light):
             self.effect_timer = Timer(next_duration_in_minute * 60, change_effect)
             self.effect_timer.start()
 
-        self._cancel_timer()  # cancel the previous timer, if any.
+        self._cancel_effect_timer()  # cancel the previous timer, if any.
 
         self.effect_timer = Timer(3, change_effect)  # start timer in 3 secs
         self.effect_timer.start()
