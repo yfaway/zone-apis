@@ -3,8 +3,9 @@ import logging
 import smtplib
 import ssl
 
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+from email.message import EmailMessage
+from email.utils import make_msgid
+import mimetypes
 
 from typing import List, Union, Any, TYPE_CHECKING
 
@@ -360,29 +361,63 @@ def play_text_to_speech_message(sink_name: str, tts: str):
     StringItem.get_item(ACTION_TEXT_TO_SPEECH_MESSAGE_ITEM_NAME).oh_post_update(tts)
 
 
-def send_email(email_addresses: List[str], subject: str, body: str = '', attachment_urls: List[str] = None):
-    """ Send an email using the OpenHab email action. """
+def send_email(email_addresses: List[str], subject: str, body: str = '', images_paths: List[str] = None):
+    """
+    Send an email using the OpenHab email action.
 
-    if attachment_urls is None:
-        attachment_urls = []
+    :param List[str] email_addresses:
+    :param str subject:
+    :param str body: an optional body text; can be embedded html code.
+    :param List[str] images_paths: the full paths to the attachment
+    """
+
+    if images_paths is None:
+        images_paths = []
 
     if body is None:
         body = ''
 
     email_settings: 'EmailSettings' = get_zone_manager_from_context().email_settings
-    context = ssl.create_default_context()
+    message = EmailMessage()
 
+    # @see https://stackoverflow.com/questions/920910/sending-multipart-html-emails-which-contain-embedded-images
+    message["From"] = email_settings.from_email_address
+    message["To"] = ";".join(email_addresses)
+    message["Subject"] = subject
+
+    message.set_content(body)  # set the plain text body
+
+    image_htmls = ""
+    image_ids = {}
+    for path in images_paths:
+        cid = make_msgid()
+        image_ids[path] = cid
+
+        # Image_cid looks like <long.random.number@xyz.com>.
+        # To use it as the img src, we don't need `<` or `>` so we use [1:-1] to strip them off.
+        image_htmls = f"{image_htmls}<p><img src=\"cid:{cid[1:-1]}\" /></p>\n"
+
+    html_message = f"""\
+    <html>
+        <body>
+            <p>{body}</p>
+            <hr />
+            {image_htmls}
+        </body>
+    </html>
+    """
+    message.add_alternative(html_message, subtype='html')
+
+    # Now open the attachments and attach it to the email
+    for path in images_paths:
+        with open(path, 'rb') as img:
+            # Determine the Content-Type of the image.
+            maintype, subtype = mimetypes.guess_type(img.name)[0].split('/')
+            message.get_payload()[1].add_related(img.read(), maintype=maintype, subtype=subtype, cid=image_ids[path])
+
+    context = ssl.create_default_context()
     with smtplib.SMTP_SSL(email_settings.smtp_server, email_settings.port, context=context) as server:
         server.login(email_settings.from_email_address, email_settings.password)
-
-        message = MIMEMultipart()
-        message["From"] = email_settings.from_email_address
-        message["To"] = ";".join(email_addresses)
-        message["Subject"] = subject
-
-        part1 = MIMEText(body, "plain")
-        message.attach(part1)
-
         server.sendmail(email_settings.from_email_address, email_addresses, message.as_string())
 
 
