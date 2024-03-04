@@ -27,6 +27,7 @@ from zone_api.core.devices.ikea_remote_control import IkeaRemoteControl
 from zone_api.core.devices.illuminance_sensor import IlluminanceSensor, FixedValueIlluminanceSensor
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.devices.network_presence import NetworkPresence
+from zone_api.core.devices.onvif_camera import OnvifCamera
 from zone_api.core.devices.plug import Plug
 from zone_api.core.devices.switch import Light, Fan, ColorLight
 from zone_api.core.devices.temperature_sensor import TemperatureSensor
@@ -279,10 +280,18 @@ def create_camera(zm: ImmutableZoneManager, item: StringItem) -> Camera:
     :param zm: the zone manager instance to dispatch the event.
     :param item: SwitchItem
     """
-    zone_name = get_zone_id_from_item_name(item.name)
+    image_url_item_name = item.name + "_ImageUrl"
+    image_url_item = None
+    if pe.has_item(image_url_item_name):
+        image_url_item = Items.get_item(image_url_item_name)
+
+    mjpeg_url_item_name = item.name + "_MjpegUrl"
+    mjpeg_url_item = None
+    if pe.has_item(mjpeg_url_item_name):
+        mjpeg_url_item = Items.get_item(mjpeg_url_item_name)
 
     # noinspection PyTypeChecker
-    return _configure_device(Camera(item, zone_name), zm)
+    return _configure_device(OnvifCamera(item, image_url_item, mjpeg_url_item), zm)
 
 
 def create_motion_sensor(zm: ImmutableZoneManager, item) -> MotionSensor:

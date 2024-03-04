@@ -1,11 +1,63 @@
 from datetime import datetime, timedelta
 import os.path
 import time
+from typing import List
 
+from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
 
 
 class Camera(Device):
+    def __init__(self, camera_name_item, image_url_item=None, mjpeg_url_item=None):
+        """
+        Ctor
+
+        :param StringItem camera_name_item: the camera name item
+        :raise ValueError: if cameraNameItem is invalid
+        """
+        Device.__init__(self, camera_name_item)
+
+        self._image_url_item = image_url_item
+        self._mjpeg_url_item = mjpeg_url_item
+
+    @property
+    def image_url(self):
+        if self._image_url_item is not None:
+            return pe.get_string_value(self._image_url_item)
+        else:
+            return None
+
+    @property
+    def mjpeg_url(self):
+        if self._mjpeg_url_item is not None:
+            return pe.get_string_value(self._mjpeg_url_item)
+        else:
+            return None
+
+    def __str__(self):
+        description = super(Camera, self).__str__()
+        if self.image_url is not None:
+            description = f"{description}, {self.image_url}"
+
+        if self.mjpeg_url is not None:
+            description = f"{description}, {self.mjpeg_url}"
+
+        return description
+
+    def get_snapshot_images(self, time_in_epoch_seconds=time.time(),
+                            max_number_of_seconds=15, offset_seconds=5) -> List[str]:
+        """
+        Retrieve the still camera image paths.
+        :param float time_in_epoch_seconds: the pivot time to calculate the start and end times for the still images.
+        :param int max_number_of_seconds: the maximum # of seconds to retrieve the images for
+        :param int offset_seconds: the # of seconds before the epochSeconds to retrieve the images for
+        :return: list of snapshot URLs or empty list if there is no snapshot
+        :rtype: list(str)
+        """
+        return []
+
+
+class MotionOsCamera(Camera):
     """
     Represents a network camera.
     """
@@ -19,7 +71,7 @@ class Camera(Device):
         :param str image_location: the optional file location of the still images
         :raise ValueError: if cameraNameItem is invalid
         """
-        Device.__init__(self, camera_name_item)
+        Camera.__init__(self, camera_name_item)
 
         self._camera_name = camera_name
         self._image_location = image_location
@@ -33,12 +85,13 @@ class Camera(Device):
         """
         current_epoch = time.time()
         time.sleep(10)
-        urls = self.get_snapshot_urls(current_epoch, 6, 5)
+        urls = self.get_snapshot_images(current_epoch, 6, 5)
         return len(urls) > 0
 
-    def get_snapshot_urls(self, time_in_epoch_seconds=time.time(),
-                          max_number_of_seconds=15, offset_seconds=5):
+    def get_snapshot_images(self, time_in_epoch_seconds=time.time(),
+                            max_number_of_seconds=15, offset_seconds=5) -> List[str]:
         """
+        @override
         Retrieve the still camera image URLs.
         :param float time_in_epoch_seconds: the pivot time to calculate the start
             and end times for the still images.
