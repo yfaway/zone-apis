@@ -290,8 +290,13 @@ def create_camera(zm: ImmutableZoneManager, item: StringItem) -> Camera:
     if pe.has_item(mjpeg_url_item_name):
         mjpeg_url_item = Items.get_item(mjpeg_url_item_name)
 
+    enable_ffmpeg_item_name = item.name + "_EnableFfmpeg"
+    enable_ffmpeg_item = None
+    if pe.has_item(enable_ffmpeg_item_name):
+        enable_ffmpeg_item = Items.get_item(enable_ffmpeg_item_name)
+
     # noinspection PyTypeChecker
-    return _configure_device(OnvifCamera(item, image_url_item, mjpeg_url_item), zm)
+    return _configure_device(OnvifCamera(item, image_url_item, mjpeg_url_item, enable_ffmpeg_item), zm)
 
 
 def create_motion_sensor(zm: ImmutableZoneManager, item) -> MotionSensor:
