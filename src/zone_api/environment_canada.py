@@ -98,7 +98,7 @@ class EnvCanada(object):
     Utility class to retrieve the hourly forecast.
     """
 
-    CITY_FORECAST_MAPPING = {'ottawa': 'on-118'}
+    CITY_FORECAST_MAPPING = {'ottawa': '45.403,-75.687'}  # to coordinates
     """
     Mapping from lowercase city name to the env canada identifier.
     """
@@ -115,12 +115,11 @@ class EnvCanada(object):
         return False
 
     @staticmethod
-    def retrieve_hourly_forecast(city_or_url, hour_count=12):
+    def retrieve_hourly_forecast(city, hour_count=12):
         """
         Retrieves the hourly forecast for the given city.
 
-        :param str city_or_url: the city name or the Environment Canada website\
-            'https://www.weather.gc.ca/forecast/hourly/on-118_metric_e.html'
+        :param str city: the city name
         :param int hour_count: the # of forecast hour to get, starting from \
             the next hour relative to the current time.
         :rtype: list(Forecast)
@@ -130,25 +129,26 @@ class EnvCanada(object):
         if hour_count > 24 or hour_count < 1:
             raise ValueError("hourCount must be between 1 and 24.")
 
-        if city_or_url[0:6].lower() != 'https:':
-            normalized_city = city_or_url.lower()
+        if city[0:6].lower() != 'https:':
+            normalized_city = city.lower()
             if normalized_city not in EnvCanada.CITY_FORECAST_MAPPING:
                 raise ValueError(
-                    "Can't map city name to URL for {}".format(city_or_url))
+                    "Can't map city name to URL for {}".format(city))
 
-            url = 'https://www.weather.gc.ca/forecast/hourly/{}_metric_e.html'.format(
+            url = 'https://www.weather.gc.ca/en/forecast/hourly/index.html?coords={}'.format(
                 EnvCanada.CITY_FORECAST_MAPPING[normalized_city])
         else:
-            url = city_or_url
+            url = city
 
         data = requests.get(url).text
 
         time_struct = time.localtime()
         hour_of_day = time_struct[3]
 
-        pattern = r"""header2.*?\>\s*(-?\d+)\s*<           # temp 
+        pattern = r"""header2.*?\>\s*(-?\d+)\s*<     # temp 
                       .*?<p>(.*?)</p>                # condition
                       .*?header4.*?>(.+?)<           # precipitation probability
+                      .*?header5.*?>(.+?)<           # UV index
                       .*?abbr.*?>(.+?)</abbr> (.*?)< # wind direction and speed
             """
         forecasts = []
@@ -171,7 +171,7 @@ class EnvCanada(object):
             temperature = int(match.group(1))
             condition = match.group(2)
             precipitation_probability = match.group(3)
-            wind = u'' + match.group(5) + ' ' + match.group(4)
+            wind = u'' + match.group(6) + ' ' + match.group(5)
 
             forecasts.append(Forecast(hour, temperature, condition, precipitation_probability, wind))
 
@@ -198,9 +198,9 @@ class EnvCanada(object):
         raw_data: str = requests.get(url).text
         data = raw_data
 
-        start_keyword = "<h1 id=\"wb-cont\" property=\"name\">"
+        start_keyword = "</time><br><br><span>"
         start_idx = data.index(start_keyword)
-        end_idx = data.index("<div class=\"followus hidden-print mrgn-tp-md\"")
+        end_idx = data.index("</span></p><div class=\"hidden-print atom-followus\">")
 
         data = data[start_idx + len(start_keyword): end_idx]
         data = data.replace("<br/>", "\n")

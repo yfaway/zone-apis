@@ -34,7 +34,7 @@ class EnvCanadaTest(unittest.TestCase):
 
     def testRetrieveHourlyForecast_validUrl_returnsForecast(self):
         forecasts = EnvCanada.retrieve_hourly_forecast(
-            'https://www.weather.gc.ca/forecast/hourly/on-118_metric_e.html',
+            'ottawa',
             24)
         self.assertEqual(24, len(forecasts))
 
