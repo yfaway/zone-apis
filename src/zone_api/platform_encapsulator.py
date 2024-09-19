@@ -363,7 +363,8 @@ def play_text_to_speech_message(sink_name: str, tts: str):
 
 def send_email(email_addresses: List[str], subject: str, body: str = '', images_paths: List[str] = None):
     """
-    Send an email using the OpenHab email action.
+    Send an email using the OpenHab email action. If an error is encountered, it will be logged and this function
+    will return immediately.
 
     :param List[str] email_addresses:
     :param str subject:
@@ -416,9 +417,12 @@ def send_email(email_addresses: List[str], subject: str, body: str = '', images_
             message.get_payload()[1].add_related(img.read(), maintype=maintype, subtype=subtype, cid=image_ids[path])
 
     context = ssl.create_default_context()
-    with smtplib.SMTP_SSL(email_settings.smtp_server, email_settings.port, context=context) as server:
-        server.login(email_settings.from_email_address, email_settings.password)
-        server.sendmail(email_settings.from_email_address, email_addresses, message.as_string())
+    try:
+        with smtplib.SMTP_SSL(email_settings.smtp_server, email_settings.port, context=context) as server:
+            server.login(email_settings.from_email_address, email_settings.password)
+            server.sendmail(email_settings.from_email_address, email_addresses, message.as_string())
+    except Exception as e:
+        log_error(str(e))
 
 
 def change_ecobee_thermostat_hold_mode(mode: str):

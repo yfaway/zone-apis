@@ -9,6 +9,7 @@ import time
 from typing import Union, Tuple
 
 import requests
+from zone_api import platform_encapsulator as pe
 
 
 class Forecast(object):
@@ -117,7 +118,8 @@ class EnvCanada(object):
     @staticmethod
     def retrieve_hourly_forecast(city, hour_count=12):
         """
-        Retrieves the hourly forecast for the given city.
+        Retrieves the hourly forecast for the given city. If there is error retrieving data or if the data doesn't
+        conform to the expected format, log the error and return an empty list.
 
         :param str city: the city name
         :param int hour_count: the # of forecast hour to get, starting from \
@@ -140,7 +142,11 @@ class EnvCanada(object):
         else:
             url = city
 
-        data = requests.get(url).text
+        try:
+            data = requests.get(url).text
+        except Exception as e:
+            pe.log_error(str(e))
+            return []
 
         time_struct = time.localtime()
         hour_of_day = time_struct[3]
@@ -153,27 +159,31 @@ class EnvCanada(object):
             """
         forecasts = []
         index = 0
-        for increment in range(1, hour_count + 1):
-            hour = (hour_of_day + increment) % 24
-            hour_string = ("0" + str(hour)) if hour < 10 else str(hour)
-            hour_string += ":00"
 
-            search_string = '<td headers="header1" class="text-center"> {} </td>'.format(hour_string)
-            index = data.find(search_string, index)
+        try:
+            for increment in range(1, hour_count + 1):
+                hour = (hour_of_day + increment) % 24
+                hour_string = ("0" + str(hour)) if hour < 10 else str(hour)
+                hour_string += ":00"
 
-            subdata = data[index:]
+                search_string = '<td headers="header1" class="text-center"> {} </td>'.format(hour_string)
+                index = data.find(search_string, index)
 
-            match = re.search(pattern, subdata,
-                              re.MULTILINE | re.DOTALL | re.VERBOSE)
-            if not match:
-                raise ValueError("Invalid pattern.")
+                subdata = data[index:]
 
-            temperature = int(match.group(1))
-            condition = match.group(2)
-            precipitation_probability = match.group(3)
-            wind = u'' + match.group(6) + ' ' + match.group(5)
+                match = re.search(pattern, subdata,
+                                  re.MULTILINE | re.DOTALL | re.VERBOSE)
+                if not match:
+                    raise ValueError("Invalid pattern.")
 
-            forecasts.append(Forecast(hour, temperature, condition, precipitation_probability, wind))
+                temperature = int(match.group(1))
+                condition = match.group(2)
+                precipitation_probability = match.group(3)
+                wind = u'' + match.group(6) + ' ' + match.group(5)
+
+                forecasts.append(Forecast(hour, temperature, condition, precipitation_probability, wind))
+        except Exception as e:
+            pe.log_error(str(e))
 
         return forecasts
 
