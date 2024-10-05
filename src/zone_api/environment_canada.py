@@ -191,8 +191,8 @@ class EnvCanada(object):
     def retrieve_alert(city_or_url: str) -> Union[Tuple[str, str, str], Tuple[None, str, str]]:
         """
         Retrieves the weather alert for the given region.
-        :return: a tuple containing the alert string (or None if there is no alert), the URL
-            that was used to retrieve the data, and the raw data returned by the server.
+        :return: a tuple containing the alert string or None if there is no alert or if there is an error (logged), the
+            URL that was used to retrieve the data, and the raw data returned by the server.
         """
         if city_or_url[0:6].lower() != 'https:':
             normalized_city = city_or_url.lower()
@@ -205,21 +205,26 @@ class EnvCanada(object):
         else:
             url = city_or_url
 
-        raw_data: str = requests.get(url).text
-        data = raw_data
+        raw_data = ""
+        try:
+            raw_data = requests.get(url).text
+            data = raw_data
 
-        start_keyword = "</time><br><br><span>"
-        start_idx = data.index(start_keyword)
-        end_idx = data.index("</span></p><div class=\"hidden-print atom-followus\">")
+            start_keyword = "</time><br><br><span>"
+            start_idx = data.index(start_keyword)
+            end_idx = data.index("</span></p><div class=\"hidden-print atom-followus\">")
 
-        data = data[start_idx + len(start_keyword): end_idx]
-        data = data.replace("<br/>", "\n")
-        data = data.replace("<br />", "\n")
-        data = data.replace("<p>", "\n\n")
-        data = re.sub("(?s)<[^>]*>(\\s*<[^>]*>)*", " ", data)
-        data = data.strip()
+            data = data[start_idx + len(start_keyword): end_idx]
+            data = data.replace("<br/>", "\n")
+            data = data.replace("<br />", "\n")
+            data = data.replace("<p>", "\n\n")
+            data = re.sub("(?s)<[^>]*>(\\s*<[^>]*>)*", " ", data)
+            data = data.strip()
 
-        if 'No alerts in effect.' in data:
+            if 'No alerts in effect.' in data:
+                return None, url, raw_data
+            else:
+                return data, url, raw_data
+        except Exception as e:
+            pe.log_error(str(e))
             return None, url, raw_data
-        else:
-            return data, url, raw_data
