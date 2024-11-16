@@ -425,7 +425,13 @@ def create_temperature_sensor(zm: ImmutableZoneManager, item) -> TemperatureSens
     :param zm: the zone manager instance to dispatch the event.
     :param item: SwitchItem
     """
-    sensor = _configure_device(TemperatureSensor(item), zm)
+    battery_percentage_name = item.name + "_BatteryPercentage"
+    battery_percentage_item = None
+    if pe.has_item(battery_percentage_name):
+        battery_percentage_item = Items.get_item(battery_percentage_name)
+
+    sensor = _configure_device(
+        TemperatureSensor(temperature_item=item, battery_percentage_item=battery_percentage_item), zm)
 
     item.listen_event(lambda event: dispatch_event(zm, ZoneEvent.TEMPERATURE_CHANGED, sensor, item),
                       ValueChangeEventFilter())
