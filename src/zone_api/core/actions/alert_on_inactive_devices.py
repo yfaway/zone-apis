@@ -43,7 +43,7 @@ class AlertOnInactiveDevices(Action):
         self._deferred_auto_report_devices = {}
 
         self._battery_powered_period_in_hours = self.parameters().get(self, 'batteryPoweredPeriodInHours', 3 * 24)
-        self._auto_report_period_in_hours = self.parameters().get(self, 'autoReportPeriodInHours', 0.25)
+        self._auto_report_period_in_hours = self.parameters().get(self, 'autoReportPeriodInHours', 1 * 24)
 
     def on_startup(self, event_info: EventInfo):
 
@@ -162,7 +162,7 @@ class AlertOnInactiveDevices(Action):
     # noinspection PyMethodMayBeStatic
     def get_inactive_auto_report_devices(self, zone_manager, threshold_in_seconds):
         """
-        :rtype: list(str) the list of auto-reported WiFi devices that haven't
+        :rtype: list(str) the list of auto-reported devices that haven't
             sent anything in the specified number of seconds.
         """
         inactive_device_name = []
