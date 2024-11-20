@@ -22,7 +22,7 @@ class TurnOnOutdoorXmasPlugsAndLights(Action):
 
         if event_info.get_event_type() in ON_EVENTS:
             month = datetime.datetime.now().month
-            if month in [12, 1]:
+            if month in [11, 12, 1]:
                 for plug in plugs:
                     plug.turn_on(event_info.get_event_dispatcher())
 
