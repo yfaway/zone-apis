@@ -13,7 +13,7 @@ handlers:
   # https://docs.python.org/3/library/logging.handlers.html#rotatingfilehandler
 
   HABApp_default:
-    class: HABApp.core.lib.handler.MidnightRotatingFileHandler
+    class: HABApp.config.logging.MidnightRotatingFileHandler
     filename: '/var/log/openhab/HABApp.log'
     maxBytes: 10_000_000
     backupCount: 3
@@ -22,7 +22,7 @@ handlers:
     level: DEBUG
 
   EventFile:
-    class: HABApp.core.lib.handler.MidnightRotatingFileHandler
+    class: HABApp.config.logging.MidnightRotatingFileHandler
     filename: '/var/log/openhab/events.log'
     maxBytes: 10_000_000
     backupCount: 3
@@ -31,7 +31,7 @@ handlers:
     level: DEBUG
 
   ZoneApisHandler:
-    class: HABApp.core.lib.handler.MidnightRotatingFileHandler
+    class: HABApp.config.logging.MidnightRotatingFileHandler
     filename: '/var/log/openhab/zones-api.log'
     maxBytes: 1_048_576
     backupCount: 3
