@@ -1,5 +1,6 @@
 from enum import Enum, unique
 from typing import List, Union
+import traceback
 
 from zone_api.core.action import Action
 from zone_api.core.event_info import EventInfo
@@ -530,8 +531,11 @@ class Zone:
             processed = True
         else:
             for a in self.get_actions(zone_event):
-                if a.on_action(event_info):
-                    processed = True
+                try:
+                    if a.on_action(event_info):
+                        processed = True
+                except Exception as e:
+                    pe.log_error("dispatch_event: " + traceback.format_exc())
 
         return processed
 
