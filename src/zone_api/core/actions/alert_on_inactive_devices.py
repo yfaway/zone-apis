@@ -136,8 +136,11 @@ class AlertOnInactiveDevices(Action):
         if len(inactive_devices) > 0:
             subject = "{} inactive {} devices".format(
                 len(inactive_devices), device_type_string)
-            body = f"The following devices haven't triggered in the last {threshold_in_hours} hours\r\n  - "
-            body += "\r\n  - ".join(inactive_devices)
+            body = f"<p>The following devices haven't triggered in the last {threshold_in_hours} hours:</p>\r\n"
+            body += "<ul>\r\n"
+            for device_name in inactive_devices:
+                body += f"  <li>{device_name}</li>\r\n"
+            body += "</ul>\r\n"
 
             alert = Alert.create_info_alert(subject, body)
             self.send_notification(zone_manager, alert)

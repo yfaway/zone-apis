@@ -363,8 +363,9 @@ def play_text_to_speech_message(sink_name: str, tts: str):
 
 def send_email(email_addresses: List[str], subject: str, body: str = '', images_paths: List[str] = None):
     """
-    Send an email using the OpenHab email action. If an error is encountered, it will be logged and this function
-    will return immediately.
+    Send an email using the python library smtplib. The content of the email is formatted in html . If the images are
+    provided, they will be embedded inline.
+    If an error is encountered, it will be logged and this function will return immediately.
 
     :param List[str] email_addresses:
     :param str subject:
@@ -401,7 +402,7 @@ def send_email(email_addresses: List[str], subject: str, body: str = '', images_
     html_message = f"""\
     <html>
         <body>
-            <p>{body}</p>
+            {body}
             <hr />
             {image_htmls}
         </body>
