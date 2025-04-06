@@ -143,7 +143,7 @@ class GenerateWeatherForecastHtml(Action):
 </html>
         """
 
-        with open('/etc/openhab/html/weather-forecast.html') as file:
+        with open('/etc/openhab/html/weather-forecast.html', 'w') as file:
             file.write(html)
 
         return True
