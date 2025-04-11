@@ -32,7 +32,7 @@ class GenerateWeatherForecastHtml(Action):
 
         self._item_prefix = self.parameters().get(self, 'itemPrefix', 'FF_Virtual_Weather_Temperature_')
         self._html_content_refresh_interval_in_seconds = self.parameters().get(
-            self, 'htmlContentRefreshIntervalInSeconds', 10)
+            self, 'htmlContentRefreshIntervalInSeconds', 5)
         self._html_content_generation_interval_in_minutes = self.parameters().get(
             self, 'htmlContentGenerationIntervalInMinutes', 5)
 
@@ -41,7 +41,13 @@ class GenerateWeatherForecastHtml(Action):
         scheduler.every(self._html_content_generation_interval_in_minutes).minutes.do(
             lambda: self.on_action(self.create_timer_event_info(event_info)))
 
+        # generate the initial content immediately
+        self._generate_html(event_info)
+
     def on_action(self, event_info):
+        self._generate_html(event_info)
+
+    def _generate_html(self, event_info):
         prefix = self._item_prefix
         items_html = ""
         item_div_templates = """
@@ -79,7 +85,7 @@ class GenerateWeatherForecastHtml(Action):
 
         for segment in ['Quarter1', 'Quarter2', 'Quarter3', 'Quarter4']:
             date_time = pe.get_datetime_value(prefix + segment + "_Datetime")
-            temperature = pe.get_number_value(prefix + segment)
+            temperature = round(pe.get_number_value(prefix + segment))
             weather_symbol = int(pe.get_number_value(prefix + segment + "_WeatherSymbol"))
 
             if date_time.time().hour == 0:
@@ -96,8 +102,8 @@ class GenerateWeatherForecastHtml(Action):
 
         for segment in ['Tomorrow', 'In2Days', 'In3Days', 'In4Days']:
             date_time = pe.get_datetime_value(prefix + segment + "_Datetime")
-            temperature_high = pe.get_number_value(prefix + segment + "_TempHigh")
-            temperature_low = pe.get_number_value(prefix + segment + "_TempLow")
+            temperature_high = round(pe.get_number_value(prefix + segment + "_TempHigh"))
+            temperature_low = round(pe.get_number_value(prefix + segment + "_TempLow"))
             weather_symbol = int(pe.get_number_value(prefix + segment + "_WeatherSymbol"))
 
             day_of_week = date_time.strftime("%A")
@@ -143,7 +149,10 @@ class GenerateWeatherForecastHtml(Action):
 </html>
         """
 
-        with open('/etc/openhab/html/weather-forecast.html', 'w') as file:
-            file.write(html)
+        try:
+            with open('/etc/openhab/html/weather-forecast.html', 'w') as file:
+                file.write(html)
+        except FileNotFoundError:
+            pe.log_error("Cannot write weather forecast to file.")
 
         return True

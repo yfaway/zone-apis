@@ -202,11 +202,11 @@ def set_number_value(item_or_item_name: Union[NumberItem, str], value: float):
         item_or_item_name.oh_send_command(str(value))
 
 
-def get_number_value(item_or_item_name: Union[NumberItem, DimmerItem, str]) -> float:
+def get_number_value(item_or_item_name: Union[NumberItem, DimmerItem, str]) -> Union[float, int]:
     if isinstance(item_or_item_name, str):
         item_or_item_name = NumberItem.get_item(item_or_item_name)
 
-    return int(item_or_item_name.get_value(0))
+    return item_or_item_name.get_value(0)
 
 
 def set_string_value(item_or_item_name: Union[StringItem, str], value: str):
