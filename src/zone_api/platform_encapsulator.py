@@ -316,7 +316,7 @@ def get_event_dispatcher():
                 elif isinstance(item, DimmerItem):
                     item.post_value(int(command))
                 elif isinstance(item, NumberItem):
-                    item.post_value(command)
+                    item.post_value(int(command))
                 elif isinstance(item, StringItem):
                     item.post_value(command)
                 else:
