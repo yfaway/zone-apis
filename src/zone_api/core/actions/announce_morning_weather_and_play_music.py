@@ -101,10 +101,10 @@ class AnnounceMorningWeatherAndPlayMusic(Action):
 
         message = u'Good morning. It is {} degree currently; the weather ' \
                   'condition is {}. Forecasted temperature range is between {} and {} ' \
-                  'degrees.'.format(weather.get_temperature(),
+                  'degrees.'.format(round(weather.get_temperature()),
                                     weather.get_condition(),
-                                    weather.get_forecast_min_temperature(),
-                                    weather.get_forecast_max_temperature())
+                                    round(weather.get_forecast_min_temperature()),
+                                    round(weather.get_forecast_max_temperature()))
 
         forecasts = EnvCanada.retrieve_hourly_forecast('Ottawa', 12)
         rain_periods = [f for f in forecasts if
