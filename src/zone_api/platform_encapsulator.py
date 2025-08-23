@@ -11,7 +11,6 @@ from typing import List, Union, Any, TYPE_CHECKING
 
 import HABApp
 from HABApp.core.items import Item
-from HABApp.openhab.definitions import OnOffValue
 from HABApp.openhab.errors import ItemNotFoundError
 from HABApp.openhab.items import ColorItem, ContactItem, DatetimeItem, DimmerItem, NumberItem, StringItem, SwitchItem, \
     PlayerItem, OpenhabItem
@@ -136,7 +135,9 @@ def create_switch_item(name: str, on=False) -> SwitchItem:
     :param on: if True, the state is ON, else the state is OFF
     :return: SwitchItem
     """
-    return SwitchItem(name, OnOffValue.ON if on else OnOffValue.OFF)
+    item = SwitchItem(name)
+    item.set_value("ON" if on else "OFF")
+    return item
 
 
 def create_string_item(name: str) -> StringItem:
@@ -159,7 +160,7 @@ def set_switch_state(item_or_item_name: Union[SwitchItem, str], on: bool):
         item_or_item_name = SwitchItem.get_item(item_or_item_name)
 
     if is_in_unit_tests():
-        item_or_item_name.set_value(OnOffValue.ON if on else OnOffValue.OFF)
+        item_or_item_name.set_value("ON" if on else "OFF")
     else:
         if on:
             item_or_item_name.on()
@@ -199,7 +200,7 @@ def set_number_value(item_or_item_name: Union[NumberItem, str], value: float):
     if is_in_unit_tests():
         item_or_item_name.post_value(value)
     else:
-        item_or_item_name.oh_send_command(str(value))
+        item_or_item_name.oh_send_command(value)
 
 
 def get_number_value(item_or_item_name: Union[NumberItem, DimmerItem, str]) -> Union[float, int]:
@@ -308,11 +309,7 @@ def get_event_dispatcher():
                 item = HABApp.core.Items.get_item(item_name)
                 if isinstance(item, SwitchItem):
                     item = SwitchItem.get_item(item_name)
-
-                    if command == "ON":
-                        item.post_value(OnOffValue.ON)
-                    elif command == "OFF":
-                        item.post_value(OnOffValue.OFF)
+                    item.post_value(command)
                 elif isinstance(item, DimmerItem):
                     item.post_value(int(command))
                 elif isinstance(item, NumberItem):
@@ -334,7 +331,8 @@ def set_in_unit_tests():
 
         ir = HABApp.core.internals.ItemRegistry()
         eb = HABApp.core.internals.EventBus()
-        HABApp.core.internals.setup_internals(ir, eb)
+        file_manager = HABApp.core.files.FileManager(None)
+        HABApp.core.internals.setup_internals(ir, eb, file_manager)
         HABApp.core.Items = ir
         HABApp.core.EventBus = eb
 
