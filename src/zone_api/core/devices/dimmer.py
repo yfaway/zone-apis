@@ -37,9 +37,9 @@ class Dimmer(Light):
         if not pe.is_in_on_state(self.get_item()):
             if time_utilities.is_in_time_range(self.time_ranges):
                 events.send_command(self.get_item_name(),
-                                    str(self.dim_level))
+                                    self.dim_level)
             else:
-                events.send_command(self.get_item_name(), "100")
+                events.send_command(self.get_item_name(), 100)
 
         self._handle_common_on_action(events)
 

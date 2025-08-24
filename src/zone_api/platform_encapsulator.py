@@ -14,6 +14,7 @@ from HABApp.core.items import Item
 from HABApp.openhab.errors import ItemNotFoundError
 from HABApp.openhab.items import ColorItem, ContactItem, DatetimeItem, DimmerItem, NumberItem, StringItem, SwitchItem, \
     PlayerItem, OpenhabItem
+from HABApp.rule import in_thread
 
 if TYPE_CHECKING:
     from zone_api.core.immutable_zone_manager import EmailSettings
@@ -144,6 +145,7 @@ def create_string_item(name: str) -> StringItem:
     return StringItem(name)
 
 
+@in_thread
 def set_color_value(item: ColorItem, rgb_color: List[int]):
     """ Change the color of the item. """
     if is_in_unit_tests():
@@ -154,6 +156,7 @@ def set_color_value(item: ColorItem, rgb_color: List[int]):
         item.oh_send_command(",".join(map(str, [item.hue, item.saturation, item.brightness])))
 
 
+@in_thread
 def set_switch_state(item_or_item_name: Union[SwitchItem, str], on: bool):
     """ Set the switch state for the given item or item name. """
     if isinstance(item_or_item_name, str):
@@ -168,6 +171,7 @@ def set_switch_state(item_or_item_name: Union[SwitchItem, str], on: bool):
             item_or_item_name.off()
 
 
+@in_thread
 def set_datetime_value(item: DatetimeItem, value: datetime.datetime):
     if is_in_unit_tests():
         item.post_value(value)
@@ -182,6 +186,7 @@ def get_datetime_value(item_or_item_name: Union[DatetimeItem, str]) -> datetime.
     return item_or_item_name.get_value()
 
 
+@in_thread
 def set_dimmer_value(item: DimmerItem, percentage: int):
     if is_in_unit_tests():
         item.post_value(percentage)
@@ -193,6 +198,7 @@ def get_dimmer_percentage(item: DimmerItem) -> int:
     return item.get_value(0)
 
 
+@in_thread
 def set_number_value(item_or_item_name: Union[NumberItem, str], value: float):
     if isinstance(item_or_item_name, str):
         item_or_item_name = NumberItem.get_item(item_or_item_name)
@@ -210,6 +216,7 @@ def get_number_value(item_or_item_name: Union[NumberItem, DimmerItem, str]) -> U
     return item_or_item_name.get_value(0)
 
 
+@in_thread
 def set_string_value(item_or_item_name: Union[StringItem, str], value: str):
     if isinstance(item_or_item_name, str):
         item_or_item_name = StringItem.get_item(item_or_item_name)
@@ -227,6 +234,7 @@ def get_string_value(item_or_item_name: Union[StringItem, str]) -> str:
     return item_or_item_name.get_value()
 
 
+@in_thread
 def change_player_state_to_pause(item: PlayerItem):
     if is_in_unit_tests():
         item.set_value("PAUSE")
@@ -234,6 +242,7 @@ def change_player_state_to_pause(item: PlayerItem):
         item.oh_send_command("PAUSE")
 
 
+@in_thread
 def change_player_state_to_play(item: PlayerItem):
     if is_in_unit_tests():
         item.set_value("PLAY")
@@ -294,10 +303,12 @@ def get_channel(item) -> Union[str, None]:
             return None
 
 
+@in_thread
 def get_event_dispatcher():
     if not is_in_unit_tests():
         class EventDispatcher:
             # noinspection PyMethodMayBeStatic
+            @in_thread
             def send_command(self, item_name: str, command: Any):
                 HABApp.openhab.interface_sync.send_command(item_name, command)
 
@@ -341,24 +352,28 @@ def is_in_unit_tests():
     return _in_unit_tests
 
 
+@in_thread
 def play_local_audio_file(sink_name: str, file_location: str):
     """ Plays a local audio file on the given audio sink. """
     StringItem.get_item(ACTION_AUDIO_SINK_ITEM_NAME).oh_post_update(sink_name)
     StringItem.get_item(ACTION_AUDIO_LOCAL_FILE_LOCATION_ITEM_NAME).oh_post_update(file_location)
 
 
+@in_thread
 def play_stream_url(sink_name: str, url: str):
     """ Plays a stream URL on the given audio sink. """
     StringItem.get_item(ACTION_AUDIO_SINK_ITEM_NAME).oh_post_update(sink_name)
     StringItem.get_item(ACTION_AUDIO_STREAM_URL_ITEM_NAME).oh_post_update(url)
 
 
+@in_thread
 def play_text_to_speech_message(sink_name: str, tts: str):
     """ Plays a text to speech message on the given audio sink. """
     StringItem.get_item(ACTION_AUDIO_SINK_ITEM_NAME).oh_post_update(sink_name)
     StringItem.get_item(ACTION_TEXT_TO_SPEECH_MESSAGE_ITEM_NAME).oh_post_update(tts)
 
 
+@in_thread
 def send_email(email_addresses: List[str], subject: str, body: str = '', images_paths: List[str] = None):
     """
     Send an email using the python library smtplib. The content of the email is formatted in html . If the images are
@@ -424,11 +439,13 @@ def send_email(email_addresses: List[str], subject: str, body: str = '', images_
         log_error(str(e))
 
 
+@in_thread
 def change_ecobee_thermostat_hold_mode(mode: str):
     """ Change Ecobee thermostat to the specified mode via the Ecobee action in OpenHab. """
     StringItem.get_item('EcobeeThermostatHoldMode').oh_post_update(mode)
 
 
+@in_thread
 def resume_ecobee_thermostat_program():
     """ Resume the Ecobee thermostat via the Ecobee action in OpenHab. """
     SwitchItem.get_item('EcobeeThermostatResume').on()
