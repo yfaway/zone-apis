@@ -98,7 +98,7 @@ class AlarmPartition(Device):
 
         :param events:
         """
-        events.send_command(pe.get_item_name(self.arm_mode_item), str(AlarmState.ARM_AWAY.value))
+        events.send_command(pe.get_item_name(self.arm_mode_item), AlarmState.ARM_AWAY.value)
 
     def arm_stay(self, events):
         """
@@ -106,7 +106,7 @@ class AlarmPartition(Device):
 
         :param events:
         """
-        events.send_command(pe.get_item_name(self.arm_mode_item), str(AlarmState.ARM_STAY.value))
+        events.send_command(pe.get_item_name(self.arm_mode_item), AlarmState.ARM_STAY.value)
 
     def disarm(self, events):
         """
@@ -114,7 +114,7 @@ class AlarmPartition(Device):
 
         :param events:
         """
-        events.send_command(pe.get_item_name(self.arm_mode_item), str(AlarmState.UNARMED.value))
+        events.send_command(pe.get_item_name(self.arm_mode_item), AlarmState.UNARMED.value)
 
     def trigger_fire_alarm(self, events):
         """
