@@ -14,6 +14,7 @@ from HABApp.core.items import Item
 from HABApp.openhab.errors import ItemNotFoundError
 from HABApp.openhab.items import ColorItem, ContactItem, DatetimeItem, DimmerItem, NumberItem, StringItem, SwitchItem, \
     PlayerItem, OpenhabItem
+from HABApp.core.types.color import RGB
 from HABApp.rule import in_thread
 
 if TYPE_CHECKING:
@@ -125,7 +126,7 @@ def create_color_item(name: str, on=False) -> ColorItem:
     """ Create a color item. """
     item = ColorItem(name)
     if on:
-        item.set_value(0, 0, 100)
+        item.set_value(RGB(0, 0, 100))
 
     return item
 
@@ -149,11 +150,11 @@ def create_string_item(name: str) -> StringItem:
 def set_color_value(item: ColorItem, rgb_color: List[int]):
     """ Change the color of the item. """
     if is_in_unit_tests():
-        item.post_rgb(*rgb_color)
+        item.post_value(RGB(*rgb_color))
     else:
         # OH's color item accepts only HSB value; thus the RGB value needs to be converted to HSB.
-        item.set_rgb(*rgb_color)
-        item.oh_send_command(",".join(map(str, [item.hue, item.saturation, item.brightness])))
+        item.post_value(RGB(*rgb_color))
+        #item.oh_send_command(",".join(map(str, [item.hue, item.saturation, item.brightness])))
 
 
 @in_thread
@@ -172,11 +173,14 @@ def set_switch_state(item_or_item_name: Union[SwitchItem, str], on: bool):
 
 
 @in_thread
-def set_datetime_value(item: DatetimeItem, value: datetime.datetime):
+def set_datetime_value(item_or_item_name: Union[DatetimeItem, str], value: datetime.datetime):
+    if isinstance(item_or_item_name, str):
+        item_or_item_name = DatetimeItem.get_item(item_or_item_name)
+
     if is_in_unit_tests():
-        item.post_value(value)
+        item_or_item_name.post_value(value)
     else:
-        item.oh_send_command(value)
+        item_or_item_name.oh_send_command(value)
 
 
 def get_datetime_value(item_or_item_name: Union[DatetimeItem, str]) -> datetime.datetime:

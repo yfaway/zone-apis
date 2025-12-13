@@ -34,8 +34,8 @@ class TellKidsToGoToBed(Action):
                 self.on_action(self.create_timer_event_info(event_info, TellKidsToGoToBed.Type.SECOND_NOTICE))
 
         scheduler = event_info.get_zone_manager().get_scheduler()
-        scheduler.every().day.at('20:15').do(first_notice_timer_handler)
-        scheduler.every().day.at('20:25').do(second_notice_timer_handler)
+        scheduler.every().day.at('20:40').do(first_notice_timer_handler)
+        scheduler.every().day.at('20:45').do(second_notice_timer_handler)
 
     def on_action(self, event_info: EventInfo):
         zone = event_info.get_zone()
