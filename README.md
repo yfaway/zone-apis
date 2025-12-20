@@ -128,6 +128,10 @@ action-parameters:
 ```
 The latest version of this file can be found [here](https://github.com/yfaway/zone-apis/blob/master/habapp/zone-api-config.yml).
 
+All actions support the following parameters:
+- disabled: true | false
+- notificationAudiences: "administrators" or "owners"
+
 ## 4. Create a HABapp rule to integrate with ZoneApi.
 Next create the file `configure_zone_manager.py` under `my-home/habapp/rules` (HABapp created this folder earlier). Copy
 the following content into that file.
