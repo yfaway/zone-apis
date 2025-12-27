@@ -16,7 +16,7 @@ from zone_api.core.devices.activity_times import ActivityType
         devices=[MotionSensor], activity_types=[ActivityType.WAKE_UP], zone_name_pattern='.*Kitchen.*')
 class AnnounceMorningWeatherAndPlayMusic(Action):
     """
-    Announces the current weather and plays a random music stream twice during the wake up period.
+    Announces the current weather and plays a random music stream twice during the wakeup period.
     This is based on the assumption of a household having two adults that leave work at different
     times. The music stops when the front door is closed.
     """
@@ -61,7 +61,7 @@ class AnnounceMorningWeatherAndPlayMusic(Action):
         else:
             self._sink = get_nearby_audio_sink(zone, zone_manager)
             if self._sink is None:
-                self.log_warning("Missing audio device; can't play music.")
+                self.log_warning(f"{zone.get_name()}: Missing audio device; can't play music.")
                 return False
 
             if not self._in_session and \

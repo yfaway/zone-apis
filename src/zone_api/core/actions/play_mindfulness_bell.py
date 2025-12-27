@@ -40,7 +40,7 @@ class PlayMindfulnessBell(Action):
         activity = zone_manager.get_first_device_by_type(ActivityTimes)
         sink = get_nearby_audio_sink(zone, zone_manager)
         if sink is None:
-            self.log_warning("Missing audio device; can't play music.")
+            self.log_warning(f"{zone.get_name()}: Missing audio device; can't play music.")
             return False
 
         if activity.is_quiet_time():
