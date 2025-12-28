@@ -57,6 +57,7 @@ def parse(config: dict[Hashable, Any], actions_package: str = "zone_api.core.act
     mappings = {
         '.*AlarmPartition$': df.create_alarm_partition,
         '.*_ChromeCast$': df.create_chrome_cast,
+        '.*_MpdChromeCast$': df.create_mpd_chrome_cast,
         '.*Door$': df.create_door,
         '[^g].*_Window$': df.create_window,
         '.*_Camera$': df.create_camera,
@@ -85,6 +86,7 @@ def parse(config: dict[Hashable, Any], actions_package: str = "zone_api.core.act
         '.*_Weather_Temperature$': df.create_weather,
         '[^g].*_AutoReportDeviceName$': df.create_auto_report_notification_setting,
         '^FF_Virtual_FlashMessage$': df.create_flash_message,
+        '^FF_Virtual_MpdController': df.create_mpd_controller,
     }
 
     action_parameters: Parameters = _read_zone_api_configurations(config)

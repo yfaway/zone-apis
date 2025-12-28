@@ -8,7 +8,7 @@ from zone_api.core.zone_event import ZoneEvent
 
 
 @action(events=[ZoneEvent.PLAYER_NEXT, ZoneEvent.PLAYER_PREVIOUS],
-        devices=[ChromeCastAudioSink])
+        devices=[ChromeCastAudioSink], internal=False)
 class ControlMusicPlayer(Action):
     """
     The Next and Previous events chooses a random music stream and plays it.

@@ -26,6 +26,8 @@ from zone_api.core.devices.humidity_sensor import HumiditySensor
 from zone_api.core.devices.ikea_remote_control import IkeaRemoteControl
 from zone_api.core.devices.illuminance_sensor import IlluminanceSensor, FixedValueIlluminanceSensor
 from zone_api.core.devices.motion_sensor import MotionSensor
+from zone_api.core.devices.mpd_chromecast_audio_sink import MpdChromeCastAudioSink
+from zone_api.core.devices.mpd_controller import MpdController
 from zone_api.core.devices.network_presence import NetworkPresence
 from zone_api.core.devices.onvif_camera import OnvifCamera
 from zone_api.core.devices.plug import Plug
@@ -237,6 +239,44 @@ def create_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> ChromeCast
     def player_command_event(event):
         event_map = {'NEXT': ZoneEvent.PLAYER_NEXT,
                      'PREVIOUS': ZoneEvent.PLAYER_PREVIOUS}
+        if event.value in event_map.keys():
+            event = event_map[event.value]
+            dispatch_event(zm, event, device, player_item)
+
+    class ItemCommandEventFilter(TypeBoundEventFilter):
+        def __init__(self):
+            super().__init__(ItemCommandEvent)
+
+    player_item.listen_event(player_command_event, ItemCommandEventFilter())
+
+    # noinspection PyTypeChecker
+    return device
+
+
+def create_mpd_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> MpdChromeCastAudioSink:
+    item_def = HABApp.openhab.interface_sync.get_item(item.name)
+    metadata = item_def.metadata
+
+    sink_name = get_meta_value(metadata, "sinkName", None)
+    player_item = BaseItem.get_item(item.name + "Player")
+    volume_item = BaseItem.get_item(item.name + "Volume")
+    title_item = BaseItem.get_item(item.name + "Title")
+    idling_item = BaseItem.get_item(item.name + "Idling")
+
+    stream_title_name = item.name + "StreamTitle"
+    stream_title_item = None
+    if pe.has_item(stream_title_name):
+        stream_title_item = Items.get_item(stream_title_name)
+
+    device = _configure_device(MpdChromeCastAudioSink(
+        sink_name, player_item, volume_item, title_item, idling_item, stream_title_item), zm)
+
+    def player_command_event(event):
+        event_map = {'NEXT': ZoneEvent.PLAYER_NEXT,
+                     'PREVIOUS': ZoneEvent.PLAYER_PREVIOUS,
+                     'PLAY': ZoneEvent.PLAYER_PLAY,
+                     'PAUSE': ZoneEvent.PLAYER_PAUSE,
+                     }
         if event.value in event_map.keys():
             event = event_map[event.value]
             dispatch_event(zm, event, device, player_item)
@@ -763,6 +803,11 @@ def create_auto_report_notification_setting(zm: ImmutableZoneManager, device_nam
 def create_flash_message(zm: ImmutableZoneManager, item: StringItem) -> Tv:
     # noinspection PyTypeChecker
     return _configure_device(FlashMessage(item), zm)
+
+
+def create_mpd_controller(zm: ImmutableZoneManager, item: StringItem) -> MpdController:
+    # noinspection PyTypeChecker
+    return _configure_device(MpdController(item), zm)
 
 
 def dispatch_event(zm: ImmutableZoneManager, zone_event: ZoneEvent, device: Device, item: BaseItem):
