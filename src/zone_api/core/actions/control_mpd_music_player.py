@@ -24,10 +24,9 @@ class ControlMpdMusicPlayer(Action):
 
         if event_type == ZoneEvent.PLAYER_NEXT:
             controller.next()
-        elif event_type == ZoneEvent.PLAYER_NEXT:
+        elif event_type == ZoneEvent.PLAYER_PREVIOUS:
             controller.prev()
         elif event_type == ZoneEvent.PLAYER_PLAY:
-            controller.shuffle_and_play()
             device.play_stream(controller.stream_url())
         elif event_type == ZoneEvent.PLAYER_PAUSE:
             controller.stop()

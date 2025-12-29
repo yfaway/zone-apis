@@ -67,7 +67,7 @@ class MpdController(Device):
         return os.path.split(file_name)[1]
 
     def stream_url(self) -> str:
-        return f"http://{self._host}:8000/mpd"
+        return f"http://{self._host}:8000/mpd.mp3"
 
     def __str__(self):
         """ @override """

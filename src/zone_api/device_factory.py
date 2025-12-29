@@ -271,21 +271,32 @@ def create_mpd_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> MpdChr
     device = _configure_device(MpdChromeCastAudioSink(
         sink_name, player_item, volume_item, title_item, idling_item, stream_title_item), zm)
 
-    def player_command_event(event):
-        event_map = {'NEXT': ZoneEvent.PLAYER_NEXT,
-                     'PREVIOUS': ZoneEvent.PLAYER_PREVIOUS,
-                     'PLAY': ZoneEvent.PLAYER_PLAY,
+    def player_pause_and_play_event(event):
+        event_map = {'PLAY': ZoneEvent.PLAYER_PLAY,
                      'PAUSE': ZoneEvent.PLAYER_PAUSE,
                      }
         if event.value in event_map.keys():
             event = event_map[event.value]
             dispatch_event(zm, event, device, player_item)
 
+    # The NEXT & PREV buttons on the Player item aren't sticky (i.e. the button is invoked but
+    # the UI doesn't highlight that button). This is differnt fromt he PLAY & PAUSE buttons.
+    # Therefore,w e have to listen tot he ItemCommandEventFilter down below.
+    def player_next_and_prev_event(event):
+        event_map = {'NEXT': ZoneEvent.PLAYER_NEXT,
+                     'PREVIOUS': ZoneEvent.PLAYER_PREVIOUS,
+                     }
+        if event.value in event_map.keys():
+            event = event_map[event.value]
+            dispatch_event(zm, event, device, player_item)
+
+
     class ItemCommandEventFilter(TypeBoundEventFilter):
         def __init__(self):
             super().__init__(ItemCommandEvent)
 
-    player_item.listen_event(player_command_event, ItemCommandEventFilter())
+    player_item.listen_event(player_pause_and_play_event, ValueChangeEventFilter())
+    player_item.listen_event(player_next_and_prev_event, ItemCommandEventFilter())
 
     # noinspection PyTypeChecker
     return device
