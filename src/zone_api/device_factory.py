@@ -263,13 +263,17 @@ def create_mpd_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> MpdChr
     title_item = BaseItem.get_item(item.name + "Title")
     idling_item = BaseItem.get_item(item.name + "Idling")
 
+    predefined_category_item = BaseItem.get_item(item.name + "PredefinedCategory")
+    custom_category_item = BaseItem.get_item(item.name + "CustomCategory")
+
     stream_title_name = item.name + "StreamTitle"
     stream_title_item = None
     if pe.has_item(stream_title_name):
         stream_title_item = Items.get_item(stream_title_name)
 
     device = _configure_device(MpdChromeCastAudioSink(
-        sink_name, player_item, volume_item, title_item, idling_item, stream_title_item), zm)
+        sink_name, player_item, volume_item, title_item, idling_item, predefined_category_item,
+        custom_category_item, stream_title_item), zm)
 
     def player_pause_and_play_event(event):
         event_map = {'PLAY': ZoneEvent.PLAYER_PLAY,
@@ -280,8 +284,8 @@ def create_mpd_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> MpdChr
             dispatch_event(zm, event, device, player_item)
 
     # The NEXT & PREV buttons on the Player item aren't sticky (i.e. the button is invoked but
-    # the UI doesn't highlight that button). This is differnt fromt he PLAY & PAUSE buttons.
-    # Therefore,w e have to listen tot he ItemCommandEventFilter down below.
+    # the UI doesn't highlight that button). This is different from the PLAY & PAUSE buttons.
+    # Therefore,w e have to listen to the ItemCommandEventFilter down below.
     def player_next_and_prev_event(event):
         event_map = {'NEXT': ZoneEvent.PLAYER_NEXT,
                      'PREVIOUS': ZoneEvent.PLAYER_PREVIOUS,

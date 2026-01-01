@@ -38,7 +38,8 @@ class MpdController(Device):
         if not file_name_pattern:
             subprocess.run(f"{self._wrapped_mpc()} listall | {self._wrapped_mpc()} add", shell=True)
         else:
-            subprocess.run(f"{self._wrapped_mpc()} listall | grep '{file_name_pattern}' | {self._wrapped_mpc()} add",
+            # grep ignore case
+            subprocess.run(f"{self._wrapped_mpc()} listall | grep -i '{file_name_pattern}' | {self._wrapped_mpc()} add",
                            shell=True)
 
         self.mpc('shuffle')

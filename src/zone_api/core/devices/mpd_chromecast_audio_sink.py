@@ -12,7 +12,8 @@ class MpdChromeCastAudioSink(ChromeCastAudioSink):
     @see https://www.musicpd.org/
     """
 
-    def __init__(self, sink_name, player_item, volume_item, title_item, idling_item, out_current_stream_item=None):
+    def __init__(self, sink_name, player_item, volume_item, title_item, idling_item, predefined_category_item,
+                 custom_category_item, out_current_stream_item=None):
         """
         Ctor
 
@@ -29,9 +30,10 @@ class MpdChromeCastAudioSink(ChromeCastAudioSink):
         ChromeCastAudioSink.__init__(self, sink_name, player_item, volume_item, title_item, idling_item,
                                      out_current_stream_item)
 
+        self._predefined_category_item = predefined_category_item
+        self._custom_category_item = custom_category_item
 
-
-    def play_stream(self, url_or_stream: Union[str, MusicStream], volume=None):
+    def play_stream(self, url_or_stream: Union[str, MusicStream], volume=None, category: Union[str, None] = None):
         """
         Override to always play the Mpd stream.
         """
@@ -40,7 +42,7 @@ class MpdChromeCastAudioSink(ChromeCastAudioSink):
             self.log_error("No MDP controller found.")
             return
 
-        controller.shuffle_and_play()
+        controller.shuffle_and_play(category)
 
         # Wait for a bit till MPC resumes the stream. Without this, the audio device might error out as
         # there is no audio stream.
@@ -48,3 +50,13 @@ class MpdChromeCastAudioSink(ChromeCastAudioSink):
         time.sleep(2)
 
         super(MpdChromeCastAudioSink, self).play_stream(controller.stream_url(), volume)
+
+    def music_category(self) -> Union[str, None]:
+        """ Returns the desired music category, or None"""
+        custom_value = pe.get_string_value(self._custom_category_item)
+        if custom_value:
+            return custom_value
+        elif pe.get_string_value(self._predefined_category_item):
+            return pe.get_string_value(self._predefined_category_item)
+        else:
+            return None
