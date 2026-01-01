@@ -262,14 +262,10 @@ def create_mpd_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> MpdChr
     volume_item = BaseItem.get_item(item.name + "Volume")
     title_item = BaseItem.get_item(item.name + "Title")
     idling_item = BaseItem.get_item(item.name + "Idling")
+    stream_title_item = Items.get_item(item.name + "StreamTitle")
 
     predefined_category_item = BaseItem.get_item(item.name + "PredefinedCategory")
     custom_category_item = BaseItem.get_item(item.name + "CustomCategory")
-
-    stream_title_name = item.name + "StreamTitle"
-    stream_title_item = None
-    if pe.has_item(stream_title_name):
-        stream_title_item = Items.get_item(stream_title_name)
 
     device = _configure_device(MpdChromeCastAudioSink(
         sink_name, player_item, volume_item, title_item, idling_item, predefined_category_item,

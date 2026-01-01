@@ -42,7 +42,7 @@ class MpdChromeCastAudioSink(ChromeCastAudioSink):
             self.log_error("No MDP controller found.")
             return
 
-        controller.shuffle_and_play(category)
+        controller.shuffle_and_play(category, self._out_current_stream_item)
 
         # Wait for a bit till MPC resumes the stream. Without this, the audio device might error out as
         # there is no audio stream.
