@@ -13,12 +13,14 @@ import HABApp
 from HABApp.core.items import Item
 from HABApp.openhab.errors import ItemNotFoundError
 from HABApp.openhab.items import ColorItem, ContactItem, DatetimeItem, DimmerItem, NumberItem, StringItem, SwitchItem, \
-    PlayerItem, OpenhabItem
+    PlayerItem
 from HABApp.core.types.color import RGB
 from HABApp.rule import in_thread
 
+from zone_api.core.immutable_zone_manager import EmailSettings, ImmutableZoneManager
+
 if TYPE_CHECKING:
-    from zone_api.core.immutable_zone_manager import EmailSettings
+    from zone_api.core.immutable_zone_manager import EmailSettings, ImmutableZoneManager
 
 logger = logging.getLogger('ZoneApis')
 
@@ -31,7 +33,7 @@ The previous 4 items are used to play TTS message and audio file/URL.
 The corresponding script to process these actions are in JSR223 side, within OpenHab.
 """
 
-ZONE_MANAGER_ITEM_NAME = "zone-manager"
+ZONE_MANAGER: Union['ImmutableZoneManager', None] = None
 
 _in_unit_tests = False
 
@@ -50,31 +52,27 @@ def unregister_test_item(item) -> None:
     HABApp.core.Items.pop_item(item.name)
 
 
-def add_zone_manager_to_context(zm):
+def add_zone_manager_to_context(zm: 'ImmutableZoneManager'):
     """
     Adds the zone manager instance to the context.
 
     :param ImmutableZoneManager zm:
     """
     if is_in_hab_app():
-        if HABApp.core.Items.item_exists(ZONE_MANAGER_ITEM_NAME):
-            HABApp.core.Items.pop_item(ZONE_MANAGER_ITEM_NAME)
-
-        item = OpenhabItem(ZONE_MANAGER_ITEM_NAME, zm)
-        HABApp.core.Items.add_item(item)
+        global ZONE_MANAGER
+        ZONE_MANAGER = zm
     else:
         raise ValueError("Unsupported type op: add_zone_manager_to_context")
 
 
-def get_zone_manager_from_context():
+def get_zone_manager_from_context() -> 'ImmutableZoneManager':
     """
     Gets the zone manager from the context.
 
     :rtype ImmutableZoneManager:
     """
     if is_in_hab_app():
-        item = OpenhabItem.get_item(ZONE_MANAGER_ITEM_NAME)
-        return item.get_value()
+        return ZONE_MANAGER
     else:
         raise ValueError("Unsupported type op: add_zone_manager_to_context")
 
