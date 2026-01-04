@@ -35,7 +35,7 @@ class SimulateDaytimePresence(Action):
         super().__init__(parameters)
 
         self.music_url = self.parameters().get(
-            self, SimulateDaytimePresence.MUSIC_URL.name(), MusicStreams.CLASSIC_ROCK_FLORIDA.value.url)
+            self, SimulateDaytimePresence.MUSIC_URL.name(), MusicStreams.ROCK_BALLAD.value.url)
         self.music_volume = self.parameters().get(self, SimulateDaytimePresence.MUSIC_VOLUME.name(), 90)
         self.play_duration_in_seconds = self.parameters().get(
             self, SimulateDaytimePresence.PLAY_DURATION_IN_SECONDS.name(), None)

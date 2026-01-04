@@ -44,6 +44,6 @@ class AudioManagerTest(DeviceTest):
 
     def testGetMusicStreamsByGenres_multipleGenres_returnNonEmptyList(self):
         classical_genres = get_music_streams_by_genres([Genre.CLASSICAL])
-        mixed_genres = get_music_streams_by_genres([Genre.CLASSICAL, Genre.JAZZ])
+        mixed_genres = get_music_streams_by_genres([Genre.CLASSICAL, Genre.INSTRUMENT])
 
         self.assertTrue(len(mixed_genres) > len(classical_genres))

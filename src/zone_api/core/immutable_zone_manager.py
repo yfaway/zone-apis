@@ -1,17 +1,19 @@
 import threading
 import time
-from typing import Type, List, Any, Hashable
+from typing import Type, List, Any, Hashable, TYPE_CHECKING
 
 from schedule import Scheduler
 
 from zone_api import platform_encapsulator as pe
-from zone_api.alert_manager import AlertManager
 from zone_api.core.devices.activity_times import ActivityTimes, ActivityType
 from zone_api.core.devices.astro_sensor import AstroSensor
 from zone_api.core.devices.vacation import Vacation
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.device import Device
+
+if TYPE_CHECKING:
+    from zone_api.alert_manager import AlertManager
 
 
 class EmailSettings:
@@ -63,7 +65,7 @@ class ImmutableZoneManager:
     """
 
     def __init__(self, get_zones_fcn, get_zone_by_id_fcn, get_devices_by_type_fcn,
-                 alert_manager: AlertManager = None, email_settings: EmailSettings = None,
+                 alert_manager: 'AlertManager' = None, email_settings: EmailSettings = None,
                  activity_times: ActivityTimes = None):
         self.get_zones_fcn = get_zones_fcn
         self.get_zone_by_id_fcn = get_zone_by_id_fcn
@@ -107,7 +109,7 @@ class ImmutableZoneManager:
         self._cancel_scheduler()
         self.fully_initialized = False
 
-    def set_alert_manager(self, alert_manager: AlertManager):
+    def set_alert_manager(self, alert_manager: 'AlertManager'):
         """ Sets the alert manager and returns a new instance of this class. """
 
         params = {'get_zones_fcn': self.get_zones_fcn,
@@ -172,7 +174,7 @@ class ImmutableZoneManager:
         """ Returns the :class:`.ActivityTimes` instance constructed from the system configuration. """
         return self._activity_times
 
-    def get_alert_manager(self) -> AlertManager:
+    def get_alert_manager(self) -> 'AlertManager':
         return self.alert_manager
 
     def get_scheduler(self) -> Scheduler:

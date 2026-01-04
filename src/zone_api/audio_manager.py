@@ -8,7 +8,7 @@ from zone_api.music_streams import Genre, MusicStream, MusicStreams
 
 
 def get_main_audio_sink(zm: ImmutableZoneManager) -> Union[ChromeCastAudioSink, None]:
-    """ Returns the first sink on the the following floor order: 1st, 2nd, 3rd and basement. """
+    """ Returns the first sink on the following floor order: 1st, 2nd, 3rd and basement. """
     levels = [Level.FIRST_FLOOR, Level.SECOND_FLOOR, Level.THIRD_FLOOR, Level.BASEMENT]
 
     for level in levels:
