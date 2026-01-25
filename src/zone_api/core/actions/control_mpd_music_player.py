@@ -7,7 +7,8 @@ from zone_api.core.zone_event import ZoneEvent
 from zone_api.music_streams import MusicStreams
 
 
-@action(events=[ZoneEvent.PLAYER_PLAY, ZoneEvent.PLAYER_PAUSE, ZoneEvent.PLAYER_NEXT, ZoneEvent.PLAYER_PREVIOUS],
+@action(events=[ZoneEvent.TIMER, ZoneEvent.PLAYER_PLAY, ZoneEvent.PLAYER_PAUSE, ZoneEvent.PLAYER_NEXT,
+                ZoneEvent.PLAYER_PREVIOUS],
         devices=[MpdDevice])
 class ControlMpdMusicPlayer(Action):
     """
@@ -20,23 +21,41 @@ class ControlMpdMusicPlayer(Action):
     stream to that particular speaker; stream is still there for other clients. But for a server such as mdp, it means
     stop reading the music files and thus the entire stream is offline for all clients. This class stops both the
     speaker and the mdp server.
+
+    This action also starts a timer to check every 15 minutes if there is any active Chromecast. If there is none, it
+    will stop the MPD streamer process to avoid wearing out the SSD.
     """
+
+    def on_startup(self, event_info: EventInfo):
+        scheduler = event_info.get_zone_manager().get_scheduler()
+        scheduler.every(15).minutes.do(lambda: self.on_action(self.create_timer_event_info(event_info)))
 
     # noinspection PyMethodMayBeStatic
     def on_action(self, event_info: EventInfo):
-        # There could events from a different player (e.g. the Chromecast player).
-        if not isinstance(event_info.get_device(), MpdDevice):
-            return False
-
-        controller: MpdDevice = event_info.get_device()
         event_type = event_info.get_event_type()
         zone = event_info.get_zone()
+
+        # There could events from a different player (e.g. the Chromecast player).
+        if event_type != ZoneEvent.TIMER and not isinstance(event_info.get_device(), MpdDevice):
+            return False
+
+        if event_type == ZoneEvent.TIMER:
+            controller: MpdDevice = zone.get_first_device_by_type(MpdDevice)
+        else:
+            controller: MpdDevice = event_info.get_device()
 
         if controller is None:
             self.log_error("No MDP controller found.")
             return False
 
-        if event_type == ZoneEvent.PLAYER_NEXT:
+        if event_type == ZoneEvent.TIMER:
+            chrome_casts = event_info.get_zone_manager().get_devices_by_type(ChromeCastAudioSink)
+            if not any(c.is_active() for c in chrome_casts):
+                if controller.is_playing():
+                    controller.stop()
+                    self.log_info("Stopped MPD streamer service.")
+
+        elif event_type == ZoneEvent.PLAYER_NEXT:
             controller.next()
         elif event_type == ZoneEvent.PLAYER_PREVIOUS:
             controller.prev()

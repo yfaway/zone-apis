@@ -14,8 +14,8 @@ class MpdDevice(Device):
 
     INTERVAL_IN_MINUTES = 0.25
 
-    def __init__(self, item, host: str, port: int, predefined_category_item, custom_category_item):
-        Device.__init__(self, item)
+    def __init__(self, player_item, host: str, port: int, predefined_category_item, custom_category_item):
+        Device.__init__(self, player_item)
 
         self._predefined_category_item = predefined_category_item
         self._custom_category_item = custom_category_item
@@ -67,6 +67,8 @@ class MpdDevice(Device):
         """ Stop playing the music. """
         self.mpc('stop')
 
+        pe.change_player_state_to_pause(self.get_item())
+
         # stop polling for the playing status
         if self._play_status_job:
             scheduler = pe.get_zone_manager_from_context().get_scheduler()
@@ -89,6 +91,9 @@ class MpdDevice(Device):
         """ Clear the playlist. """
         self.mpc('clear')
 
+    def is_playing(self) -> bool:
+        return self.current_playing_status() is not None
+
     def current_playing_status(self) -> Union[list[str], None]:
         """
         If in playing mode, return an array of 2 items: the current file being played with the path stripped outi, and
@@ -102,6 +107,8 @@ class MpdDevice(Device):
             position = lines[1].split(' ')[1]
 
             return [position, file_nam]
+        else:
+            return None
 
     def stream_url(self) -> str:
         return f"http://{self._host}:8000/mpd.mp3"
