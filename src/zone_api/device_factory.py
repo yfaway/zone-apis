@@ -249,7 +249,7 @@ def create_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> ChromeCast
 
     player_item.listen_event(player_command_event, ItemCommandEventFilter())
 
-    # noinspection PyTypeChecker
+   # noinspection PyTypeChecker
     return device
 
 
@@ -279,6 +279,16 @@ def create_mpd_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> MpdChr
             super().__init__(ItemCommandEvent)
 
     player_item.listen_event(player_command_event, ItemCommandEventFilter())
+
+    def player_pause_and_play_event(event):
+        event_map = {'PLAY': ZoneEvent.PLAYER_PLAY,
+                     'PAUSE': ZoneEvent.PLAYER_PAUSE,
+                     }
+        if event.value in event_map.keys():
+            event = event_map[event.value]
+            dispatch_event(zm, event, device, player_item)
+
+    player_item.listen_event(player_pause_and_play_event, ValueChangeEventFilter())
 
     # noinspection PyTypeChecker
     return device

@@ -7,7 +7,7 @@ from zone_api.core.event_info import EventInfo
 from zone_api.core.zone_event import ZoneEvent
 
 
-@action(events=[ZoneEvent.PLAYER_NEXT, ZoneEvent.PLAYER_PREVIOUS],
+@action(events=[ZoneEvent.PLAYER_PLAY, ZoneEvent.PLAYER_NEXT, ZoneEvent.PLAYER_PREVIOUS],
         devices=[ChromeCastAudioSink])
 class ControlMusicPlayer(Action):
     """
@@ -25,5 +25,7 @@ class ControlMusicPlayer(Action):
         if event_type in [ZoneEvent.PLAYER_NEXT, ZoneEvent.PLAYER_PREVIOUS]:
             stream: MusicStream = random.choice(list(MusicStreams)).value
             device.play_stream(stream)
+        elif event_type == ZoneEvent.PLAYER_PLAY:
+            device.resume()
 
         return True
