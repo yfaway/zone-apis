@@ -22,6 +22,18 @@ def get_main_audio_sink(zm: ImmutableZoneManager) -> Union[ChromeCastAudioSink, 
     return None
 
 
+def get_floor_audio_sink(zm: ImmutableZoneManager, level: Level) -> Union[ChromeCastAudioSink, None]:
+    """ Returns the first sink on the provided floor level. """
+
+    zones = [z for z in zm.get_zones() if z.get_level() == level]
+    for z in zones:
+        sinks = z.get_devices_by_type(ChromeCastAudioSink)
+        if len(sinks) > 0:
+            return sinks[0]
+
+    return None
+
+
 def get_nearby_audio_sink(zone: Zone, zm: ImmutableZoneManager) -> Union[ChromeCastAudioSink, None]:
     """
     Returns the first found audio sink in the current zone or in nearby open space neighbors.

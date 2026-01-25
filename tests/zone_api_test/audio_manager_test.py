@@ -1,4 +1,4 @@
-from zone_api.audio_manager import Genre, get_music_streams_by_genres, get_main_audio_sink
+from zone_api.audio_manager import Genre, get_music_streams_by_genres, get_main_audio_sink, get_floor_audio_sink
 from zone_api.core.zone import Zone, Level
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 
@@ -47,3 +47,9 @@ class AudioManagerTest(DeviceTest):
         mixed_genres = get_music_streams_by_genres([Genre.CLASSICAL, Genre.INSTRUMENT])
 
         self.assertTrue(len(mixed_genres) > len(classical_genres))
+
+    def testGetFloorAudioSink_multiple_returnCorrectValue(self):
+        zm = create_zone_manager([self.floor1_zone, self.floor2_zone])
+        self.assertEqual(self.sink1, get_floor_audio_sink(zm, Level.FIRST_FLOOR))
+        self.assertEqual(self.sink2, get_floor_audio_sink(zm, Level.SECOND_FLOOR))
+        self.assertEqual(None, get_floor_audio_sink(zm, Level.THIRD_FLOOR))

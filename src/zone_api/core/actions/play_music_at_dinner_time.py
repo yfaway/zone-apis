@@ -2,7 +2,7 @@ import random
 from threading import Timer
 from typing import List
 
-from zone_api.audio_manager import Genre, get_music_streams_by_genres, get_nearby_audio_sink
+from zone_api.audio_manager import Genre, get_music_streams_by_genres, get_floor_audio_sink
 from zone_api.core.action import action, Action
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.event_info import EventInfo
@@ -36,7 +36,7 @@ class PlayMusicAtDinnerTime(Action):
         zone = event_info.get_zone()
         zone_manager = event_info.get_zone_manager()
 
-        sink = get_nearby_audio_sink(zone, zone_manager)
+        sink = get_floor_audio_sink(zone_manager, zone.get_level())
         if sink is None:
             self.log_warning(f"{zone.get_name()}: Missing audio device; can't play music.")
             return False
