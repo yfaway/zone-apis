@@ -27,7 +27,7 @@ from zone_api.core.devices.ikea_remote_control import IkeaRemoteControl
 from zone_api.core.devices.illuminance_sensor import IlluminanceSensor, FixedValueIlluminanceSensor
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.devices.mpd_chromecast_audio_sink import MpdChromeCastAudioSink
-from zone_api.core.devices.mpd_controller import MpdController
+from zone_api.core.devices.mpd_device import MpdDevice
 from zone_api.core.devices.network_presence import NetworkPresence
 from zone_api.core.devices.onvif_camera import OnvifCamera
 from zone_api.core.devices.plug import Plug
@@ -264,39 +264,21 @@ def create_mpd_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> MpdChr
     idling_item = BaseItem.get_item(item.name + "Idling")
     stream_title_item = Items.get_item(item.name + "StreamTitle")
 
-    predefined_category_item = BaseItem.get_item(item.name + "PredefinedCategory")
-    custom_category_item = BaseItem.get_item(item.name + "CustomCategory")
-
     device = _configure_device(MpdChromeCastAudioSink(
-        sink_name, player_item, volume_item, title_item, idling_item, predefined_category_item,
-        custom_category_item, stream_title_item), zm)
+        sink_name, player_item, volume_item, title_item, idling_item, stream_title_item), zm)
 
-    def player_pause_and_play_event(event):
-        event_map = {'PLAY': ZoneEvent.PLAYER_PLAY,
-                     'PAUSE': ZoneEvent.PLAYER_PAUSE,
-                     }
-        if event.value in event_map.keys():
-            event = event_map[event.value]
-            dispatch_event(zm, event, device, player_item)
-
-    # The NEXT & PREV buttons on the Player item aren't sticky (i.e. the button is invoked but
-    # the UI doesn't highlight that button). This is different from the PLAY & PAUSE buttons.
-    # Therefore,w e have to listen to the ItemCommandEventFilter down below.
-    def player_next_and_prev_event(event):
+    def player_command_event(event):
         event_map = {'NEXT': ZoneEvent.PLAYER_NEXT,
-                     'PREVIOUS': ZoneEvent.PLAYER_PREVIOUS,
-                     }
+                     'PREVIOUS': ZoneEvent.PLAYER_PREVIOUS}
         if event.value in event_map.keys():
             event = event_map[event.value]
             dispatch_event(zm, event, device, player_item)
-
 
     class ItemCommandEventFilter(TypeBoundEventFilter):
         def __init__(self):
             super().__init__(ItemCommandEvent)
 
-    player_item.listen_event(player_pause_and_play_event, ValueChangeEventFilter())
-    player_item.listen_event(player_next_and_prev_event, ItemCommandEventFilter())
+    player_item.listen_event(player_command_event, ItemCommandEventFilter())
 
     # noinspection PyTypeChecker
     return device
@@ -816,9 +798,51 @@ def create_flash_message(zm: ImmutableZoneManager, item: StringItem) -> Tv:
     return _configure_device(FlashMessage(item), zm)
 
 
-def create_mpd_controller(zm: ImmutableZoneManager, item: StringItem) -> MpdController:
+def create_mpd_controller(zm: ImmutableZoneManager, item: BaseItem) -> MpdDevice:
+    predefined_category_item = BaseItem.get_item(item.name + "_PredefinedCategory")
+    custom_category_item = BaseItem.get_item(item.name + "_CustomCategory")
+
+    item_def = HABApp.openhab.interface_sync.get_item(item.name)
+    metadata = item_def.metadata
+
+    host = get_meta_value(metadata, "host", '')
+    port = int(get_meta_value(metadata, "port", ''))
+
+    device = _configure_device(MpdDevice(item, host, port, predefined_category_item, custom_category_item), zm)
+
+    def dispatch_play_event(event):
+        dispatch_event(zm, ZoneEvent.PLAYER_PLAY, device, item)
+
+    predefined_category_item.listen_event(dispatch_play_event, ValueChangeEventFilter())
+
+    def player_pause_and_play_event(event):
+        event_map = {'PLAY': ZoneEvent.PLAYER_PLAY,
+                     'PAUSE': ZoneEvent.PLAYER_PAUSE,
+                     }
+        if event.value in event_map.keys():
+            event = event_map[event.value]
+            dispatch_event(zm, event, device, item)
+
+    # The NEXT & PREV buttons on the Player item aren't sticky (i.e. the button is invoked but
+    # the UI doesn't highlight that button). This is different from the PLAY & PAUSE buttons.
+    # Therefore,w e have to listen to the ItemCommandEventFilter down below.
+    def player_next_and_prev_event(event):
+        event_map = {'NEXT': ZoneEvent.PLAYER_NEXT,
+                     'PREVIOUS': ZoneEvent.PLAYER_PREVIOUS,
+                     }
+        if event.value in event_map.keys():
+            event = event_map[event.value]
+            dispatch_event(zm, event, device, item)
+
+    class ItemCommandEventFilter(TypeBoundEventFilter):
+        def __init__(self):
+            super().__init__(ItemCommandEvent)
+
+    item.listen_event(player_pause_and_play_event, ValueChangeEventFilter())
+    item.listen_event(player_next_and_prev_event, ItemCommandEventFilter())
+
     # noinspection PyTypeChecker
-    return _configure_device(MpdController(item), zm)
+    return device
 
 
 def dispatch_event(zm: ImmutableZoneManager, zone_event: ZoneEvent, device: Device, item: BaseItem):

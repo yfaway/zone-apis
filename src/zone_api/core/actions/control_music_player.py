@@ -8,7 +8,7 @@ from zone_api.core.zone_event import ZoneEvent
 
 
 @action(events=[ZoneEvent.PLAYER_NEXT, ZoneEvent.PLAYER_PREVIOUS],
-        devices=[ChromeCastAudioSink], internal=False)
+        devices=[ChromeCastAudioSink])
 class ControlMusicPlayer(Action):
     """
     The Next and Previous events chooses a random music stream and plays it.
@@ -16,6 +16,9 @@ class ControlMusicPlayer(Action):
 
     # noinspection PyMethodMayBeStatic
     def on_action(self, event_info: EventInfo):
+        if not isinstance(event_info.get_device(), ChromeCastAudioSink):
+            return False
+
         device: ChromeCastAudioSink = event_info.get_device()
         event_type = event_info.get_event_type()
 

@@ -193,7 +193,7 @@ class ChromeCastAudioSink(Device):
 
     def is_active(self):
         """
-        Return true if the the chromecast is playing something.
+        Return true if the chromecast is playing something.
         """
         return not pe.is_in_on_state(self._idling_item) and pe.is_player_playing(self._player_item)
 
