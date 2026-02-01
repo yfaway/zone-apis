@@ -74,15 +74,17 @@ class TellKidsToGoToBed(Action):
         """ Returns true if the next day is a school day. """
         now = datetime.now()
         if (0 <= now.weekday() < 4) or now.weekday() == 6:  # Mon - Thursday and Sunday
+            tomorrow = datetime.now() + timedelta(days=1)
+            tomorrow_is_holiday = tomorrow.date() in holidays.country_holidays("CA")
+            if tomorrow_is_holiday:
+                return False
+
             if now.month >= 9 or now.month <= 5:  # Between Sept and June 20
                 return True
             elif now.month == 6:
                 return now.day <= 20
-
+            else:
+                return False
+        else:
             return False
 
-        tomorrow = datetime.now() + timedelta(days=1)
-        country_holidays = holidays.country_holidays("CA")
-        is_holiday = tomorrow.date() in country_holidays
-
-        return not is_holiday
