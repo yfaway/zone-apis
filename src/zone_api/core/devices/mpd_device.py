@@ -49,6 +49,8 @@ class MpdDevice(Device):
         self.mpc('shuffle')
         self.mpc('play')
 
+        pe.change_player_state_to_play(self.get_item())
+
         # let's start a timer job to track the playing status
         if item is not None:
             def update_play_status():
