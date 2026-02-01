@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+import holidays
 from enum import unique, Enum
 
 from zone_api.audio_manager import get_nearby_audio_sink
@@ -79,3 +80,9 @@ class TellKidsToGoToBed(Action):
                 return now.day <= 20
 
             return False
+
+        tomorrow = datetime.now() + timedelta(days=1)
+        country_holidays = holidays.country_holidays("CA")
+        is_holiday = tomorrow.date() in country_holidays
+
+        return not is_holiday

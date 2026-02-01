@@ -24,6 +24,7 @@ setup(
     keywords=['zone api', 'home automation', 'openhab', 'habapp'],
     install_requires=[
         'habapp>=0.30.3',
+        'holidays',
         'requests',
         'schedule',
         'feedparser',
