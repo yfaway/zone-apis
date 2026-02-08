@@ -2,7 +2,7 @@ import random
 from threading import Timer
 from typing import Union, List
 
-from zone_api.audio_manager import Genre, get_music_streams_by_genres, get_nearby_audio_sink
+from zone_api.audio_manager import Genre, get_music_streams_by_genres, get_floor_audio_sink
 from zone_api.core.devices.weather import Weather
 from zone_api.core.parameters import ParameterConstraint, positive_number_validator, Parameters
 from zone_api.environment_canada import EnvCanada
@@ -47,7 +47,9 @@ class AnnounceMorningWeatherAndPlayMusic(Action):
         zone_manager = event_info.get_zone_manager()
 
         def stop_music_session():
-            self._sink.pause()
+            if self._sink is not None:
+                self._sink.pause()
+
             self._in_session = False
 
         if event_info.get_event_type() == ZoneEvent.DOOR_CLOSED:
@@ -59,7 +61,7 @@ class AnnounceMorningWeatherAndPlayMusic(Action):
 
             return False
         else:
-            self._sink = get_nearby_audio_sink(zone, zone_manager)
+            self._sink = get_floor_audio_sink(zone_manager, zone.get_level())
             if self._sink is None:
                 self.log_warning(f"{zone.get_name()}: Missing audio device; can't play music.")
                 return False
