@@ -5,7 +5,7 @@ from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
 from zone_api.music_streams import MusicStream
 
-MAX_SAY_WAIT_TIME_IN_SECONDS = 20
+MAX_SAY_WAIT_TIME_IN_SECONDS = 30
 
 
 class ChromeCastAudioSink(Device):
@@ -82,7 +82,7 @@ class ChromeCastAudioSink(Device):
             # Wait until the cast is available again or a specific number of seconds 
             # has passed. This is a workaround for the limitation that the OpenHab
             # 'say' method is non-blocking.
-            seconds = 2
+            seconds = 5
             time.sleep(seconds)
 
             while seconds <= MAX_SAY_WAIT_TIME_IN_SECONDS:
