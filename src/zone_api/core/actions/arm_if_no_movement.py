@@ -18,7 +18,7 @@ class ArmIfNoMovement(Action):
     Automatically arm-stay the house if there has been no occupancy event in the last x minutes.
     Use case: user is at home but perhaps taking a nap. Accompanied disarm rule will automatically
     disarm on internal motion sensor.
-    If the house is in vacation mode, arm away instead.
+    If the house is on vacation mode, arm away instead.
     """
 
     @staticmethod
@@ -49,7 +49,9 @@ class ArmIfNoMovement(Action):
 
         if zone_manager.is_in_vacation():
             sm.arm_away(zone_manager, events)
+            self.log_info("Armed away (no occupancy event & on vacation mode)")
         else:
             sm.arm_stay(zone_manager, events)
+            self.log_info("Armed stay (no occupancy event)")
 
         return True

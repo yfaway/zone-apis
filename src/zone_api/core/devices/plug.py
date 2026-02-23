@@ -7,10 +7,10 @@ class Plug(Device):
     Represents a smart plug with optional power reading in Watt.
     """
 
-    POWER_USAGE_THRESHOLD_IN_WATT = 14
+    POWER_USAGE_THRESHOLD_IN_WATT = 30
     """
-    The plug power usage threshold; if it is above this value, the zone 
-    containing this plug is considered to be occupied.
+    The plug power usage threshold; if it is above this value, the zone containing this plug is considered to be
+    occupied. The value is high to allow for always-on devices such as humidifier in the winter.
     """
 
     def __init__(self, plug_item, power_reading_item=None, always_on=False, reversed_security_control=False):
