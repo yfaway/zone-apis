@@ -1,6 +1,6 @@
 import os.path
 import subprocess
-from typing import Union
+from typing import Any, Hashable, Union
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
@@ -54,9 +54,17 @@ class MpdDevice(Device):
         # let's start a timer job to track the playing status
         if item is not None:
             def update_play_status():
-                tokens = self.current_playing_status()
-                if tokens:
-                    pe.set_string_value(item, f"{tokens[0]} {tokens[1]}")
+                data = self.current_playing_status()
+                if data is not None:
+                    json = f"""
+                    {{
+                        "current_song": "{data['current_song']}",
+                        "next_song": "{data['next_song']}",
+                        "current_position": {data['current_position']},
+                        "playlist_size": {data['playlist_size']},
+                    }}
+                    """
+                    pe.set_string_value(item, json)
                 else:
                     pe.set_string_value(item, "")
 
@@ -96,19 +104,28 @@ class MpdDevice(Device):
     def is_playing(self) -> bool:
         return self.current_playing_status() is not None
 
-    def current_playing_status(self) -> Union[list[str], None]:
+    def current_playing_status(self) -> Union[dict[Hashable, Any], None]:
         """
-        If in playing mode, return an array of 2 items: the current file being played with the path stripped outi, and
-        the position in the playlist (e.g. "2/75"). Else, return None.
+        If in playing mode, return a dictionary containing the keys "current_song", "next_song", "current_position",
+        "playlist_size". Else, return None.
         """
         status = subprocess.run(
             [f"{self._wrapped_mpc()} status"], shell=True, capture_output=True, text=True).stdout
         if "[playing]" in status:
             lines = status.split("\n")
-            file_nam = os.path.split(lines[0])[1]
-            position = lines[1].split(' ')[1]
+            file_name = os.path.split(lines[0])[1]
+            position_info = lines[1].split(' ')[1]
+            position_info = position_info.replace("#", "")
+            position_tokens = position_info.split('/')
 
-            return [position, file_nam]
+            data = dict()
+            data["current_song"] = file_name
+            data["current_position"] = int(position_tokens[0])
+            data["playlist_size"] = int(position_tokens[1])
+            data["next_song"] = subprocess.run(
+                [f"{self._wrapped_mpc()} queued"], shell=True, capture_output=True, text=True).stdout
+
+            return data
         else:
             return None
 
