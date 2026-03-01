@@ -1,3 +1,4 @@
+import json
 import os.path
 import subprocess
 from typing import Any, Hashable, Union
@@ -56,17 +57,10 @@ class MpdDevice(Device):
             def update_play_status():
                 data = self.current_playing_status()
                 if data is not None:
-                    json = f"""
-                    {{
-                        "current_song": "{data['current_song']}",
-                        "next_song": "{data['next_song']}",
-                        "current_position": {data['current_position']},
-                        "playlist_size": {data['playlist_size']},
-                    }}
-                    """
-                    pe.set_string_value(item, json)
+                    json_str = json.dumps(data)
+                    pe.set_string_value(item, json_str)
                 else:
-                    pe.set_string_value(item, "")
+                    pe.set_string_value(item, "{}")
 
             scheduler = pe.get_zone_manager_from_context().get_scheduler()
             self._play_status_job = scheduler.every(MpdDevice.INTERVAL_IN_MINUTES).minutes.do(update_play_status)
@@ -122,9 +116,10 @@ class MpdDevice(Device):
             data["current_song"] = file_name
             data["current_position"] = int(position_tokens[0])
             data["playlist_size"] = int(position_tokens[1])
-            data["next_song"] = subprocess.run(
-                [f"{self._wrapped_mpc()} queued"], shell=True, capture_output=True, text=True).stdout
 
+            next_song = subprocess.run(
+                [f"{self._wrapped_mpc()} queued"], shell=True, capture_output=True, text=True).stdout
+            data["next_song"] = os.path.split(next_song)[1]
             return data
         else:
             return None
