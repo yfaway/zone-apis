@@ -6,6 +6,7 @@ include
 share
 habapp/log
 habapp/config.yml
+habapp/zone-api-config.yml
 **/__pycache__/**
 *swo
 *swp
