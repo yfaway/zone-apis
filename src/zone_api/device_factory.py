@@ -88,9 +88,8 @@ def create_switches(zm: ImmutableZoneManager,
         if dimmable_key in metadata:
             config = metadata.get(dimmable_key).get('config')
             level = int(config.get('level'))
-            time_ranges = config.get('timeRanges')
 
-            device = Dimmer(item, duration_in_minutes, level, time_ranges,
+            device = Dimmer(item, duration_in_minutes, level,
                             illuminance_threshold_in_lux,
                             no_premature_turn_off_time_range)
         else:

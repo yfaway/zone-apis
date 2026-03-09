@@ -1,14 +1,16 @@
 from zone_api import platform_encapsulator as pe
+from zone_api.core.devices.activity_times import ActivityTimes
 from zone_api.core.devices.switch import Light
 from zone_api import time_utilities
 
 
 class Dimmer(Light):
     """
-    Represents a light dimmer with the dim level value ranges from 1 to 100.
+    Represents a light dimmer with the dim level value ranges from 1 to 100. If the current activity time is "sleep",
+    light is turned on a lower brightness level; otherwise, it will be at 100%.
     """
 
-    def __init__(self, switch_item, duration_in_minutes: int, dim_level: int = 5, time_ranges: str = None,
+    def __init__(self, switch_item, duration_in_minutes: int, dim_level: int = 5,
                  illuminance_level: int = None, no_premature_turn_off_time_range=None):
         """
         Constructs a new object.
@@ -20,10 +22,7 @@ class Dimmer(Light):
         if dim_level < 0 or dim_level > 100:
             raise ValueError('dimLevel must be between 0 and 100 inclusive')
 
-        time_utilities.string_to_time_range_lists(time_ranges)  # validate
-
         self.dim_level = dim_level
-        self.time_ranges = time_ranges
 
     def turn_on(self, events):
         """
@@ -35,9 +34,14 @@ class Dimmer(Light):
         @override
         """
         if not pe.is_in_on_state(self.get_item()):
-            if time_utilities.is_in_time_range(self.time_ranges):
-                events.send_command(self.get_item_name(),
-                                    self.dim_level)
+            zm = pe.get_zone_manager_from_context()
+
+            if zm is not None:
+                activity: ActivityTimes = zm.get_first_device_by_type(ActivityTimes)
+                if activity is not None and activity.is_sleep_time():
+                    events.send_command(self.get_item_name(), self.dim_level)
+                else:
+                    events.send_command(self.get_item_name(), 100)
             else:
                 events.send_command(self.get_item_name(), 100)
 
@@ -55,5 +59,4 @@ class Dimmer(Light):
         """
         @override
         """
-        return u"{}, dimLevel: {}, timeRanges: {}".format(
-            super(Dimmer, self).__str__(), self.dim_level, self.time_ranges)
+        return u"{}, dimLevel: {}".format(super(Dimmer, self).__str__(), self.dim_level)

@@ -52,7 +52,7 @@ class ZoneTest(DeviceTest):
                                           ILLUMINANCE_THRESHOLD_IN_LUX)
         self.motionSensor = MotionSensor(self.motionSensorItem)
         self.astroSensor = AstroSensor(self.astroSensorItem)
-        self.dimmer = Dimmer(self.dimmerItem, 2, 100, "0-23:59")
+        self.dimmer = Dimmer(self.dimmerItem, 2, 100)
         self.fan = Fan(self.lightItem, 2)
 
     def tearDown(self):
