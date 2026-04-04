@@ -8,5 +8,15 @@
     ],
     "python.testing.pytestEnabled": false,
     "python.testing.unittestEnabled": true,
-    "python.envFile": "${workspaceFolder}/.env"
+    "python.envFile": "${workspaceFolder}/.env",
+    "python.analysis.typeCheckingMode": "standard",
+    "python.analysis.autoImportCompletions": true,
+    /*
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}/src",
+    ],
+    */
+    "python.analysis.include": [
+        "./src", "./tests"
+    ],
 }
