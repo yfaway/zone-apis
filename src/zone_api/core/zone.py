@@ -97,8 +97,8 @@ class Zone:
         params = {'name': name, 'level': level, 'external': True}
         return Zone(**params)
 
-    def __init__(self, name, devices: List[Device] = None, level=Level.UNDEFINED,
-                 neighbors: List[Neighbor] = None, actions=None, external=False,
+    def __init__(self, name, devices: Union[List[Device], None] = None, level=Level.UNDEFINED,
+                 neighbors: Union[List[Neighbor], None] = None, actions=None, external=False,
                  display_icon=None, display_order=9999):
         """
         Creates a new zone.

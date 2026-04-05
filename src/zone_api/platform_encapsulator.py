@@ -139,6 +139,16 @@ def create_switch_item(name: str, on=False) -> SwitchItem:
     item.set_value("ON" if on else "OFF")
     return item
 
+def create_contact_item(name: str, open=False) -> ContactItem:
+    """
+    :param name: the item name
+    :param on: if True, the state is OPEN, else the state is CLOSED
+    :return: ContactItem
+    """
+    item = ContactItem(name)
+    item.set_value("OPEN" if open else "CLOSED")
+    return item
+
 
 def create_string_item(name: str) -> StringItem:
     return StringItem(name)
