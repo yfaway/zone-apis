@@ -1,6 +1,6 @@
 import time
 from threading import Timer
-from typing import List, Any, Hashable
+from typing import TYPE_CHECKING, List, Any, Hashable, Union
 
 from zone_api.alert import Alert
 from zone_api import platform_encapsulator as pe
@@ -8,6 +8,9 @@ from zone_api.core.devices.activity_times import ActivityTimes
 from zone_api.core.devices.astro_sensor import AstroSensor
 from zone_api.core.devices.chromecast_audio_sink import ChromeCastAudioSink
 from zone_api.core.devices.switch import Light
+
+if TYPE_CHECKING:
+    from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 
 
 class AlertManager:
@@ -24,8 +27,8 @@ class AlertManager:
         :param dict[Hashable, Any] config: the value read from a yaml file via `yaml.safe_load(file)`.
         :param bool test_mode: indicates of this object is in test mode.
         """
-        self._owner_email_addresses = None
-        self._admin_email_addresses = None
+        self._owner_email_addresses: List[str] = None # type: ignore
+        self._admin_email_addresses: List[str] = None # type: ignore
 
         if config is not None:
             email_config = config['system']['alerts']['email']
@@ -66,7 +69,7 @@ class AlertManager:
 
         return AlertManager(config, True)
 
-    def process_alert(self, alert: Alert, zone_manager=None):
+    def process_alert(self, alert: Alert, zone_manager:'ImmutableZoneManager'=None): # type: ignore
         """
         Processes the provided alert.
         If the alert's level is WARNING or CRITICAL, the TTS subject will be played
@@ -114,6 +117,10 @@ class AlertManager:
             casts: List[ChromeCastAudioSink] = zone_manager.get_devices_by_type(ChromeCastAudioSink)
             for cast in casts:
                 cast.play_message(alert.get_subject(), volume)
+
+        if alert.is_warning_level or alert.is_critical_level():
+            if zone_manager:
+                zone_manager.add_significant_event(alert.get_event_type(), alert.get_subject())
 
         if alert.is_critical_level():
             self._process_further_actions_for_critical_alert(alert, zone_manager, volume)

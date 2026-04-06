@@ -1,6 +1,8 @@
 from enum import Enum, unique
 import json
 
+from zone_api.core.zone_event import ZoneEvent
+
 
 @unique
 class AlertLevel(Enum):
@@ -25,8 +27,9 @@ class Alert:
     """
 
     @classmethod
-    def create_info_alert(cls, subject, body=None, attachment_urls=None,
-                          module=None, interval_between_alerts_in_minutes=-1):
+    def create_info_alert(
+        cls, subject, body=None, attachment_urls=None, module=None, interval_between_alerts_in_minutes=-1,
+        event_type: ZoneEvent = ZoneEvent.UNDEFINED):
         """
         Creates an INFO alert.
 
@@ -39,11 +42,12 @@ class Alert:
         if attachment_urls is None:
             attachment_urls = []
         return cls(AlertLevel.INFO, subject, body, attachment_urls, module,
-                   interval_between_alerts_in_minutes)
+                   interval_between_alerts_in_minutes, event_type=event_type)
 
     @classmethod
-    def create_warning_alert(cls, subject, body=None, attachment_urls=None,
-                             module=None, interval_between_alerts_in_minutes=-1):
+    def create_warning_alert(
+        cls, subject, body=None, attachment_urls=None, module=None, interval_between_alerts_in_minutes=-1,
+        event_type: ZoneEvent = ZoneEvent.UNDEFINED):
         """
         Creates a WARNING alert.
 
@@ -56,7 +60,7 @@ class Alert:
         if attachment_urls is None:
             attachment_urls = []
         return cls(AlertLevel.WARNING, subject, body, attachment_urls, module,
-                   interval_between_alerts_in_minutes)
+                   interval_between_alerts_in_minutes, event_type=event_type)
 
     @classmethod
     def create_audio_warning_alert(cls, subject, body=None, attachment_urls=None,
@@ -77,7 +81,8 @@ class Alert:
 
     @classmethod
     def create_critical_alert(cls, subject, body=None, attachment_urls=None,
-                              module=None, interval_between_alerts_in_minutes=-1):
+                              module=None, interval_between_alerts_in_minutes=-1,
+                              event_type: ZoneEvent = ZoneEvent.UNDEFINED):
         """
         Creates a CRITICAL alert.
 
@@ -89,8 +94,9 @@ class Alert:
         """
         if attachment_urls is None:
             attachment_urls = []
-        return cls(AlertLevel.CRITICAL, subject, body, attachment_urls, module,
-                   interval_between_alerts_in_minutes)
+        return cls(level=AlertLevel.CRITICAL, subject=subject, body=body, attachment_urls=attachment_urls,
+                   module=module, interval_between_alerts_in_minutes=interval_between_alerts_in_minutes, 
+                   event_type=event_type)
 
     @classmethod
     def from_json(cls, json_string):
@@ -140,10 +146,9 @@ class Alert:
         return cls(level, subject, body, attachment_urls, module,
                    interval_between_alerts_in_minutes, email_addresses)
 
-    def __init__(self, level, subject, body=None, attachment_urls=None,
-                 module=None, interval_between_alerts_in_minutes=-1,
-                 email_addresses=None,
-                 audio_alert_only=False):
+    def __init__(self, level, subject, body=None, attachment_urls=None, module=None,
+                 interval_between_alerts_in_minutes=-1, email_addresses=None, audio_alert_only=False,
+                 event_type:ZoneEvent = ZoneEvent.UNDEFINED):
         if attachment_urls is None:
             attachment_urls = []
         self.level = level
@@ -154,6 +159,7 @@ class Alert:
         self.interval_between_alerts_in_minutes = interval_between_alerts_in_minutes
         self.emailAddresses = email_addresses
         self.audioAlertOnly = audio_alert_only
+        self.event_type = event_type
 
         self._canceled = False
         self._cancel_hook = []
@@ -211,6 +217,9 @@ class Alert:
         """
 
         return [] if self.emailAddresses is None else self.emailAddresses.split(';')
+
+    def get_event_type(self) -> ZoneEvent:
+        return self.event_type
 
     def get_interval_between_alerts_in_minutes(self):
         """

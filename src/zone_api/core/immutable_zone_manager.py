@@ -1,10 +1,12 @@
 import threading
 import time
-from typing import Type, List, Any, Hashable, TYPE_CHECKING
+from typing import Type, List, Any, Hashable, TYPE_CHECKING, Union
 
 from schedule import Scheduler
 
 from zone_api import platform_encapsulator as pe
+from zone_api.core import action
+from zone_api.core.actions.track_significant_events import TrackSignificantEvents
 from zone_api.core.devices.activity_times import ActivityTimes, ActivityType
 from zone_api.core.devices.astro_sensor import AstroSensor
 from zone_api.core.devices.vacation import Vacation
@@ -65,19 +67,19 @@ class ImmutableZoneManager:
     """
 
     def __init__(self, get_zones_fcn, get_zone_by_id_fcn, get_devices_by_type_fcn,
-                 alert_manager: 'AlertManager' = None, email_settings: EmailSettings = None,
-                 activity_times: ActivityTimes = None):
+                 alert_manager: Union['AlertManager', None] = None, email_settings: Union[EmailSettings, None] = None,
+                 activity_times: Union[ActivityTimes, None] = None):
         self.get_zones_fcn = get_zones_fcn
         self.get_zone_by_id_fcn = get_zone_by_id_fcn
         self.get_devices_by_type_fcn = get_devices_by_type_fcn
         self.alert_manager = alert_manager
         self.scheduler = Scheduler()
 
-        self._email_settings = email_settings
+        self._email_settings: Union[EmailSettings, None] = email_settings
         self._activity_times = activity_times
 
         # noinspection PyTypeChecker
-        self.cease_continuous_run: threading.Event = None
+        self.cease_continuous_run: threading.Event = None # type: ignore
 
         # map from primary item name to zone for quick look-up.
         self.item_name_to_zone = {}
@@ -167,15 +169,15 @@ class ImmutableZoneManager:
     @property
     def email_settings(self) -> EmailSettings:
         """ Returns the :class:`.EmailSettings` instance constructed from the system configuration. """
-        return self._email_settings
+        return self._email_settings # type: ignore
 
     @property
     def activity_times(self) -> ActivityTimes:
         """ Returns the :class:`.ActivityTimes` instance constructed from the system configuration. """
-        return self._activity_times
+        return self._activity_times # type: ignore
 
     def get_alert_manager(self) -> 'AlertManager':
-        return self.alert_manager
+        return self.alert_manager # type: ignore
 
     def get_scheduler(self) -> Scheduler:
         """ Returns the Scheduler instance """
@@ -186,7 +188,7 @@ class ImmutableZoneManager:
 
         class ScheduleThread(threading.Thread):
             @classmethod
-            def run(cls):
+            def run(cls): # type: ignore
                 while not self.cease_continuous_run.is_set():
                     self.scheduler.run_pending()
                     time.sleep(interval_in_seconds)
@@ -274,7 +276,7 @@ class ImmutableZoneManager:
         """ Returns true if at least one device indicates that the house is in vacation mode, vie Vacation class. """
         for z in self.get_zones():
             for d in z.get_devices_by_type(Vacation):
-                if d.is_in_vacation():
+                if d.is_in_vacation(): # type: ignore
                     return True
 
         return False
@@ -291,7 +293,7 @@ class ImmutableZoneManager:
             astro_sensors = z.get_devices_by_type(AstroSensor)
             if len(astro_sensors) > 0:
                 has_astro_sensors = True
-                value = any(s.is_light_on_time() for s in astro_sensors)
+                value = any(s.is_light_on_time() for s in astro_sensors) # type: ignore
                 if value:
                     return True
 
@@ -325,7 +327,7 @@ class ImmutableZoneManager:
 
         # Small optimization: dispatch directly to the applicable zone first if we can determine
         # the zone id from the item name.
-        owning_zone: Zone = self.get_zone_by_item_name(pe.get_item_name(item))
+        owning_zone: Zone = self.get_zone_by_item_name(pe.get_item_name(item)) # type: ignore
         if owning_zone is not None:
             value = owning_zone.dispatch_event(zone_event, open_hab_events, device, item, self, owning_zone)
             return_values.append(value)
@@ -377,6 +379,26 @@ class ImmutableZoneManager:
         for z in self.get_zones():
             return_values.append(z.on_switch_turned_off(events, item, self))
         return any(return_values)
+
+    def add_significant_event(self, event_type: ZoneEvent, message: str):
+        """
+        Add significant event to be tracked by action TrackSignificantEvents.
+        """
+
+        # Let's find the right action first
+        action: TrackSignificantEvents = None
+        for z in self.get_zones():
+            for a in z.get_actions(ZoneEvent.PARTITION_ARMED_AWAY):
+                if isinstance(a, TrackSignificantEvents):
+                    action = a
+                    break
+
+            if action:
+                break
+
+        if action:
+            action.add_event(event_type, message)
+                
 
     def __str__(self):
         value = u""

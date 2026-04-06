@@ -19,6 +19,8 @@ class TrackSignificantEvents(Action):
     Track significant events such as security status changes, external door open / close, and so on (see event list
     above). Hold a fixed number of events (configurable). Each time an event is triggered, it is appended to the list
     and the whole set of data is then output to a string item (name is configurable) in JSON format.
+
+    This action also exposes API (#add_event) for other actions to add events directly via ZoneManger.
     """
 
     MAX_EVENT_COUNT_KEY = 'maxEventCount'
@@ -79,10 +81,22 @@ class TrackSignificantEvents(Action):
 
         event['timestamp'] = datetime.datetime.now().isoformat()
 
-        self._events.append(event)
+        self._add_and_update_output_item_value(event)
+
+        return True
+
+    def add_event(self, event_type: ZoneEvent, message: str):
+        event: Dict[str, Any] = {
+            'event_type' : event_type.value,
+            'message' : message,
+            'timestamp' : datetime.datetime.now().isoformat()
+            }
+
+        self._add_and_update_output_item_value(event)
+
+    def _add_and_update_output_item_value(self, new_event: Dict[str, Any]):
+        self._events.append(new_event)
 
         json_str = json.dumps(list(reversed(self._events)))
         pe.set_string_value(self._output_item, json_str)
         self.log_error(json_str)
-
-        return True

@@ -31,18 +31,19 @@ class AlertOnHighGasLevel(Action):
         zone_manager = event_info.get_zone_manager()
 
         # noinspection PyTypeChecker
-        gas_sensor: GasSensor = zone.get_device_by_event(event_info)
+        gas_sensor: GasSensor = zone.get_device_by_event(event_info) # type: ignore
         gas_type = gas_sensor.__class__.__name__
 
         if gas_sensor.is_triggered():
             alert_message = f'The {zone.get_name()} {gas_type} at {gas_sensor.get_value()} is above normal level.'
-            self._alert = Alert.create_warning_alert(alert_message, None, [],
-                                                     gas_type, self._interval_between_alerts_in_minutes)
+            self._alert = Alert.create_warning_alert(
+                alert_message, None, [], gas_type, self._interval_between_alerts_in_minutes,
+                ZoneEvent.GAS_TRIGGER_STATE_CHANGED)
             self.send_notification(zone_manager, self._alert)
 
         elif self._alert is not None:
             alert_message = f'The {zone.get_name()} {gas_type} is back to normal.'
-            alert = Alert.create_info_alert(alert_message)
+            alert = Alert.create_warning_alert(subject=alert_message, event_type=ZoneEvent.GAS_TRIGGER_STATE_CHANGED)
             self.send_notification(zone_manager, alert)
             self._alert.cancel()
 

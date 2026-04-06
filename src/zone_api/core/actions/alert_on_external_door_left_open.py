@@ -39,7 +39,8 @@ class AlertOnExternalDoorLeftOpen(Action):
 
             self.send_notification(zone_manager, Alert.create_warning_alert(alert_message))
 
-        for door in zone.get_devices_by_type(Door):
+        door: Door
+        for door in zone.get_devices_by_type(Door):  # type: ignore
             timer = self.timers[door] if door in self.timers else None
 
             if door.is_open():
@@ -56,7 +57,7 @@ class AlertOnExternalDoorLeftOpen(Action):
                         timer.cancel()
                     else:  # alert door now closed if a warning was previous sent
                         msg = f'The {zone.get_name()} door is now closed.'
-                        alert = Alert.create_warning_alert(msg)
+                        alert = Alert.create_warning_alert(subject=msg, event_type=ZoneEvent.DOOR_OPEN)
                         self.send_notification(zone_manager, alert)
 
                     del self.timers[door]

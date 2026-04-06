@@ -30,18 +30,19 @@ class AlertOnWaterLeak(Action):
         zone_manager = event_info.get_zone_manager()
 
         # noinspection PyTypeChecker
-        sensor: WaterLeakSensor = zone.get_device_by_event(event_info)
+        sensor: WaterLeakSensor = zone.get_device_by_event(event_info) # type: ignore
 
         if sensor.is_water_detected():
             alert_message = f'Water leak detected in {zone.get_name()}.'
             alert_module = alert_message
-            self._alert = Alert.create_critical_alert(alert_message, None, [],
-                                                      alert_module, self._interval_between_alerts_in_minutes)
+            self._alert = Alert.create_critical_alert(
+                alert_message, None, [], alert_module, self._interval_between_alerts_in_minutes,
+                ZoneEvent.WATER_LEAK_STATE_CHANGED)
             self.send_notification(zone_manager, self._alert)
 
         elif self._alert is not None:
             alert_message = f'No more water leak detected in {zone.get_name()}.'
-            alert = Alert.create_info_alert(alert_message)
+            alert = Alert.create_critical_alert( subject=alert_message, event_type=ZoneEvent.WATER_LEAK_STATE_CHANGED)
             self.send_notification(zone_manager, alert)
             self._alert.cancel()
 
