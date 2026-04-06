@@ -154,22 +154,27 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
     arm_mode_item = BaseItem.get_item(item.name + '_ArmMode')
     send_command_item = Items.get_item(item.name + '_SendCommand')
     # noinspection PyTypeChecker
-    panel_fire_key_alarm_item: SwitchItem = Items.get_item(item.name + '_PanelFireKeyAlarm')
+    panel_fire_key_alarm_item: SwitchItem = Items.get_item(item.name + '_PanelFireKeyAlarm') # type: ignore
     # noinspection PyTypeChecker
-    panel_ambulance_key_alarm_item: SwitchItem = Items.get_item(item.name + '_PanelAmbulanceKeyAlarm')
+    panel_ambulance_key_alarm_item: SwitchItem = Items.get_item(item.name + '_PanelAmbulanceKeyAlarm') # type: ignore
     # noinspection PyTypeChecker
-    panel_police_key_alarm_item: SwitchItem = Items.get_item(item.name + '_PanelPoliceKeyAlarm')
+    panel_police_key_alarm_item: SwitchItem = Items.get_item(item.name + '_PanelPoliceKeyAlarm') # type: ignore
 
     # noinspection PyTypeChecker
     device: AlarmPartition = _configure_device(
-        AlarmPartition(item, arm_mode_item, send_command_item, panel_fire_key_alarm_item), zm)
+        AlarmPartition(item, arm_mode_item, send_command_item, panel_fire_key_alarm_item), zm) # type: ignore
 
     def arm_mode_value_changed(event: ValueChangeEvent):
         if AlarmState.ARM_AWAY == AlarmState(int(event.value)):
             dispatch_event(zm, ZoneEvent.PARTITION_ARMED_AWAY, device, item)
+        if AlarmState.ARM_STAY == AlarmState(int(event.value)):
+            dispatch_event(zm, ZoneEvent.PARTITION_ARMED_STAY, device, item)
         elif AlarmState.UNARMED == AlarmState(int(event.value)) \
                 and AlarmState.ARM_AWAY == AlarmState(int(event.old_value)):
             dispatch_event(zm, ZoneEvent.PARTITION_DISARMED_FROM_AWAY, device, item)
+        elif AlarmState.UNARMED == AlarmState(int(event.value)) \
+                and AlarmState.ARM_STAY == AlarmState(int(event.old_value)):
+            dispatch_event(zm, ZoneEvent.PARTITION_DISARMED_FROM_STAY, device, item)
 
         # Reset the key pad alarm states on unarmed event.
         if AlarmState.UNARMED == AlarmState(int(event.value)):
