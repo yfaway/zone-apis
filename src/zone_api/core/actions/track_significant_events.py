@@ -5,7 +5,6 @@ from typing import Any, Dict, List
 from zone_api import platform_encapsulator as pe
 from zone_api.core.action import action, Action
 from zone_api.core.devices.alarm_partition import AlarmPartition
-from zone_api.core.devices.contact import Door, Window
 from zone_api.core.event_info import EventInfo
 from zone_api.core.parameters import ParameterConstraint, Parameters, no_op_validator, positive_number_validator
 from zone_api.core.zone_event import ZoneEvent
@@ -14,7 +13,7 @@ EVENTS = [ZoneEvent.PARTITION_ARMED_AWAY, ZoneEvent.PARTITION_ARMED_STAY, ZoneEv
                 ZoneEvent.PARTITION_DISARMED_FROM_STAY, ZoneEvent.PARTITION_IN_ALARM_STATE_CHANGED,
                 ZoneEvent.DOOR_OPEN, ZoneEvent.DOOR_CLOSED, ZoneEvent.WINDOW_OPEN, ZoneEvent.WINDOW_CLOSED]
 
-@action(events=EVENTS, devices=[], unique_instance=True, internal=True, external=True)
+@action(events=EVENTS, devices=[], internal=True, external=True)
 class TrackSignificantEvents(Action):
     """
     Track significant events such as security status changes, external door open / close, and so on (see event list
@@ -80,11 +79,10 @@ class TrackSignificantEvents(Action):
 
         event['timestamp'] = datetime.datetime.now().isoformat()
 
-        json_str = json.dumps(list(reversed(event)))
-        pe.set_string_value(self._output_item, json_str)
-
-        self.log_error(f"{event['message']}")
-
         self._events.append(event)
+
+        json_str = json.dumps(list(reversed(self._events)))
+        pe.set_string_value(self._output_item, json_str)
+        self.log_error(json_str)
 
         return True

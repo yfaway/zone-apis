@@ -82,11 +82,11 @@ class TrackSignificantEventsTest(DeviceTest):
         self.assert_top_event(ZoneEvent.WINDOW_CLOSED, "Window closed")
 
     def testOnAction_doorOpened_recorded(self):
-        self.invoke(ZoneEvent.DOOR_OPEN, self.internal_door, self.external_zone)
+        self.invoke(ZoneEvent.DOOR_OPEN, self.external_door, self.external_zone)
         self.assert_top_event(ZoneEvent.DOOR_OPEN, "Door opened")
 
     def testOnAction_doorClosed_recorded(self):
-        self.invoke(ZoneEvent.DOOR_CLOSED, self.internal_door, self.external_zone)
+        self.invoke(ZoneEvent.DOOR_CLOSED, self.external_door, self.external_zone)
         self.assert_top_event(ZoneEvent.DOOR_CLOSED, "Door closed")
 
     def testOnAction_doorOpenedInInternalZone_notRecorded(self):
