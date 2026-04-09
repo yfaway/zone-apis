@@ -453,12 +453,14 @@ def create_network_presence_device(zm: ImmutableZoneManager, item) -> NetworkPre
     :param zm: the zone manager instance to dispatch the event.
     :param item: SwitchItem
     """
-    sensor = _configure_device(NetworkPresence(item), zm)
+    sensor : NetworkPresence = _configure_device(NetworkPresence(item), zm) # type: ignore
 
     # noinspection PyUnusedLocal
     def handler(event: ValueChangeEvent):
         if pe.is_in_on_state(item):
             zm.on_network_device_connected(pe.get_event_dispatcher(), sensor, item)
+
+        dispatch_event(zm, ZoneEvent.NETWORK_PRESENCE_CHANGED, sensor, item)
 
     item.listen_event(handler, ValueChangeEventFilter())
 

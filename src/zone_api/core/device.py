@@ -186,7 +186,7 @@ class Device(object):
         """
         return self.zone_manager
 
-    def is_occupied(self, seconds_from_last_event=5 * 60):
+    def is_occupied(self, seconds_from_last_event=5 * 60) -> bool:
         """
         Returns boolean indicating if the present state of the device might
         indicate that the zone is occupied.

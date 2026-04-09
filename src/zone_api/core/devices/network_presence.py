@@ -17,7 +17,7 @@ class NetworkPresence(Device):
 
         Device.__init__(self, switch_item)
 
-    def is_presence(self):
+    def is_present(self) -> bool:
         """
         Returns True if the device is connected to the local network; False
         otherwise.
@@ -25,11 +25,11 @@ class NetworkPresence(Device):
 
         return pe.is_in_on_state(self.get_item())
 
-    def is_occupied(self, seconds_from_last_event=5 * 60):
+    def is_occupied(self, seconds_from_last_event=5 * 60) -> bool:
         """
         Returns True if the device is on.
         @override
 
         :rtype: bool
         """
-        return self.is_presence() or self.was_recently_activated(seconds_from_last_event)
+        return self.is_present() or self.was_recently_activated(seconds_from_last_event)

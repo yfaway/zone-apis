@@ -4,6 +4,7 @@ import json
 from typing import Any, Dict, List
 from zone_api import platform_encapsulator as pe
 from zone_api.core.action import action, Action
+from zone_api.core.devices.network_presence import NetworkPresence
 from zone_api.core.devices.alarm_partition import AlarmPartition
 from zone_api.core.event_info import EventInfo
 from zone_api.core.parameters import ParameterConstraint, Parameters, no_op_validator, positive_number_validator
@@ -11,7 +12,8 @@ from zone_api.core.zone_event import ZoneEvent
 
 EVENTS = [ZoneEvent.PARTITION_ARMED_AWAY, ZoneEvent.PARTITION_ARMED_STAY, ZoneEvent.PARTITION_DISARMED_FROM_AWAY,
                 ZoneEvent.PARTITION_DISARMED_FROM_STAY, ZoneEvent.PARTITION_IN_ALARM_STATE_CHANGED,
-                ZoneEvent.DOOR_OPEN, ZoneEvent.DOOR_CLOSED, ZoneEvent.WINDOW_OPEN, ZoneEvent.WINDOW_CLOSED]
+                ZoneEvent.DOOR_OPEN, ZoneEvent.DOOR_CLOSED, ZoneEvent.WINDOW_OPEN, ZoneEvent.WINDOW_CLOSED,
+                ZoneEvent.NETWORK_PRESENCE_CHANGED]
 
 @action(events=EVENTS, devices=[], internal=True, external=True)
 class TrackSignificantEvents(Action):
@@ -31,7 +33,7 @@ class TrackSignificantEvents(Action):
     def __init__(self, parameters: Parameters):
         super().__init__(parameters)
 
-        self._max_event_count = self.parameters().get(self, TrackSignificantEvents.MAX_EVENT_COUNT_KEY, 50)
+        self._max_event_count = self.parameters().get(self, TrackSignificantEvents.MAX_EVENT_COUNT_KEY, 100)
         self._output_item = self.parameters().get(self, TrackSignificantEvents.OUTPUT_ITEM_KEY,
                                                   TrackSignificantEvents.DEFAULT_OUTPUT_ITEM_NAME)
         self._events = deque(maxlen=self._max_event_count)
@@ -47,6 +49,7 @@ class TrackSignificantEvents(Action):
     def on_action(self, event_info: EventInfo):
         event_type = event_info.get_event_type()
         zone = event_info.get_zone()
+        device = event_info.get_device()
 
         event: Dict[str, Any] = {"event_type" : event_type.value}
 
@@ -78,6 +81,13 @@ class TrackSignificantEvents(Action):
                 event['message'] = "Door closed in zone " + zone.get_name()
             else:
                 return False
+        elif event_type == ZoneEvent.NETWORK_PRESENCE_CHANGED:
+            network_presence : NetworkPresence = device # type: ignore
+            friend_name = self.map_network_presence_to_friendly_name(network_presence)
+            if network_presence.is_present():
+                event['message'] = f"{friend_name} arrived home"
+            else:
+                event['message'] = f"{friend_name} left home"
 
         event['timestamp'] = datetime.datetime.now().isoformat()
 
@@ -99,4 +109,7 @@ class TrackSignificantEvents(Action):
 
         json_str = json.dumps(list(reversed(self._events)))
         pe.set_string_value(self._output_item, json_str)
-        self.log_error(json_str)
+        # self.log_error(json_str)
+
+    def map_network_presence_to_friendly_name(self, device : NetworkPresence):
+        return device.get_item_name()
