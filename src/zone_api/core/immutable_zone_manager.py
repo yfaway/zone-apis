@@ -68,7 +68,7 @@ class ImmutableZoneManager:
 
     def __init__(self, get_zones_fcn, get_zone_by_id_fcn, get_devices_by_type_fcn,
                  alert_manager: Union['AlertManager', None] = None, email_settings: Union[EmailSettings, None] = None,
-                 activity_times: Union[ActivityTimes, None] = None):
+                 activity_times: Union[ActivityTimes, None] = None, label_mappings: Union[dict[str, str], None] = None):
         self.get_zones_fcn = get_zones_fcn
         self.get_zone_by_id_fcn = get_zone_by_id_fcn
         self.get_devices_by_type_fcn = get_devices_by_type_fcn
@@ -77,6 +77,7 @@ class ImmutableZoneManager:
 
         self._email_settings: Union[EmailSettings, None] = email_settings
         self._activity_times = activity_times
+        self._label_mappings: dict[str, str] = label_mappings # type: ignore
 
         # noinspection PyTypeChecker
         self.cease_continuous_run: threading.Event = None # type: ignore
@@ -119,6 +120,7 @@ class ImmutableZoneManager:
                   'get_devices_by_type_fcn': self.get_devices_by_type_fcn,
                   'email_settings': self.email_settings,
                   'activity_times': self.activity_times,
+                  'label_mappings': self._label_mappings,
                   'alert_manager': alert_manager}
         return ImmutableZoneManager(**params)
 
@@ -133,6 +135,9 @@ class ImmutableZoneManager:
         email_settings = EmailSettings(email_service['smtp-server'], email_service['port'],
                                        email_service['sender-email'], email_service['sender-password'])
 
+        label_mappings = config['system']['label-mappings']
+        pe.log_info(f"{len(label_mappings)} label mappings.")
+
         pe.log_info(f"Email service settings: {email_settings.smtp_server}, {email_settings.port}, "
                     f"{email_settings.from_email_address}")
 
@@ -145,6 +150,7 @@ class ImmutableZoneManager:
                   'alert_manager': self.alert_manager,
                   'email_settings': email_settings,
                   'activity_times': activity_times,
+                  'label_mappings': label_mappings,
                   }
         return ImmutableZoneManager(**params)
 
@@ -399,6 +405,16 @@ class ImmutableZoneManager:
         if action:
             action.add_event(event_type, message)
                 
+
+    def map_label(self, label: str) -> Union[str, None]:
+        """
+        Look up the string value associated with label as specified in the zone-api-config.xml file.
+        If there is no label, return None.
+        """
+        if label in self._label_mappings:
+            return self._label_mappings[label]
+        else:
+            return None
 
     def __str__(self):
         value = u""

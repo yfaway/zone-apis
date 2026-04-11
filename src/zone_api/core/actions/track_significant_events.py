@@ -50,6 +50,7 @@ class TrackSignificantEvents(Action):
         event_type = event_info.get_event_type()
         zone = event_info.get_zone()
         device = event_info.get_device()
+        zm = event_info.get_zone_manager();
 
         event: Dict[str, Any] = {"event_type" : event_type.value}
 
@@ -83,11 +84,12 @@ class TrackSignificantEvents(Action):
                 return False
         elif event_type == ZoneEvent.NETWORK_PRESENCE_CHANGED:
             network_presence : NetworkPresence = device # type: ignore
-            friend_name = self.map_network_presence_to_friendly_name(network_presence)
+
+            friendly_name = self.map_network_presence_to_friendly_name(zm, network_presence)
             if network_presence.is_present():
-                event['message'] = f"{friend_name} arrived home"
+                event['message'] = f"{friendly_name} arrived home"
             else:
-                event['message'] = f"{friend_name} left home"
+                event['message'] = f"{friendly_name} left home"
 
         event['timestamp'] = datetime.datetime.now().isoformat()
 
@@ -111,5 +113,14 @@ class TrackSignificantEvents(Action):
         pe.set_string_value(self._output_item, json_str)
         # self.log_error(json_str)
 
-    def map_network_presence_to_friendly_name(self, device : NetworkPresence):
-        return device.get_item_name()
+    def map_network_presence_to_friendly_name(self, zm, device : NetworkPresence):
+        friendly_name = device.get_item_name()
+
+        idx = friendly_name.find("Owner")
+        if idx != -1:
+            friendly_name = f"owner{friendly_name[idx + 5: idx + 6]}"
+            mapped_name = zm.map_label(friendly_name)
+            if mapped_name is not None:
+                friendly_name = mapped_name
+
+        return friendly_name

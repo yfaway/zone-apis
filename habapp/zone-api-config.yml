@@ -22,6 +22,14 @@ system:
       admin-email-addresses:
         - admin@gmail.com
 
+  label-mappings:
+    owner1: Owner1
+    owner2: Owner2
+    owner3: Owner3
+    owner4: Owner4
+    owner5: Owner5
+    owner6: Owner6
+
 # Contains the parameters for each named actions.
 action-parameters:
   AlertOnBadComputerStates:
