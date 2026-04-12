@@ -1,6 +1,7 @@
 from collections import deque
 import datetime
 import json
+from threading import Timer
 from typing import Any, Dict, List
 from zone_api import platform_encapsulator as pe
 from zone_api.core.action import action, Action
@@ -30,6 +31,8 @@ class TrackSignificantEvents(Action):
 
     DEFAULT_OUTPUT_ITEM_NAME = 'Out_SignificantEvents'
 
+    DEFERRED_DEPARTURE_EVENT_DURATION_IN_MINUTES = 5
+
     def __init__(self, parameters: Parameters):
         super().__init__(parameters)
 
@@ -37,6 +40,8 @@ class TrackSignificantEvents(Action):
         self._output_item = self.parameters().get(self, TrackSignificantEvents.OUTPUT_ITEM_KEY,
                                                   TrackSignificantEvents.DEFAULT_OUTPUT_ITEM_NAME)
         self._events = deque(maxlen=self._max_event_count)
+
+        self._timers: dict[NetworkPresence, Timer] = {}
 
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:
@@ -52,7 +57,8 @@ class TrackSignificantEvents(Action):
         device = event_info.get_device()
         zm = event_info.get_zone_manager();
 
-        event: Dict[str, Any] = {"event_type" : event_type.value}
+        event: Dict[str, Any] = {'event_type' : event_type.value,
+                                 'timestamp': datetime.datetime.now().isoformat() }
 
         if event_type == ZoneEvent.PARTITION_ARMED_AWAY:
             event['message'] = "House armed away"
@@ -85,15 +91,32 @@ class TrackSignificantEvents(Action):
         elif event_type == ZoneEvent.NETWORK_PRESENCE_CHANGED:
             network_presence : NetworkPresence = device # type: ignore
 
-            friendly_name = self.map_network_presence_to_friendly_name(zm, network_presence)
+            # IPhone doesn't response to ping often, especially when the screen is off. We do not want to be bombarded
+            # with repeated arrival / depature event. So we will only record departure event if it is still relevant
+            # DEFERRED_DEPARTURE_EVENT_DURATION_IN_MINUTES later.
+            timer = self._timers[network_presence] if network_presence in self._timers else None
+
+            friendly_name = self._map_network_presence_to_friendly_name(zm, network_presence)
             if network_presence.is_present():
-                event['message'] = f"{friendly_name} arrived home"
+                if timer is not None: # Let's not record the event as the one before this must have been an arrival
+                    timer.cancel()
+                    del self._timers[network_presence]
+                else:
+                    event['message'] = f"{friendly_name} arrived home"
             else:
-                event['message'] = f"{friendly_name} left home"
+                def record_departure_event():
+                    event['message'] = f"{friendly_name} left home"
+                    self._add_and_update_output_item_value(event)
 
-        event['timestamp'] = datetime.datetime.now().isoformat()
+                    del self._timers[network_presence]
 
-        self._add_and_update_output_item_value(event)
+                timer = Timer(TrackSignificantEvents.DEFERRED_DEPARTURE_EVENT_DURATION_IN_MINUTES * 60,
+                              record_departure_event)
+                timer.start()
+                self._timers[network_presence] = timer
+
+        if 'message' in event:
+            self._add_and_update_output_item_value(event)
 
         return True
 
@@ -113,7 +136,7 @@ class TrackSignificantEvents(Action):
         pe.set_string_value(self._output_item, json_str)
         # self.log_error(json_str)
 
-    def map_network_presence_to_friendly_name(self, zm, device : NetworkPresence):
+    def _map_network_presence_to_friendly_name(self, zm, device : NetworkPresence):
         friendly_name = device.get_item_name()
 
         idx = friendly_name.find("Owner")
