@@ -6,22 +6,23 @@ from zone_api.core.event_info import EventInfo
 from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
+from zone_api.environment_canada import EnvCanada
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 
 
 # The remaining code mocks the feedparser module.
 entry1 = Zone
-entry1.title = "N/A"
-entry1.link = "https://not-an-alert-link.ca"
-entry1.published_parsed = (2002, 9, 7, 0, 0, 1, 5, 250, 0)
+entry1.title = "N/A" # type: ignore
+entry1.link = "https://not-an-alert-link.ca" # type: ignore
+entry1.published_parsed = (2002, 9, 7, 0, 0, 1, 5, 250, 0) # type: ignore
 
 entry2 = Zone
-entry2.title = "N/A"
-entry2.link = 'https://www.weather.gc.ca/warnings/report_e.html?onrm104'
-entry2.published_parsed = (2002, 9, 7, 0, 0, 1, 5, 250, 0)
+entry2.title = "N/A" # type: ignore
+entry2.link = 'https://www.weather.gc.ca/warnings/report_e.html?onrm104' # type: ignore
+entry2.published_parsed = (2002, 9, 7, 0, 0, 1, 5, 250, 0) # type: ignore
 
 feed = Zone
-feed.entries = [entry1, entry2]
+feed.entries = [entry1, entry2] # type: ignore
 mock_request = MagicMock()
 mock_request.parse = MagicMock(return_value=feed)
 with patch.dict('sys.modules', feedparser=mock_request):
@@ -31,7 +32,7 @@ with patch.dict('sys.modules', feedparser=mock_request):
 class SendWeatherAlertTest(DeviceTest):
     """ Unit tests for SendWeatherAlert. """
 
-    MOCKED_OBJECT_PATH = 'zone_api.core.actions.send_weather_alert.EnvCanada'
+    MOCKED_RETRIEVE_ALERT_FCN = 'zone_api.environment_canada.EnvCanada.retrieve_alert'
 
     def setUp(self):
         items = [pe.create_number_item('weather-temp'), pe.create_number_item('weather-humidity'),
@@ -62,32 +63,32 @@ class SendWeatherAlertTest(DeviceTest):
 
         has_alert, alert_url = self.action._has_new_alert(self.weather)
         self.assertTrue(has_alert)
-        self.assertEqual(alert_url, entry2.link)
-        self.assertEqual(self.weather.get_alert_title(), entry2.title)
+        self.assertEqual(alert_url, entry2.link) # type: ignore
+        self.assertEqual(self.weather.get_alert_title(), entry2.title) # type: ignore
 
     def testOnAction_alertExists_returnsTrueAndSendAlert(self):
         description = "Storm coming"
         url = "https://here.com"
-        self.action._has_new_alert = MagicMock(return_value=(True, 'http://blah.com'))
+        self.action._has_new_alert = MagicMock(return_value=(True, 'https://www.weather.gc.ca/warnings/report_e.html?onrm104'))
 
-        with patch(SendWeatherAlertTest.MOCKED_OBJECT_PATH) as mock_requests:
-            mock_requests.retrieve_alert.return_value = description, url, None
+        with patch(SendWeatherAlertTest.MOCKED_RETRIEVE_ALERT_FCN) as mock_requests:
+            mock_requests.return_value = description, url, None
 
             self.assertTrue(self.invoke_action())
-            self.assertTrue(pe.get_string_value(self.alert_item) in self.zm.get_alert_manager()._lastEmailedSubject)
+            self.assertTrue(pe.get_string_value(self.alert_item) in self.zm.get_alert_manager()._lastEmailedSubject) # type: ignore
             self.assertTrue(description in self.zm.get_alert_manager()._lastEmailedBody)
             self.assertTrue(url in self.zm.get_alert_manager()._lastEmailedBody)
 
     def testOnAction_noRemoteAlertExists_returnsFalse(self):
         url = "https://here.com"
-        self.action._has_new_alert = MagicMock(return_value=(True, 'http://blah.com'))
+        self.action._has_new_alert = MagicMock(return_value=(True, 'https://www.weather.gc.ca/warnings/report_e.html?onrm104'))
 
-        with patch(SendWeatherAlertTest.MOCKED_OBJECT_PATH) as mock_requests:
-            mock_requests.retrieve_alert.return_value = None, url, None
+        with patch(SendWeatherAlertTest.MOCKED_RETRIEVE_ALERT_FCN) as mock_requests:
+            mock_requests.return_value = None, url, None
 
             self.assertFalse(self.invoke_action())
 
     def invoke_action(self) -> bool:
         event_info = EventInfo(ZoneEvent.TIMER, self.alert_item, self.zone1, self.zm,
-                               pe.get_event_dispatcher(), None, self.weather)
+                               pe.get_event_dispatcher(), None, self.weather) # type: ignore
         return self.action.on_action(event_info)

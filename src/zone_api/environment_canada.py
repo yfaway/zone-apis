@@ -210,9 +210,9 @@ class EnvCanada(object):
             raw_data = requests.get(url).text
             data = raw_data
 
-            start_keyword = "</time><br><br><span>"
+            start_keyword = "<p class=\"pre-wrap\">"
             start_idx = data.index(start_keyword)
-            end_idx = data.index("</span></p><div class=\"hidden-print atom-followus\">")
+            end_idx = data.index("<!----></section>")
 
             data = data[start_idx + len(start_keyword): end_idx]
             data = data.replace("<br/>", "\n")

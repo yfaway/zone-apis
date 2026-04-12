@@ -41,9 +41,11 @@ class SendWeatherAlert(Action):
 
     def on_action(self, event_info: EventInfo):
         zone_manager = event_info.get_zone_manager()
-        weather: Weather = zone_manager.get_first_device_by_type(Weather)
+        weather: Weather = zone_manager.get_first_device_by_type(Weather) # type: ignore
 
-        has_alert, alert_url = self._has_new_alert(weather)
+        has_alert: bool
+        alert_url: str
+        has_alert, alert_url = self._has_new_alert(weather) # type: ignore
 
         if has_alert:
             alert_message, url, _ = EnvCanada.retrieve_alert(alert_url)
@@ -76,15 +78,15 @@ class SendWeatherAlert(Action):
         # Env Canada might have multiple entries; only one of which represents the actual alert.
         for entry in feed.entries:
             if EnvCanada.is_alert_url(entry.link):
-                alert_title = entry.title
-                published_parsed = entry.published_parsed
+                alert_title: str = entry.title # type: ignore
+                published_parsed = entry.published_parsed # type: ignore
 
                 if alert_title != weather.get_alert_title():
                     # noinspection PyProtectedMember
                     weather._set_alert_title(alert_title)
                     # noinspection PyProtectedMember
-                    weather._set_alert_datetime(datetime.datetime(*published_parsed[0:6]))
-                    return True, entry.link
+                    weather._set_alert_datetime(datetime.datetime(*published_parsed[0:6])) # type: ignore
+                    return True, entry.link # type: ignore
                 else:
                     return False, None
 
