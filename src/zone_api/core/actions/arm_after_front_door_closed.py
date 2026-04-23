@@ -2,6 +2,7 @@ from threading import Timer
 from typing import List
 
 from zone_api.alert import Alert
+from zone_api.core.devices.network_presence import NetworkPresence
 from zone_api.core.devices.plug import Plug
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 from zone_api.core.parameters import ParameterConstraint, positive_number_validator, Parameters
@@ -51,7 +52,8 @@ class ArmAfterFrontDoorClosed(Action):
         if not security_partition.is_unarmed():
             return False
 
-        for door in zone.get_devices_by_type(Door):
+        door: Door
+        for door in zone.get_devices_by_type(Door): # type: ignore
             if door.is_closed():
                 if self.timer is not None:
                     self.timer.cancel()
@@ -64,7 +66,7 @@ class ArmAfterFrontDoorClosed(Action):
                         if z.is_external():
                             continue
 
-                        (occupied, active_device) = z.is_occupied([Plug], self.max_elapsed_time_in_seconds)
+                        (occupied, active_device) = z.is_occupied([NetworkPresence, Plug], self.max_elapsed_time_in_seconds)
                         if occupied:
                             break
 

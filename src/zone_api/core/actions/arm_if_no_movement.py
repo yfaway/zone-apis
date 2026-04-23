@@ -43,9 +43,10 @@ class ArmIfNoMovement(Action):
             return False
 
         for z in zone_manager.get_zones():
-            (occupied, device) = z.is_occupied([NetworkPresence], self._unoccupied_duration_in_minutes * 60)
-            if occupied:
-                return False
+            if z.is_internal():
+                (occupied, device) = z.is_occupied([NetworkPresence], self._unoccupied_duration_in_minutes * 60)
+                if occupied:
+                    return False
 
         if zone_manager.is_in_vacation():
             sm.arm_away(zone_manager, events)
