@@ -4,6 +4,7 @@ from typing import Type, List, Any, Hashable, TYPE_CHECKING, Union
 
 from schedule import Scheduler
 
+from openhab.models import BaseItem
 from zone_api import platform_encapsulator as pe
 from zone_api.core import action
 from zone_api.core.actions.track_significant_events import TrackSignificantEvents
@@ -66,9 +67,10 @@ class ImmutableZoneManager:
       - stop() should be called when the object is no longer used.
     """
 
-    def __init__(self, get_zones_fcn, get_zone_by_id_fcn, get_devices_by_type_fcn,
+    def __init__(self, get_item_fcn, get_zones_fcn, get_zone_by_id_fcn, get_devices_by_type_fcn,
                  alert_manager: Union['AlertManager', None] = None, email_settings: Union[EmailSettings, None] = None,
                  activity_times: Union[ActivityTimes, None] = None, label_mappings: Union[dict[str, str], None] = None):
+        self.get_item_fcn = get_item_fcn
         self.get_zones_fcn = get_zones_fcn
         self.get_zone_by_id_fcn = get_zone_by_id_fcn
         self.get_devices_by_type_fcn = get_devices_by_type_fcn
@@ -78,6 +80,10 @@ class ImmutableZoneManager:
         self._email_settings: Union[EmailSettings, None] = email_settings
         self._activity_times = activity_times
         self._label_mappings: dict[str, str] = label_mappings # type: ignore
+
+        self._item_map = {}
+        for item in get_item_fcn():
+            self._item_map[item.name] = item
 
         # noinspection PyTypeChecker
         self.cease_continuous_run: threading.Event = None # type: ignore
@@ -115,7 +121,8 @@ class ImmutableZoneManager:
     def set_alert_manager(self, alert_manager: 'AlertManager'):
         """ Sets the alert manager and returns a new instance of this class. """
 
-        params = {'get_zones_fcn': self.get_zones_fcn,
+        params = {'get_item_fcn': self.get_item_fcn,
+                  'get_zones_fcn': self.get_zones_fcn,
                   'get_zone_by_id_fcn': self.get_zone_by_id_fcn,
                   'get_devices_by_type_fcn': self.get_devices_by_type_fcn,
                   'email_settings': self.email_settings,
@@ -144,7 +151,8 @@ class ImmutableZoneManager:
         activity_times = self._create_activity_times(config)
         pe.log_info(f"Configured {activity_times.number_of_activities} activities.")
 
-        params = {'get_zones_fcn': self.get_zones_fcn,
+        params = {'get_item_fcn': self.get_item_fcn,
+                  'get_zones_fcn': self.get_zones_fcn,
                   'get_zone_by_id_fcn': self.get_zone_by_id_fcn,
                   'get_devices_by_type_fcn': self.get_devices_by_type_fcn,
                   'alert_manager': self.alert_manager,
@@ -231,6 +239,26 @@ class ImmutableZoneManager:
                 return zone
 
         return None
+
+    def get_item(self, item_name: str) -> Union[BaseItem, None]:
+        """
+        Returns the item associated with the given item_name.
+
+        :param str item_name:
+        :return: the associated item or None if the item_name is not found
+        :rtype: BaseItem
+        """
+        return self._item_map[item_name] if item_name in self._item_map.keys() else None
+
+    def has_item(self, item_name: str) -> bool:
+        """
+        Returns True if the item_name is associated with an item.
+
+        :param str item_name:
+        :return: True if the item_name is associated with an item; False otherwise
+        :rtype: bool
+        """
+        return item_name in self._item_map.keys()
 
     def get_zones(self) -> List[Zone]:
         """

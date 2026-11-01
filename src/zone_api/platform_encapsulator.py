@@ -7,17 +7,16 @@ from email.message import EmailMessage
 from email.utils import make_msgid
 import mimetypes
 
-from typing import List, Union, Any, TYPE_CHECKING
+from typing import cast, List, Union, Any, TYPE_CHECKING
 
 import HABApp
 from HABApp.core.items import Item
-from HABApp.openhab.errors import ItemNotFoundError
-from HABApp.openhab.items import ColorItem, ContactItem, DatetimeItem, DimmerItem, NumberItem, StringItem, SwitchItem, \
+from openhab.models import ColorItem, ContactItem, DateTimeItem, DimmerItem, NumberItem, StringItem, SwitchItem, \
     PlayerItem
 from HABApp.core.types.color import RGB
-from HABApp.rule import in_thread
 
 from zone_api.core.immutable_zone_manager import EmailSettings, ImmutableZoneManager
+from zone_api.core.zone_manager import ZoneManager
 
 if TYPE_CHECKING:
     from zone_api.core.immutable_zone_manager import EmailSettings, ImmutableZoneManager
@@ -33,7 +32,7 @@ The previous 4 items are used to play TTS message and audio file/URL.
 The corresponding script to process these actions are in JSR223 side, within OpenHab.
 """
 
-ZONE_MANAGER: Union['ImmutableZoneManager', None] = None
+ZONE_MANAGER: 'ImmutableZoneManager'
 
 _in_unit_tests = False
 
@@ -83,7 +82,7 @@ def is_in_on_state(item: SwitchItem):
     :return: True if the state is ON.
     """
     if isinstance(item, SwitchItem):
-        return item.is_on()
+        return item.state == "ON"
 
     return False
 
@@ -94,21 +93,21 @@ def is_in_open_state(item: ContactItem):
     :return: True if the state is OPEN.
     """
     if isinstance(item, ContactItem):
-        return item.is_open()
+        return item.state == "OPEN"
 
     return False
 
 
-def create_datetime_item(name: str) -> DatetimeItem:
-    return DatetimeItem(name)
+def create_datetime_item(name: str) -> DateTimeItem:
+    return DateTimeItem({"name": name})
 
 
 def create_number_item(name: str) -> NumberItem:
-    return NumberItem(name)
+    return NumberItem({"name": name})
 
 
 def create_player_item(name: str) -> PlayerItem:
-    return PlayerItem(name)
+    return PlayerItem({"name": name})
 
 
 def create_dimmer_item(name: str, percentage: int = 0) -> DimmerItem:
@@ -117,14 +116,14 @@ def create_dimmer_item(name: str, percentage: int = 0) -> DimmerItem:
     :param int percentage: 0 (OFF) to 100 (full brightness)
     :return: DimmerItem
     """
-    return DimmerItem(name, percentage)
+    return DimmerItem({"name": name, "state": percentage})
 
 
 def create_color_item(name: str, on=False) -> ColorItem:
     """ Create a color item. """
-    item = ColorItem(name)
+    item = ColorItem({"name": name})
     if on:
-        item.set_value(RGB(0, 0, 100))
+        item.state = RGB(0, 0, 100)
 
     return item
 
@@ -135,8 +134,8 @@ def create_switch_item(name: str, on=False) -> SwitchItem:
     :param on: if True, the state is ON, else the state is OFF
     :return: SwitchItem
     """
-    item = SwitchItem(name)
-    item.set_value("ON" if on else "OFF")
+    item = SwitchItem({"name": name})
+    item.state = "ON" if on else "OFF"
     return item
 
 def create_contact_item(name: str, open=False) -> ContactItem:
@@ -145,130 +144,119 @@ def create_contact_item(name: str, open=False) -> ContactItem:
     :param on: if True, the state is OPEN, else the state is CLOSED
     :return: ContactItem
     """
-    item = ContactItem(name)
-    item.set_value("OPEN" if open else "CLOSED")
+    item = ContactItem({"name": name})
+    item.state = "OPEN" if open else "CLOSED"
     return item
 
 
 def create_string_item(name: str) -> StringItem:
-    return StringItem(name)
+    return StringItem({"name":name})
 
 
-@in_thread
 def set_color_value(item: ColorItem, rgb_color: List[int]):
     """ Change the color of the item. """
-    if is_in_unit_tests():
-        item.post_value(RGB(*rgb_color))
-    else:
-        # OH's color item accepts only HSB value; thus the RGB value needs to be converted to HSB.
-        item.post_value(RGB(*rgb_color))
-        #item.oh_send_command(",".join(map(str, [item.hue, item.saturation, item.brightness])))
+    # OH's color item accepts only HSB value; thus the RGB value needs to be converted to HSB.
+    item.set_value(RGB(*rgb_color))
+    #item.oh_send_command(",".join(map(str, [item.hue, item.saturation, item.brightness])))
 
 
-@in_thread
 def set_switch_state(item_or_item_name: Union[SwitchItem, str], on: bool):
     """ Set the switch state for the given item or item name. """
+    item: SwitchItem
     if isinstance(item_or_item_name, str):
-        item_or_item_name = SwitchItem.get_item(item_or_item_name)
-
-    if is_in_unit_tests():
-        item_or_item_name.set_value("ON" if on else "OFF")
+        item: SwitchItem = cast(SwitchItem, ZONE_MANAGER.get_item(item_or_item_name))
     else:
-        if on:
-            item_or_item_name.on()
-        else:
-            item_or_item_name.off()
+        item = item_or_item_name
 
-
-@in_thread
-def set_datetime_value(item_or_item_name: Union[DatetimeItem, str], value: datetime.datetime):
-    if isinstance(item_or_item_name, str):
-        item_or_item_name = DatetimeItem.get_item(item_or_item_name)
-
-    if is_in_unit_tests():
-        item_or_item_name.post_value(value)
+    if on:
+        item.on()
     else:
-        item_or_item_name.oh_send_command(value)
+        item.off()
 
 
-def get_datetime_value(item_or_item_name: Union[DatetimeItem, str]) -> datetime.datetime:
+def set_datetime_value(item_or_item_name: Union[DateTimeItem, str], value: datetime.datetime):
+    item: DateTimeItem
     if isinstance(item_or_item_name, str):
-        item_or_item_name = DatetimeItem.get_item(item_or_item_name)
+        item = cast(DateTimeItem, ZONE_MANAGER.get_item(item_or_item_name)) 
+    else:
+        item = item_or_item_name
 
-    return item_or_item_name.get_value()
+    item.set_value(value)
 
 
-@in_thread
+def get_datetime_value(item_or_item_name: Union[DateTimeItem, str]) -> datetime.datetime:
+    item: DateTimeItem
+    if isinstance(item_or_item_name, str):
+        item: DateTimeItem = cast(DateTimeItem, ZONE_MANAGER.get_item(item_or_item_name)) 
+    else:
+        item = item_or_item_name
+
+    return item.state
+
+
 def set_dimmer_value(item: DimmerItem, percentage: int):
-    if is_in_unit_tests():
-        item.post_value(percentage)
-    else:
-        item.percent(percentage)
+    item.set_percentage(percentage)
 
 
 def get_dimmer_percentage(item: DimmerItem) -> int:
-    return item.get_value(0)
+    return item.percentage() or 0 
 
 
-@in_thread
 def set_number_value(item_or_item_name: Union[NumberItem, str], value: float):
+    item:NumberItem
     if isinstance(item_or_item_name, str):
-        item_or_item_name = NumberItem.get_item(item_or_item_name)
-
-    if is_in_unit_tests():
-        item_or_item_name.post_value(value)
+        item: NumberItem = cast(NumberItem, ZONE_MANAGER.get_item(item_or_item_name))
     else:
-        item_or_item_name.oh_send_command(value)
+        item = item_or_item_name
+
+    item.set_value(value)
 
 
 def get_number_value(item_or_item_name: Union[NumberItem, DimmerItem, str]) -> Union[float, int]:
+    item:NumberItem
     if isinstance(item_or_item_name, str):
-        item_or_item_name = NumberItem.get_item(item_or_item_name)
-
-    return item_or_item_name.get_value(0)
-
-
-@in_thread
-def set_string_value(item_or_item_name: Union[StringItem, str], value: str):
-    if isinstance(item_or_item_name, str):
-        item_or_item_name = StringItem.get_item(item_or_item_name)
-
-    if is_in_unit_tests():
-        item_or_item_name.post_value(value)
+        item: NumberItem = cast(NumberItem, ZONE_MANAGER.get_item(item_or_item_name))
     else:
-        item_or_item_name.oh_send_command(value)
+        item = item_or_item_name
+
+    return item.get_value() or 0
+
+
+def set_string_value(item_or_item_name: Union[StringItem, str], value: str):
+    item: StringItem
+    if isinstance(item_or_item_name, str):
+        item: StringItem = cast(StringItem, ZONE_MANAGER.get_item(item_or_item_name))
+    else:
+        item = item_or_item_name
+
+    item.set_value(value)
 
 
 def get_string_value(item_or_item_name: Union[StringItem, str]) -> str:
+    item: StringItem
     if isinstance(item_or_item_name, str):
-        item_or_item_name = StringItem.get_item(item_or_item_name)
+        item: StringItem = cast(StringItem, ZONE_MANAGER.get_item(item_or_item_name)) 
+    else:
+        item = item_or_item_name
 
-    return item_or_item_name.get_value()
+    return item.state or ""
 
 
-@in_thread
 def change_player_state_to_pause(item: PlayerItem):
-    if is_in_unit_tests():
-        item.set_value("PAUSE")
-    else:
-        item.oh_send_command("PAUSE")
+    item.pause()
 
 
-@in_thread
 def change_player_state_to_play(item: PlayerItem):
-    if is_in_unit_tests():
-        item.set_value("PLAY")
-    else:
-        item.oh_send_command("PLAY")
+    item.play()
 
 
 def is_player_playing(item: PlayerItem):
-    return item.get_value() == "PLAY"
+    return item.is_playing()
 
 
 def has_item(item_name: str):
     """ Returns true if the item name is present in the back store. """
-    return HABApp.core.Items.item_exists(item_name)
+    return ZONE_MANAGER.has_item(item_name)
 
 
 def get_item_name(item):
@@ -295,32 +283,10 @@ def log_warning(message: str):
     logger.warning(message)
 
 
-def get_channel(item) -> Union[str, None]:
-    """
-    Returns the OpenHab channel string linked with the item.
-
-    :rtype: str the channel string or None if the item is not linked to
-    a channel
-    """
-    if is_in_unit_tests():
-        return None
-    else:
-        try:
-            item_def: HABApp.openhab.definitions.rest.items.ItemResp = HABApp.openhab.interface_sync.get_item(item.name)
-            if item_def:
-                metadata = item_def.metadata
-                value = metadata.get("channel")
-                return value['value'] if value is not None else None
-        except ItemNotFoundError:
-            return None
-
-
-@in_thread
 def get_event_dispatcher():
     if not is_in_unit_tests():
         class EventDispatcher:
             # noinspection PyMethodMayBeStatic
-            @in_thread
             def send_command(self, item_name: str, command: Any):
                 HABApp.openhab.interface_sync.send_command(item_name, command)
 
@@ -352,40 +318,29 @@ def set_in_unit_tests():
     if not is_in_unit_tests():
         _in_unit_tests = True
 
-        ir = HABApp.core.internals.ItemRegistry()
-        eb = HABApp.core.internals.EventBus()
-        file_manager = HABApp.core.files.FileManager(None)
-        HABApp.core.internals.setup_internals(ir, eb, file_manager)
-        HABApp.core.Items = ir
-        HABApp.core.EventBus = eb
-
 
 def is_in_unit_tests():
     return _in_unit_tests
 
 
-@in_thread
 def play_local_audio_file(sink_name: str, file_location: str):
     """ Plays a local audio file on the given audio sink. """
     StringItem.get_item(ACTION_AUDIO_SINK_ITEM_NAME).oh_post_update(sink_name)
     StringItem.get_item(ACTION_AUDIO_LOCAL_FILE_LOCATION_ITEM_NAME).oh_post_update(file_location)
 
 
-@in_thread
 def play_stream_url(sink_name: str, url: str):
     """ Plays a stream URL on the given audio sink. """
     StringItem.get_item(ACTION_AUDIO_SINK_ITEM_NAME).oh_post_update(sink_name)
     StringItem.get_item(ACTION_AUDIO_STREAM_URL_ITEM_NAME).oh_post_update(url)
 
 
-@in_thread
 def play_text_to_speech_message(sink_name: str, tts: str):
     """ Plays a text to speech message on the given audio sink. """
     StringItem.get_item(ACTION_AUDIO_SINK_ITEM_NAME).oh_post_update(sink_name)
     StringItem.get_item(ACTION_TEXT_TO_SPEECH_MESSAGE_ITEM_NAME).oh_post_update(tts)
 
 
-@in_thread
 def send_email(email_addresses: List[str], subject: str, body: str = '', images_paths: List[str] = None):
     """
     Send an email using the python library smtplib. The content of the email is formatted in html . If the images are
@@ -451,13 +406,11 @@ def send_email(email_addresses: List[str], subject: str, body: str = '', images_
         log_error(str(e))
 
 
-@in_thread
 def change_ecobee_thermostat_hold_mode(mode: str):
     """ Change Ecobee thermostat to the specified mode via the Ecobee action in OpenHab. """
     StringItem.get_item('EcobeeThermostatHoldMode').oh_post_update(mode)
 
 
-@in_thread
 def resume_ecobee_thermostat_program():
     """ Resume the Ecobee thermostat via the Ecobee action in OpenHab. """
     SwitchItem.get_item('EcobeeThermostatResume').on()

@@ -1,14 +1,15 @@
+from curses import meta
 import re
 from typing import Union, Dict, Any
 
 import HABApp
-from HABApp.core import Items
 from HABApp.core.events import ValueUpdateEventFilter, ValueChangeEventFilter, ValueChangeEvent
 from HABApp.core.events.filter.event import TypeBoundEventFilter
-from HABApp.core.items.base_item import BaseItem
 from HABApp.openhab.events import ItemCommandEvent
 from HABApp.openhab.events import ItemStateUpdatedEvent
-from HABApp.openhab.items import ColorItem, DimmerItem, NumberItem, SwitchItem, StringItem
+
+from openhab.models import BaseItem
+from openhab.models import ColorItem, DimmerItem, NumberItem, SwitchItem, StringItem
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
@@ -71,11 +72,9 @@ def create_switches(zm: ImmutableZoneManager,
     duration_in_minutes_key = 'durationInMinutes'
     # disable_triggering_key = "disableTriggeringFromMotionSensor"
 
-    item_def = HABApp.openhab.interface_sync.get_item(item.name)
-    metadata = item_def.metadata
-
+    metadata = item.metadata
     if device_name.endswith('LightSwitch') or device_name.endswith('FanSwitch') or 'Wled_MasterControls' in device_name:
-        duration_in_minutes = int(get_meta_value(metadata, duration_in_minutes_key, -1))
+        duration_in_minutes = int(get_meta_value(metadata, duration_in_minutes_key, -1)) # type: ignore
         if duration_in_minutes == -1:
             raise ValueError(f"Missing durationInMinutes value for {item_name}'")
     else:
@@ -95,7 +94,7 @@ def create_switches(zm: ImmutableZoneManager,
         else:
             color_bulb = True if "true" == get_meta_value(metadata, color_bulb_key, 'false') else False
             if color_bulb:
-                color_item = Items.get_item(item_name + 'Color')
+                color_item = zm.get_item(item_name + 'Color')
                 device = ColorLight(item, color_item, duration_in_minutes, illuminance_threshold_in_lux,
                                     no_premature_turn_off_time_range)
             else:
@@ -105,9 +104,9 @@ def create_switches(zm: ImmutableZoneManager,
     elif device_name.endswith('FanSwitch'):
         device = Fan(item, duration_in_minutes)
     elif 'Wled_MasterControls' in device_name:
-        effect_item = Items.get_item(item.name.replace('MasterControls', 'FX'))
-        primary_color_item = Items.get_item(item.name.replace('MasterControls', 'Primary'))
-        secondary_color_item = Items.get_item(item.name.replace('MasterControls', 'Secondary'))
+        effect_item = zm.get_item(item.name.replace('MasterControls', 'FX'))
+        primary_color_item = zm.get_item(item.name.replace('MasterControls', 'Primary'))
+        secondary_color_item = zm.get_item(item.name.replace('MasterControls', 'Secondary'))
 
         device = Wled(item, effect_item, primary_color_item, secondary_color_item, duration_in_minutes)
 
@@ -151,14 +150,14 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
     :param item: SwitchItem
     :return: AlarmPartition
     """
-    arm_mode_item = BaseItem.get_item(item.name + '_ArmMode')
-    send_command_item = Items.get_item(item.name + '_SendCommand')
+    arm_mode_item = zm.get_item(item.name + '_ArmMode')
+    send_command_item = zm.get_item(item.name + '_SendCommand')
     # noinspection PyTypeChecker
-    panel_fire_key_alarm_item: SwitchItem = Items.get_item(item.name + '_PanelFireKeyAlarm') # type: ignore
+    panel_fire_key_alarm_item: SwitchItem = zm.get_item(item.name + '_PanelFireKeyAlarm') # type: ignore
     # noinspection PyTypeChecker
-    panel_ambulance_key_alarm_item: SwitchItem = Items.get_item(item.name + '_PanelAmbulanceKeyAlarm') # type: ignore
+    panel_ambulance_key_alarm_item: SwitchItem = zm.get_item(item.name + '_PanelAmbulanceKeyAlarm') # type: ignore
     # noinspection PyTypeChecker
-    panel_police_key_alarm_item: SwitchItem = Items.get_item(item.name + '_PanelPoliceKeyAlarm') # type: ignore
+    panel_police_key_alarm_item: SwitchItem = zm.get_item(item.name + '_PanelPoliceKeyAlarm') # type: ignore
 
     # noinspection PyTypeChecker
     device: AlarmPartition = _configure_device(
@@ -214,28 +213,27 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
 
         dsc_item.listen_event(handler, ValueChangeEventFilter())
 
-    wire_soft_panel_events(BaseItem.get_item(item.name + '_DscPanelFireKeyAlarm'), panel_fire_key_alarm_item)
-    wire_soft_panel_events(BaseItem.get_item(item.name + '_DscPanelAmbulanceKeyAlarm'), panel_ambulance_key_alarm_item)
-    wire_soft_panel_events(BaseItem.get_item(item.name + '_DscPanelPoliceKeyAlarm'), panel_police_key_alarm_item)
+    wire_soft_panel_events(zm.get_item(item.name + '_DscPanelFireKeyAlarm'), panel_fire_key_alarm_item)
+    wire_soft_panel_events(zm.get_item(item.name + '_DscPanelAmbulanceKeyAlarm'), panel_ambulance_key_alarm_item)
+    wire_soft_panel_events(zm.get_item(item.name + '_DscPanelPoliceKeyAlarm'), panel_police_key_alarm_item)
 
     # noinspection PyTypeChecker
     return device
 
 
 def create_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> ChromeCastAudioSink:
-    item_def = HABApp.openhab.interface_sync.get_item(item.name)
-    metadata = item_def.metadata
+    metadata = item.metadata
 
     sink_name = get_meta_value(metadata, "sinkName", None)
-    player_item = BaseItem.get_item(item.name + "Player")
-    volume_item = BaseItem.get_item(item.name + "Volume")
-    title_item = BaseItem.get_item(item.name + "Title")
-    idling_item = BaseItem.get_item(item.name + "Idling")
+    player_item = zm.get_item(item.name + "Player")
+    volume_item = zm.get_item(item.name + "Volume")
+    title_item = zm.get_item(item.name + "Title")
+    idling_item = zm.get_item(item.name + "Idling")
 
     stream_title_name = item.name + "StreamTitle"
     stream_title_item = None
     if pe.has_item(stream_title_name):
-        stream_title_item = Items.get_item(stream_title_name)
+        stream_title_item = zm.get_item(stream_title_name)
 
     device = _configure_device(ChromeCastAudioSink(
         sink_name, player_item, volume_item, title_item, idling_item, stream_title_item), zm)
@@ -258,15 +256,14 @@ def create_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> ChromeCast
 
 
 def create_mpd_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> MpdChromeCastAudioSink:
-    item_def = HABApp.openhab.interface_sync.get_item(item.name)
-    metadata = item_def.metadata
+    metadata = item.metadata
 
     sink_name = get_meta_value(metadata, "sinkName", None)
-    player_item = BaseItem.get_item(item.name + "Player")
-    volume_item = BaseItem.get_item(item.name + "Volume")
-    title_item = BaseItem.get_item(item.name + "Title")
-    idling_item = BaseItem.get_item(item.name + "Idling")
-    stream_title_item = Items.get_item(item.name + "StreamTitle")
+    player_item = zm.get_item(item.name + "Player")
+    volume_item = zm.get_item(item.name + "Volume")
+    title_item = zm.get_item(item.name + "Title")
+    idling_item = zm.get_item(item.name + "Idling")
+    stream_title_item = zm.get_item(item.name + "StreamTitle")
 
     device = _configure_device(MpdChromeCastAudioSink(
         sink_name, player_item, volume_item, title_item, idling_item, stream_title_item), zm)
@@ -298,7 +295,7 @@ def create_mpd_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> MpdChr
     return device
 
 
-def get_meta_value(metadata: Dict[str, Any], key, default_value=None) -> str:
+def get_meta_value(metadata: Dict[str, Any], key, default_value=None) -> Union[Any, None]:
     """ Helper method to get the metadata value. """
     value = metadata.get(key)
     if value is None:
@@ -330,23 +327,23 @@ def create_camera(zm: ImmutableZoneManager, item: StringItem) -> Camera:
     image_url_item_name = item.name + "_ImageUrl"
     image_url_item = None
     if pe.has_item(image_url_item_name):
-        image_url_item = Items.get_item(image_url_item_name)
+        image_url_item = zm.get_item(image_url_item_name)
 
     mjpeg_url_item_name = item.name + "_MjpegUrl"
     mjpeg_url_item = None
     if pe.has_item(mjpeg_url_item_name):
-        mjpeg_url_item = Items.get_item(mjpeg_url_item_name)
+        mjpeg_url_item = zm.get_item(mjpeg_url_item_name)
 
     enable_ffmpeg_item_name = item.name + "_EnableFfmpeg"
     enable_ffmpeg_item = None
     if pe.has_item(enable_ffmpeg_item_name):
-        enable_ffmpeg_item = Items.get_item(enable_ffmpeg_item_name)
+        enable_ffmpeg_item = zm.get_item(enable_ffmpeg_item_name)
 
     # noinspection PyTypeChecker
     return _configure_device(OnvifCamera(item, image_url_item, mjpeg_url_item, enable_ffmpeg_item), zm)
 
 
-def create_motion_sensor(zm: ImmutableZoneManager, item) -> MotionSensor:
+def create_motion_sensor(zm: ImmutableZoneManager, item: BaseItem) -> MotionSensor:
     """
     Creates a MotionSensor and register for change event.
     :param zm: the zone manager instance to dispatch the event.
@@ -356,17 +353,15 @@ def create_motion_sensor(zm: ImmutableZoneManager, item) -> MotionSensor:
     in_alarm_name = item.name + "_InAlarm"
     in_alarm_item = None
     if pe.has_item(in_alarm_name):
-        in_alarm_item = Items.get_item(in_alarm_name)
+        in_alarm_item = zm.get_item(in_alarm_name)
 
     battery_percentage_name = item.name + "_BatteryPercentage"
     battery_percentage_item = None
     if pe.has_item(battery_percentage_name):
-        battery_percentage_item = Items.get_item(battery_percentage_name)
+        battery_percentage_item = zm.get_item(battery_percentage_name)
 
     key_disable_triggering_switches = "disableTriggeringSwitches"
-    item_def = HABApp.openhab.interface_sync.get_item(item.name)
-    metadata = item_def.metadata
-    can_trigger_switches = False if "true" == get_meta_value(metadata, key_disable_triggering_switches) else True
+    can_trigger_switches = False if "true" == get_meta_value(item.metadata, key_disable_triggering_switches) else True
 
     sensor = _configure_device(
         MotionSensor(item, can_trigger_switches, in_alarm_item, battery_percentage_item), zm)
@@ -409,19 +404,19 @@ def create_ikea_remote_control(brightness_up_hold_event: ZoneEvent = None,
     """
 
     def inner_fcn(zm: ImmutableZoneManager, item) -> GasSensor:
-        brightness_up_click_item = Items.get_item(item.name + "_BrightnessUpClick")
-        brightness_up_hold_item = Items.get_item(item.name + "_BrightnessUpHold")
+        brightness_up_click_item = zm.get_item(item.name + "_BrightnessUpClick")
+        brightness_up_hold_item = zm.get_item(item.name + "_BrightnessUpHold")
 
-        brightness_down_click_item = Items.get_item(item.name + "_BrightnessDownClick")
-        brightness_down_hold_item = Items.get_item(item.name + "_BrightnessDownHold")
+        brightness_down_click_item = zm.get_item(item.name + "_BrightnessDownClick")
+        brightness_down_hold_item = zm.get_item(item.name + "_BrightnessDownHold")
 
-        left_click_item = Items.get_item(item.name + "_ArrowLeftClick")
-        left_hold_item = Items.get_item(item.name + "_ArrowLeftHold")
+        left_click_item = zm.get_item(item.name + "_ArrowLeftClick")
+        left_hold_item = zm.get_item(item.name + "_ArrowLeftHold")
 
-        right_click_item = Items.get_item(item.name + "_ArrowRightClick")
-        right_hold_item = Items.get_item(item.name + "_ArrowRightHold")
+        right_click_item = zm.get_item(item.name + "_ArrowRightClick")
+        right_hold_item = zm.get_item(item.name + "_ArrowRightHold")
 
-        battery_item = Items.get_item(item.name + "_BatteryPercentage")
+        battery_item = zm.get_item(item.name + "_BatteryPercentage")
 
         sensor = _configure_device(
             IkeaRemoteControl(item, brightness_up_click_item, brightness_up_hold_item, brightness_down_click_item,
@@ -477,7 +472,7 @@ def create_temperature_sensor(zm: ImmutableZoneManager, item) -> TemperatureSens
     battery_percentage_name = item.name + "_BatteryPercentage"
     battery_percentage_item = None
     if pe.has_item(battery_percentage_name):
-        battery_percentage_item = Items.get_item(battery_percentage_name)
+        battery_percentage_item = zm.get_item(battery_percentage_name)
 
     sensor = _configure_device(
         TemperatureSensor(temperature_item=item, battery_percentage_item=battery_percentage_item), zm)
@@ -502,13 +497,12 @@ def create_plug(zm: ImmutableZoneManager, item) -> Plug:
     :return: Plug
     """
     power_item_name = item.name + '_Power'
-    if Items.item_exists(power_item_name):
-        power_item = Items.get_item(power_item_name)
+    if zm.has_item(power_item_name):
+        power_item = zm.get_item(power_item_name)
     else:
         power_item = None
 
-    item_def = HABApp.openhab.interface_sync.get_item(item.name)
-    metadata = item_def.metadata
+    metadata = item.metadata
     always_on = True if "true" == get_meta_value(metadata, "alwaysOn") else False
     reversed_control = True if "true" == get_meta_value(metadata, "reversedSecurityControl") else False
 
@@ -522,7 +516,7 @@ def create_gas_sensor(cls):
     """
 
     def inner_fcn(zm: ImmutableZoneManager, item) -> GasSensor:
-        state_item = BaseItem.get_item(item.name + 'State')
+        state_item = zm.get_item(item.name + 'State')
 
         sensor = _configure_device(cls(item, state_item), zm)
 
@@ -547,7 +541,7 @@ def create_door(zm: ImmutableZoneManager, item) -> Door:
     in_alarm_name = item.name + "_InAlarm"
     in_alarm_item = None
     if pe.has_item(in_alarm_name):
-        in_alarm_item = Items.get_item(in_alarm_name)
+        in_alarm_item = zm.get_item(in_alarm_name)
 
     if 'garage' in pe.get_item_name(item).lower():
         sensor = GarageDoor(item, in_alarm_item)
@@ -573,7 +567,7 @@ def create_window(zm: ImmutableZoneManager, item) -> Window:
     in_alarm_name = item.name + "_InAlarm"
     in_alarm_item = None
     if pe.has_item(in_alarm_name):
-        in_alarm_item = Items.get_item(in_alarm_name)
+        in_alarm_item = zm.get_item(in_alarm_name)
 
     sensor = _configure_device(Window(item, in_alarm_item), zm)
 
@@ -608,9 +602,7 @@ def create_water_leak_sensor(zm: ImmutableZoneManager, item) -> WaterLeakSensor:
 def create_illuminance_sensor(zm: ImmutableZoneManager, item: BaseItem) -> IlluminanceSensor:
     """ Create an illuminance sensor. """
     if 'FixedValue' in item.name:
-        item_def = HABApp.openhab.interface_sync.get_item(item.name)
-        metadata = item_def.metadata
-        luminance_value = float(get_meta_value(metadata, 'luminanceValue', 5))
+        luminance_value = float(get_meta_value(item.metadata, 'luminanceValue', 5)) # type: ignore
 
         # noinspection PyTypeChecker
 
@@ -628,7 +620,7 @@ def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> EcobeeThermostat
     """
 
     event_item_name = item.name.replace("EcobeeName", "FirstEvent_Type")
-    event_item = BaseItem.get_item(event_item_name)
+    event_item = zm.get_item(event_item_name)
 
     # noinspection PyTypeChecker
     device: EcobeeThermostat = _configure_device(EcobeeThermostat(item, event_item), zm)
@@ -694,20 +686,19 @@ def create_television_device(zm: ImmutableZoneManager, item) -> Tv:
 
 def create_computer(zm: ImmutableZoneManager, item) -> Computer:
     """ Create an computer device. """
-    item_def = HABApp.openhab.interface_sync.get_item(item.name)
-    metadata = item_def.metadata
+    metadata = item.metadata
 
     name = get_meta_value(metadata, "name", None)
     always_on = True if get_meta_value(metadata, "alwaysOn", None) == "true" else False
 
     tmp_item_name = item.name + "_CpuTemperature"
-    cpu_temperature_item = BaseItem.get_item(tmp_item_name) if pe.has_item(tmp_item_name) else None
+    cpu_temperature_item = zm.get_item(tmp_item_name) if pe.has_item(tmp_item_name) else None
 
     tmp_item_name = item.name + "_GpuTemperature"
-    gpu_temperature_item = BaseItem.get_item(tmp_item_name) if pe.has_item(tmp_item_name) else None
+    gpu_temperature_item = zm.get_item(tmp_item_name) if pe.has_item(tmp_item_name) else None
 
     tmp_item_name = item.name + "_GpuFanSpeed"
-    gpu_fan_speed_item = BaseItem.get_item(tmp_item_name) if pe.has_item(tmp_item_name) else None
+    gpu_fan_speed_item = zm.get_item(tmp_item_name) if pe.has_item(tmp_item_name) else None
 
     device = _configure_device(Computer(
         name, cpu_temperature_item, gpu_temperature_item, gpu_fan_speed_item, always_on), zm)
@@ -743,20 +734,20 @@ def create_weather(zm: ImmutableZoneManager, temperature_item: NumberItem) -> Un
         return None
 
     device_name = match.group(1)
-    humidity_item = BaseItem.get_item(f"{device_name}_Humidity")
-    condition_item = BaseItem.get_item(f"{device_name}_Condition")
+    humidity_item = zm.get_item(f"{device_name}_Humidity")
+    condition_item = zm.get_item(f"{device_name}_Condition")
 
     item_name = f"{device_name}_Alert_Title"
-    alert_title_item = BaseItem.get_item(item_name) if pe.has_item(item_name) else None
+    alert_title_item = zm.get_item(item_name) if pe.has_item(item_name) else None
 
     item_name = f"{device_name}_Alert_Date"
-    alert_datetime_item = BaseItem.get_item(item_name) if pe.has_item(item_name) else None
+    alert_datetime_item = zm.get_item(item_name) if pe.has_item(item_name) else None
 
     item_name = f"{device_name}_ForecastTempMin"
-    forecast_min_temp_item = BaseItem.get_item(item_name) if pe.has_item(item_name) else None
+    forecast_min_temp_item = zm.get_item(item_name) if pe.has_item(item_name) else None
 
     item_name = f"{device_name}_ForecastTempMax"
-    forecast_max_temp_item = BaseItem.get_item(item_name) if pe.has_item(item_name) else None
+    forecast_max_temp_item = zm.get_item(item_name) if pe.has_item(item_name) else None
 
     device = Weather(temperature_item, humidity_item, condition_item, alert_title_item, alert_datetime_item,
                      forecast_min_temp_item, forecast_max_temp_item)
@@ -795,7 +786,7 @@ def create_auto_report_notification_setting(zm: ImmutableZoneManager, device_nam
         return None
 
     name_prefix = match.group(1)
-    duration_item = Items.get_item(f"{name_prefix}_AutoReportDeferredDurationInHour")
+    duration_item = zm.get_item(f"{name_prefix}_AutoReportDeferredDurationInHour")
 
     device = DeferredAutoReportNotification(device_name_item, duration_item)
     device = _configure_device(device, zm)
@@ -815,14 +806,13 @@ def create_flash_message(zm: ImmutableZoneManager, item: StringItem) -> Tv:
 
 
 def create_mpd_controller(zm: ImmutableZoneManager, item: BaseItem) -> MpdDevice:
-    predefined_category_item = BaseItem.get_item(item.name + "_PredefinedCategory")
-    custom_category_item = BaseItem.get_item(item.name + "_CustomCategory")
+    predefined_category_item = zm.get_item(item.name + "_PredefinedCategory")
+    custom_category_item = zm.get_item(item.name + "_CustomCategory")
 
-    item_def = HABApp.openhab.interface_sync.get_item(item.name)
-    metadata = item_def.metadata
+    metadata = item.metadata
 
     host = get_meta_value(metadata, "host", '')
-    port = int(get_meta_value(metadata, "port", ''))
+    port = int(get_meta_value(metadata, "port", '')) # type: ignore
 
     device = _configure_device(MpdDevice(item, host, port, predefined_category_item, custom_category_item), zm)
 
@@ -877,7 +867,7 @@ def _configure_device(device: Device, zm: ImmutableZoneManager) -> Device:
       should be called before configuring the event handler.
     - Also register the item state event for each item in the device to update the last activated timestamp.
     """
-    device = device.set_channel(pe.get_channel(device.get_item()))
+    device = device.set_channel(get_meta_value(device.get_item().metadata, "channel", None)) # type: ignore
     device = device.set_zone_manager(zm)
 
     # Can't rely on item changed even to determine last activated time, as sometimes the device may send the same value

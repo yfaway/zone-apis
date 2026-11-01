@@ -4,10 +4,9 @@ import pkgutil
 import inspect
 import importlib
 
-import HABApp
-from HABApp.core import Items
-from HABApp.core.internals.item_registry import ItemRegistryItem
+from openhab.client import OpenHabClient, fetch_items_from_endpoint
 
+from openhab.models import BaseItem, UnknownItem
 import zone_api.core.actions as actions
 from zone_api import platform_encapsulator as pe
 from zone_api import device_factory as df
@@ -91,16 +90,21 @@ def parse(config: dict[Hashable, Any], actions_package: str = "zone_api.core.act
 
     action_parameters: Parameters = _read_zone_api_configurations(config)
 
-    zm: ZoneManager = ZoneManager()
+    items: List[BaseItem] = fetch_items_from_endpoint()
+    for item in items:
+        if isinstance(item, UnknownItem):
+            print(f"Unknown item type: {item.name} ({item.type})")
+
+    zm: ZoneManager = ZoneManager(items)
     immutable_zm = zm.get_immutable_instance()
+    pe.add_zone_manager_to_context(immutable_zm)
     immutable_zm = immutable_zm.set_system_config(config)
     immutable_zm = immutable_zm.set_alert_manager(AlertManager(config))
 
     zone_mappings = {}
-    for zone in _parse_zones():
+    for zone in _parse_zones(items):
         zone_mappings[zone.get_id()] = zone
 
-    items: tuple[ItemRegistryItem] = Items.get_items()
     for item in items:
         for pattern in mappings.keys():
 
@@ -133,12 +137,13 @@ def parse(config: dict[Hashable, Any], actions_package: str = "zone_api.core.act
     for z in zone_mappings.values():
         zm.add_zone(z)
 
-    immutable_zm.start()
+    #immutable_zm.start()
+    print(zm)
 
     return immutable_zm
 
 
-def _parse_zones() -> List[Zone]:
+def _parse_zones(items: List[BaseItem]) -> List[Zone]:
     """
     Parses items with the zone pattern in the name and constructs the associated Zone objects.
     :return: List[Zone]
@@ -146,15 +151,13 @@ def _parse_zones() -> List[Zone]:
     pattern = 'Zone_([^_]+)'
     zones: List[Zone] = []
 
-    items = Items.get_items()
     for item in items:
         match = re.search(pattern, item.name)
         if not match:
             continue
 
         zone_name = match.group(1)
-        item_def = HABApp.openhab.interface_sync.get_item(item.name)
-        metadata = item_def.metadata
+        metadata = item.metadata
 
         level = Level(df.get_meta_value(metadata, "level"))
         external = df.get_meta_value(metadata, "external", False)
