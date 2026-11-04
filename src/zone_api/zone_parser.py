@@ -90,7 +90,8 @@ def parse(config: dict[Hashable, Any], actions_package: str = "zone_api.core.act
 
     action_parameters: Parameters = _read_zone_api_configurations(config)
 
-    items: List[BaseItem] = fetch_items_from_endpoint()
+    items: List[BaseItem] = fetch_items_from_endpoint(
+        config['system']['openhab']['host'], config['system']['openhab']['port'])
     for item in items:
         if isinstance(item, UnknownItem):
             print(f"Unknown item type: {item.name} ({item.type})")

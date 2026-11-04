@@ -1,9 +1,6 @@
 from __future__ import annotations
-
-from typing import Any, Dict, List, Optional
-
+from typing import Any, Dict, List
 import requests
-
 from .models import BaseItem, item_from_payload
 
 
@@ -41,7 +38,8 @@ class OpenHabClient:
 
 
 def fetch_items_from_endpoint(
-    url: str = 'http://ip:8080/rest/items',
+    host: str,
+    port: int,
     *,
     metadata: str = '.*',
     recursive: bool = False,
@@ -49,18 +47,10 @@ def fetch_items_from_endpoint(
     static_data_only: bool = False,
     timeout: int = 10,
 ) -> List[BaseItem]:
-    client = OpenHabClient(url.rsplit('/rest/items', 1)[0], timeout=timeout)
+    client = OpenHabClient(f"http://{host}:{port}", timeout=timeout)
     return client.get_items(
         metadata=metadata,
         recursive=recursive,
         parents=parents,
         static_data_only=static_data_only,
     )
-
-
-if __name__ == '__main__':
-    items = fetch_items_from_endpoint(
-        'http://ip:8080/rest/items?metadata=.%2A&recursive=false&parents=false&staticDataOnly=false'
-    )
-    for item in items[:5]:
-        print(item)
