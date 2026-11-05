@@ -1,4 +1,8 @@
 system:
+  openhab:
+    host: '192.168.0.221'
+    port: 8080
+
   activity-times:
     wakeup: '6:45 - 9'
     lunch: '12:00 - 13:30'

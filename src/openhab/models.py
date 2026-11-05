@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from numbers import Number
 from typing import Any, Dict, List, Tuple, Type, Union
 from collections.abc import Callable
@@ -40,6 +41,9 @@ class BaseItem:
             snake_key = self._to_snake_case(key)
             if not hasattr(self, snake_key):
                 setattr(self, snake_key, value)
+
+    def update_value_from_openhab(self, value: Any) -> None:
+        self.state = value
 
     def listen_event(self, callback: Callable[[Any], Any],
                      event_filter: Any) -> None:
@@ -116,8 +120,17 @@ class DimmerItem(NumberItem):
 
 
 class DateTimeItem(BaseItem):
-    def set_value(self, value: Any) -> None:
-        self.state = value
+    """
+    Represents a DateTime item in OpenHAB, which holds a string value. Hence, the get and set method has to do some
+    marshalling to convert the string to a datetime object and vice versa. The format used is ISO 8601 with milliseconds
+    and timezone. Example: "2023-08-15T14:30:00.000+0200".
+    """
+
+    def get_value(self) -> datetime:
+        return datetime.strptime(self.state, "%Y-%m-%dT%H:%M:%S.%f%z")
+
+    def set_value(self, value: datetime) -> None:
+        self.state = value.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + value.strftime("%z")
 
 
 class ColorItem(BaseItem):

@@ -191,7 +191,7 @@ def get_datetime_value(item_or_item_name: Union[DateTimeItem, str]) -> datetime.
     else:
         item = item_or_item_name
 
-    return item.state
+    return item.get_value()
 
 
 def set_dimmer_value(item: DimmerItem, percentage: int):

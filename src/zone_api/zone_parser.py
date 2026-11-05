@@ -4,7 +4,7 @@ import pkgutil
 import inspect
 import importlib
 
-from openhab.client import OpenHabClient, fetch_items_from_endpoint
+from openhab.client import fetch_items_from_endpoint
 
 from openhab.models import BaseItem, UnknownItem
 import zone_api.core.actions as actions
@@ -138,8 +138,7 @@ def parse(config: dict[Hashable, Any], actions_package: str = "zone_api.core.act
     for z in zone_mappings.values():
         zm.add_zone(z)
 
-    #immutable_zm.start()
-    print(zm)
+    immutable_zm.start()
 
     return immutable_zm
 

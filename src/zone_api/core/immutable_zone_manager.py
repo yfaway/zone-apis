@@ -250,6 +250,14 @@ class ImmutableZoneManager:
         """
         return self._item_map[item_name] if item_name in self._item_map.keys() else None
 
+    def get_items(self) -> List[BaseItem]:
+        """
+        Returns a new list contains all items.
+
+        :rtype: list(BaseItem)
+        """
+        return [i for i in self._item_map.values()]
+
     def has_item(self, item_name: str) -> bool:
         """
         Returns True if the item_name is associated with an item.

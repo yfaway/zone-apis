@@ -138,9 +138,7 @@ class OpenHabWebSocketClient:
             'topic': f"openhab/items/{item_name}/command",
             'payload': payload,
         }
-        task = asyncio.create_task(self._websocket.send(json.dumps(message)))
-        await task
-        print("done sending command:", message)
+        await self._websocket.send(json.dumps(message))
 
 
     async def run_forever(self) -> None:

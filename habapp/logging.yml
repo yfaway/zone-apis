@@ -1,66 +1,42 @@
-formatters:
-  HABApp_format:
-    format: '[%(asctime)s] [%(name)25s] %(levelname)8s | %(message)s'
+version: 1
 
+formatters:
+  default_format:
+    format: '[%(asctime)s] [%(name)25s] %(levelname)8s | %(message)s'
 
 handlers:
   # There are several Handlers available:
   # logging.handlers.RotatingFileHandler:
   #   Will rotate when the file reaches a certain size (see python logging documentation for args)
-  # HABApp.core.lib.handler.MidnightRotatingFileHandler:
-  #   Will wait until the file reaches a certain size and then rotate on midnight
   # More handlers:
   # https://docs.python.org/3/library/logging.handlers.html#rotatingfilehandler
 
-  HABApp_default:
-    class: HABApp.config.logging.MidnightRotatingFileHandler
-    filename: '/var/log/openhab/HABApp.log'
-    maxBytes: 10_000_000
-    backupCount: 3
-
-    formatter: HABApp_format
-    level: DEBUG
-
   EventFile:
-    class: HABApp.config.logging.MidnightRotatingFileHandler
+    class: logging.handlers.RotatingFileHandler
     filename: '/var/log/openhab/events.log'
     maxBytes: 10_000_000
     backupCount: 3
 
-    formatter: HABApp_format
+    formatter: default_format
     level: DEBUG
 
-  ZoneApisHandler:
-    class: HABApp.config.logging.MidnightRotatingFileHandler
+  ZoneApisConsoleHandler:
+    class: logging.StreamHandler
+    stream: ext://sys.stdout
+
+  ZoneApisFileHandler:
+    class: logging.handlers.RotatingFileHandler
     filename: '/var/log/openhab/zones-api.log'
     maxBytes: 1_048_576
     backupCount: 3
 
-    formatter: HABApp_format
+    formatter: default_format
     level: DEBUG
 
 loggers:
-  HABApp:
-    level: INFO
-    handlers:
-      - HABApp_default
-    propagate: False
-
-  HABApp.Worker:
-    level: ERROR
-    handlers:
-      - HABApp_default
-    propagate: False
-
-  HABApp.EventBus:
-    level: INFO
-    handlers:
-      - EventFile
-    propagate: False
-
   ZoneApis:
     level: INFO
     handlers:
-      - ZoneApisHandler
-      - HABApp_default
+      - ZoneApisConsoleHandler
+      - ZoneApisFileHandler
     propagate: False
