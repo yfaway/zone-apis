@@ -8,8 +8,8 @@ from HABApp.core.events.filter.event import TypeBoundEventFilter
 from HABApp.openhab.events import ItemCommandEvent
 from HABApp.openhab.events import ItemStateUpdatedEvent
 
-from openhab.models import BaseItem
-from openhab.models import ColorItem, DimmerItem, NumberItem, SwitchItem, StringItem
+from zone_api.openhab.oh_models import OpenHabBaseItem
+from zone_api.openhab.oh_models import OpenHabColorItem, OpenHabDimmerItem, OpenHabNumberItem, OpenHabSwitchItem, OpenHabStringItem
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
@@ -49,7 +49,7 @@ captured and transformed into ZoneEvent, and then dispatched.
 
 
 def create_switches(zm: ImmutableZoneManager,
-                    item: Union[ColorItem, DimmerItem, NumberItem, SwitchItem]) \
+                    item: Union[OpenHabColorItem, OpenHabDimmerItem, OpenHabNumberItem, OpenHabSwitchItem]) \
         -> Union[None, Dimmer, Light, Fan, Wled]:
     """
     Parses and creates Dimmer, Fan or Light device.
@@ -115,10 +115,10 @@ def create_switches(zm: ImmutableZoneManager,
 
         # noinspection PyUnusedLocal
         def handler(event: ValueChangeEvent):
-            if isinstance(item, DimmerItem):
+            if isinstance(item, OpenHabDimmerItem):
                 is_off = pe.get_number_value(item) == 0
                 is_on = not is_off and event.old_value == 0
-            elif isinstance(item, ColorItem):
+            elif isinstance(item, OpenHabColorItem):
                 was_on = (event.old_value[2] > 0)  # index 2 for brightness
                 was_off = int(event.old_value[2]) == 0
                 is_on = was_off and event.value[2] > 0
@@ -139,7 +139,7 @@ def create_switches(zm: ImmutableZoneManager,
     return device
 
 
-def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmPartition:
+def create_alarm_partition(zm: ImmutableZoneManager, item: OpenHabSwitchItem) -> AlarmPartition:
     """
     Creates an alarm partition. Handle the following events:
       - Partition arm mode changed.
@@ -153,11 +153,11 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
     arm_mode_item = zm.get_item(item.name + '_ArmMode')
     send_command_item = zm.get_item(item.name + '_SendCommand')
     # noinspection PyTypeChecker
-    panel_fire_key_alarm_item: SwitchItem = zm.get_item(item.name + '_PanelFireKeyAlarm') # type: ignore
+    panel_fire_key_alarm_item: OpenHabSwitchItem = zm.get_item(item.name + '_PanelFireKeyAlarm') # type: ignore
     # noinspection PyTypeChecker
-    panel_ambulance_key_alarm_item: SwitchItem = zm.get_item(item.name + '_PanelAmbulanceKeyAlarm') # type: ignore
+    panel_ambulance_key_alarm_item: OpenHabSwitchItem = zm.get_item(item.name + '_PanelAmbulanceKeyAlarm') # type: ignore
     # noinspection PyTypeChecker
-    panel_police_key_alarm_item: SwitchItem = zm.get_item(item.name + '_PanelPoliceKeyAlarm') # type: ignore
+    panel_police_key_alarm_item: OpenHabSwitchItem = zm.get_item(item.name + '_PanelPoliceKeyAlarm') # type: ignore
 
     # noinspection PyTypeChecker
     device: AlarmPartition = _configure_device(
@@ -221,7 +221,7 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: SwitchItem) -> AlarmP
     return device
 
 
-def create_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> ChromeCastAudioSink:
+def create_chrome_cast(zm: ImmutableZoneManager, item: OpenHabStringItem) -> ChromeCastAudioSink:
     metadata = item.metadata
 
     sink_name = get_meta_value(metadata, "sinkName", None)
@@ -255,7 +255,7 @@ def create_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> ChromeCast
     return device
 
 
-def create_mpd_chrome_cast(zm: ImmutableZoneManager, item: StringItem) -> MpdChromeCastAudioSink:
+def create_mpd_chrome_cast(zm: ImmutableZoneManager, item: OpenHabStringItem) -> MpdChromeCastAudioSink:
     metadata = item.metadata
 
     sink_name = get_meta_value(metadata, "sinkName", None)
@@ -318,7 +318,7 @@ def get_zone_id_from_item_name(item_name: str) -> Union[str, None]:
     return level_string + '_' + location
 
 
-def create_camera(zm: ImmutableZoneManager, item: StringItem) -> Camera:
+def create_camera(zm: ImmutableZoneManager, item: OpenHabStringItem) -> Camera:
     """
     Creates a Camera.
     :param zm: the zone manager instance to dispatch the event.
@@ -343,7 +343,7 @@ def create_camera(zm: ImmutableZoneManager, item: StringItem) -> Camera:
     return _configure_device(OnvifCamera(item, image_url_item, mjpeg_url_item, enable_ffmpeg_item), zm)
 
 
-def create_motion_sensor(zm: ImmutableZoneManager, item: BaseItem) -> MotionSensor:
+def create_motion_sensor(zm: ImmutableZoneManager, item: OpenHabBaseItem) -> MotionSensor:
     """
     Creates a MotionSensor and register for change event.
     :param zm: the zone manager instance to dispatch the event.
@@ -599,7 +599,7 @@ def create_water_leak_sensor(zm: ImmutableZoneManager, item) -> WaterLeakSensor:
     return sensor
 
 
-def create_illuminance_sensor(zm: ImmutableZoneManager, item: BaseItem) -> IlluminanceSensor:
+def create_illuminance_sensor(zm: ImmutableZoneManager, item: OpenHabBaseItem) -> IlluminanceSensor:
     """ Create an illuminance sensor. """
     if 'FixedValue' in item.name:
         luminance_value = float(get_meta_value(item.metadata, 'luminanceValue', 5)) # type: ignore
@@ -722,7 +722,7 @@ def create_computer(zm: ImmutableZoneManager, item) -> Computer:
     return device
 
 
-def create_weather(zm: ImmutableZoneManager, temperature_item: NumberItem) -> Union[None, Weather]:
+def create_weather(zm: ImmutableZoneManager, temperature_item: OpenHabNumberItem) -> Union[None, Weather]:
     """
     Creates a weather device.
     :param zm: the zone manager instance to dispatch the event.
@@ -773,7 +773,7 @@ def create_weather(zm: ImmutableZoneManager, temperature_item: NumberItem) -> Un
     return device
 
 
-def create_auto_report_notification_setting(zm: ImmutableZoneManager, device_name_item: StringItem) \
+def create_auto_report_notification_setting(zm: ImmutableZoneManager, device_name_item: OpenHabStringItem) \
         -> Union[None, DeferredAutoReportNotification]:
     """
     Creates deferred auto report notification item.
@@ -800,12 +800,12 @@ def create_auto_report_notification_setting(zm: ImmutableZoneManager, device_nam
     return device
 
 
-def create_flash_message(zm: ImmutableZoneManager, item: StringItem) -> Tv:
+def create_flash_message(zm: ImmutableZoneManager, item: OpenHabStringItem) -> Tv:
     # noinspection PyTypeChecker
     return _configure_device(FlashMessage(item), zm)
 
 
-def create_mpd_controller(zm: ImmutableZoneManager, item: BaseItem) -> MpdDevice:
+def create_mpd_controller(zm: ImmutableZoneManager, item: OpenHabBaseItem) -> MpdDevice:
     predefined_category_item = zm.get_item(item.name + "_PredefinedCategory")
     custom_category_item = zm.get_item(item.name + "_CustomCategory")
 
@@ -851,7 +851,7 @@ def create_mpd_controller(zm: ImmutableZoneManager, item: BaseItem) -> MpdDevice
     return device
 
 
-def dispatch_event(zm: ImmutableZoneManager, zone_event: ZoneEvent, device: Device, item: BaseItem):
+def dispatch_event(zm: ImmutableZoneManager, zone_event: ZoneEvent, device: Device, item: OpenHabBaseItem):
     """
     Dispatches an event to the ZoneManager. If the event is not processed,
     create a debug log.
@@ -867,7 +867,9 @@ def _configure_device(device: Device, zm: ImmutableZoneManager) -> Device:
       should be called before configuring the event handler.
     - Also register the item state event for each item in the device to update the last activated timestamp.
     """
-    device = device.set_channel(get_meta_value(device.get_item().metadata, "channel", None)) # type: ignore
+    if device.get_item() is OpenHabBaseItem:
+        device = device.set_channel(get_meta_value(device.get_item().metadata, "channel", None)) # type: ignore
+
     device = device.set_zone_manager(zm)
 
     # Can't rely on item changed even to determine last activated time, as sometimes the device may send the same value
@@ -880,6 +882,9 @@ def _configure_device(device: Device, zm: ImmutableZoneManager) -> Device:
 
     if not isinstance(device, MotionSensor) and not isinstance(device, NetworkPresence):
         for item in device.get_all_items():
-            item.listen_event(lambda event: device.update_last_activated_timestamp(), ItemStateUpdatedEventFilter())
+            if device.get_item() is OpenHabBaseItem:
+                item.listen_event(
+                    lambda event: device.update_last_activated_timestamp(),
+                    ItemStateUpdatedEventFilter())
 
     return device

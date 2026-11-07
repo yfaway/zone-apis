@@ -4,7 +4,7 @@ from typing import Type, List, Any, Hashable, TYPE_CHECKING, Union
 
 from schedule import Scheduler
 
-from openhab.models import BaseItem
+from zone_api.openhab.oh_models import OpenHabBaseItem
 from zone_api import platform_encapsulator as pe
 from zone_api.core import action
 from zone_api.core.actions.track_significant_events import TrackSignificantEvents
@@ -240,7 +240,7 @@ class ImmutableZoneManager:
 
         return None
 
-    def get_item(self, item_name: str) -> Union[BaseItem, None]:
+    def get_item(self, item_name: str) -> Union[OpenHabBaseItem, None]:
         """
         Returns the item associated with the given item_name.
 
@@ -250,7 +250,7 @@ class ImmutableZoneManager:
         """
         return self._item_map[item_name] if item_name in self._item_map.keys() else None
 
-    def get_items(self) -> List[BaseItem]:
+    def get_items(self) -> List[OpenHabBaseItem]:
         """
         Returns a new list contains all items.
 

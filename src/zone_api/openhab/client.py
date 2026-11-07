@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any, Dict, List
 import requests
-from .models import BaseItem, item_from_payload
+from .oh_models import OpenHabBaseItem, item_from_payload
 
 
 class OpenHabClient:
@@ -18,7 +18,7 @@ class OpenHabClient:
         recursive: bool = False,
         parents: bool = False,
         static_data_only: bool = False,
-    ) -> List[BaseItem]:
+    ) -> List[OpenHabBaseItem]:
         url = f"{self.base_url}/rest/items"
         params: Dict[str, Any] = {
             'metadata': metadata,
@@ -46,7 +46,7 @@ def fetch_items_from_endpoint(
     parents: bool = False,
     static_data_only: bool = False,
     timeout: int = 10,
-) -> List[BaseItem]:
+) -> List[OpenHabBaseItem]:
     client = OpenHabClient(f"http://{host}:{port}", timeout=timeout)
     return client.get_items(
         metadata=metadata,

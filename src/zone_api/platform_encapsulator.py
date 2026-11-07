@@ -11,8 +11,8 @@ from typing import cast, List, Union, Any, TYPE_CHECKING
 
 import HABApp
 from HABApp.core.items import Item
-from openhab.models import ColorItem, ContactItem, DateTimeItem, DimmerItem, NumberItem, StringItem, SwitchItem, \
-    PlayerItem
+from zone_api.models import ColorItem, ContactItem, DateTimeItem, DimmerItem, NumberItem, PlayerItem, StringItem, SwitchItem
+from zone_api.openhab.oh_models import OpenHabDimmerItem, OpenHabNumberItem, OpenHabStringItem, OpenHabSwitchItem
 from HABApp.core.types.color import RGB
 
 from zone_api.core.immutable_zone_manager import EmailSettings, ImmutableZoneManager
@@ -81,33 +81,22 @@ def is_in_on_state(item: SwitchItem):
     :param SwitchItem item:
     :return: True if the state is ON.
     """
-    if isinstance(item, SwitchItem):
-        return item.state == "ON"
-
-    return False
+    return item.is_on()
 
 
 def is_in_open_state(item: ContactItem):
-    """
-    :param SwitchItem item:
-    :return: True if the state is OPEN.
-    """
-    if isinstance(item, ContactItem):
-        return item.state == "OPEN"
-
-    return False
-
+    return item.is_open()
 
 def create_datetime_item(name: str) -> DateTimeItem:
-    return DateTimeItem({"name": name})
+    return DateTimeItem(name, None)
 
 
 def create_number_item(name: str) -> NumberItem:
-    return NumberItem({"name": name})
+    return NumberItem(name, None)
 
 
 def create_player_item(name: str) -> PlayerItem:
-    return PlayerItem({"name": name})
+    return PlayerItem(name, None)
 
 
 def create_dimmer_item(name: str, percentage: int = 0) -> DimmerItem:
@@ -116,17 +105,12 @@ def create_dimmer_item(name: str, percentage: int = 0) -> DimmerItem:
     :param int percentage: 0 (OFF) to 100 (full brightness)
     :return: DimmerItem
     """
-    return DimmerItem({"name": name, "state": percentage})
+    return DimmerItem(name, percentage)
 
 
 def create_color_item(name: str, on=False) -> ColorItem:
     """ Create a color item. """
-    item = ColorItem({"name": name})
-    if on:
-        item.state = RGB(0, 0, 100)
-
-    return item
-
+    return ColorItem(name, RGB(0, 0, 100) if on else RGB(0, 0, 0))
 
 def create_switch_item(name: str, on=False) -> SwitchItem:
     """
@@ -134,9 +118,7 @@ def create_switch_item(name: str, on=False) -> SwitchItem:
     :param on: if True, the state is ON, else the state is OFF
     :return: SwitchItem
     """
-    item = SwitchItem({"name": name})
-    item.state = "ON" if on else "OFF"
-    return item
+    return SwitchItem(name, "ON" if on else "OFF")
 
 def create_contact_item(name: str, open=False) -> ContactItem:
     """
@@ -144,13 +126,11 @@ def create_contact_item(name: str, open=False) -> ContactItem:
     :param on: if True, the state is OPEN, else the state is CLOSED
     :return: ContactItem
     """
-    item = ContactItem({"name": name})
-    item.state = "OPEN" if open else "CLOSED"
-    return item
+    return ContactItem(name, "OPEN" if open else "CLOSED")
 
 
 def create_string_item(name: str) -> StringItem:
-    return StringItem({"name":name})
+    return StringItem(name, None)
 
 
 def set_color_value(item: ColorItem, rgb_color: List[int]):
@@ -199,7 +179,7 @@ def set_dimmer_value(item: DimmerItem, percentage: int):
 
 
 def get_dimmer_percentage(item: DimmerItem) -> int:
-    return item.percentage() or 0 
+    return int(item.percentage()) or 0 
 
 
 def set_number_value(item_or_item_name: Union[NumberItem, str], value: float):
@@ -239,7 +219,7 @@ def get_string_value(item_or_item_name: Union[StringItem, str]) -> str:
     else:
         item = item_or_item_name
 
-    return item.state or ""
+    return item.get_value() or ""
 
 
 def change_player_state_to_pause(item: PlayerItem):
@@ -296,14 +276,14 @@ def get_event_dispatcher():
             # noinspection PyMethodMayBeStatic
             def send_command(self, item_name: str, command: Any):
                 item = HABApp.core.Items.get_item(item_name)
-                if isinstance(item, SwitchItem):
-                    item = SwitchItem.get_item(item_name)
+                if isinstance(item, OpenHabSwitchItem):
+                    item = OpenHabSwitchItem.get_item(item_name)
                     item.post_value(command)
-                elif isinstance(item, DimmerItem):
+                elif isinstance(item, OpenHabDimmerItem):
                     item.post_value(int(command))
-                elif isinstance(item, NumberItem):
+                elif isinstance(item, OpenHabNumberItem):
                     item.post_value(int(command))
-                elif isinstance(item, StringItem):
+                elif isinstance(item, OpenHabStringItem):
                     item.post_value(command)
                 else:
                     log_error("type: {}".format(type(item)))
@@ -325,20 +305,31 @@ def is_in_unit_tests():
 
 def play_local_audio_file(sink_name: str, file_location: str):
     """ Plays a local audio file on the given audio sink. """
-    StringItem.get_item(ACTION_AUDIO_SINK_ITEM_NAME).oh_post_update(sink_name)
-    StringItem.get_item(ACTION_AUDIO_LOCAL_FILE_LOCATION_ITEM_NAME).oh_post_update(file_location)
+    #OpenHabStringItem.get_item(ACTION_AUDIO_SINK_ITEM_NAME).oh_post_update(sink_name)
+    #OpenHabStringItem.get_item(ACTION_AUDIO_LOCAL_FILE_LOCATION_ITEM_NAME).oh_post_update(file_location)
+    zm = get_zone_manager_from_context()
+    cast(OpenHabStringItem, zm.get_item(ACTION_AUDIO_SINK_ITEM_NAME)).set_value(sink_name)
+    cast(OpenHabStringItem, zm.get_item(ACTION_AUDIO_LOCAL_FILE_LOCATION_ITEM_NAME)).set_value(file_location)
 
 
 def play_stream_url(sink_name: str, url: str):
     """ Plays a stream URL on the given audio sink. """
-    StringItem.get_item(ACTION_AUDIO_SINK_ITEM_NAME).oh_post_update(sink_name)
-    StringItem.get_item(ACTION_AUDIO_STREAM_URL_ITEM_NAME).oh_post_update(url)
+    #OpenHabStringItem.get_item(ACTION_AUDIO_SINK_ITEM_NAME).oh_post_update(sink_name)
+    #OpenHabStringItem.get_item(ACTION_AUDIO_STREAM_URL_ITEM_NAME).oh_post_update(url)
+
+    zm = get_zone_manager_from_context()
+    cast(OpenHabStringItem, zm.get_item(ACTION_AUDIO_SINK_ITEM_NAME)).set_value(sink_name)
+    cast(OpenHabStringItem, zm.get_item(ACTION_AUDIO_STREAM_URL_ITEM_NAME)).set_value(url)
 
 
 def play_text_to_speech_message(sink_name: str, tts: str):
     """ Plays a text to speech message on the given audio sink. """
-    StringItem.get_item(ACTION_AUDIO_SINK_ITEM_NAME).oh_post_update(sink_name)
-    StringItem.get_item(ACTION_TEXT_TO_SPEECH_MESSAGE_ITEM_NAME).oh_post_update(tts)
+    #OpenHabStringItem.get_item(ACTION_AUDIO_SINK_ITEM_NAME).oh_post_update(sink_name)
+    #OpenHabStringItem.get_item(ACTION_TEXT_TO_SPEECH_MESSAGE_ITEM_NAME).oh_post_update(tts)
+
+    zm = get_zone_manager_from_context()
+    cast(OpenHabStringItem, zm.get_item(ACTION_AUDIO_SINK_ITEM_NAME)).set_value(sink_name)
+    cast(OpenHabStringItem, zm.get_item(ACTION_TEXT_TO_SPEECH_MESSAGE_ITEM_NAME)).set_value(tts)
 
 
 def send_email(email_addresses: List[str], subject: str, body: str = '', images_paths: List[str] = None):
@@ -408,9 +399,10 @@ def send_email(email_addresses: List[str], subject: str, body: str = '', images_
 
 def change_ecobee_thermostat_hold_mode(mode: str):
     """ Change Ecobee thermostat to the specified mode via the Ecobee action in OpenHab. """
-    StringItem.get_item('EcobeeThermostatHoldMode').oh_post_update(mode)
+    #OpenHabStringItem.get_item('EcobeeThermostatHoldMode').oh_post_update(mode)
+    cast(OpenHabStringItem, get_zone_manager_from_context().get_item('EcobeeThermostatHoldMode')).set_value(mode)
 
 
 def resume_ecobee_thermostat_program():
     """ Resume the Ecobee thermostat via the Ecobee action in OpenHab. """
-    SwitchItem.get_item('EcobeeThermostatResume').on()
+    cast(OpenHabSwitchItem, get_zone_manager_from_context().get_item('EcobeeThermostatResume')).on()

@@ -4,9 +4,10 @@ import pkgutil
 import inspect
 import importlib
 
-from openhab.client import fetch_items_from_endpoint
+from zone_api.openhab.client import fetch_items_from_endpoint
 
-from openhab.models import BaseItem, UnknownItem
+from zone_api.openhab.oh_models import OpenHabBaseItem, OpenHabUnknownItem
+from zone_api.openhab.websocket_client import OpenHabWebSocketClient
 import zone_api.core.actions as actions
 from zone_api import platform_encapsulator as pe
 from zone_api import device_factory as df
@@ -42,7 +43,7 @@ for the OpenHab items.
 """
 
 
-def parse(config: dict[Hashable, Any], actions_package: str = "zone_api.core.actions",
+def parse(config: dict[Hashable, Any], websocket_client: OpenHabWebSocketClient, *, actions_package: str = "zone_api.core.actions",
           actions_path: List[str] = actions.__path__) -> ImmutableZoneManager:
     """
     - Parses the zones and devices from the remote OpenHab items (via the REST API).
@@ -90,10 +91,12 @@ def parse(config: dict[Hashable, Any], actions_package: str = "zone_api.core.act
 
     action_parameters: Parameters = _read_zone_api_configurations(config)
 
-    items: List[BaseItem] = fetch_items_from_endpoint(
+    items: List[OpenHabBaseItem] = fetch_items_from_endpoint(
         config['system']['openhab']['host'], config['system']['openhab']['port'])
     for item in items:
-        if isinstance(item, UnknownItem):
+        item._openhab_connection = websocket_client
+
+        if isinstance(item, OpenHabUnknownItem):
             print(f"Unknown item type: {item.name} ({item.type})")
 
     zm: ZoneManager = ZoneManager(items)
@@ -143,7 +146,7 @@ def parse(config: dict[Hashable, Any], actions_package: str = "zone_api.core.act
     return immutable_zm
 
 
-def _parse_zones(items: List[BaseItem]) -> List[Zone]:
+def _parse_zones(items: List[OpenHabBaseItem]) -> List[Zone]:
     """
     Parses items with the zone pattern in the name and constructs the associated Zone objects.
     :return: List[Zone]

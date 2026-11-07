@@ -1,7 +1,7 @@
 from threading import Timer
 from typing import List, Union, Type
 
-from openhab.models import BaseItem
+from zone_api.openhab.oh_models import OpenHabBaseItem
 from zone_api import platform_encapsulator as pe
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 from zone_api.core.zone import Zone
@@ -12,12 +12,12 @@ class ZoneManager:
     Contains a set of Zone instances.
     """
 
-    def __init__(self, items: List[BaseItem] = []):
+    def __init__(self, items: List[OpenHabBaseItem] = []):
         self.items = items
         self.zones = {}  # map from string zoneId to Zone
         self.auto_report_watch_dog_timer = None
 
-    def get_items(self) -> List[BaseItem]:
+    def get_items(self) -> List[OpenHabBaseItem]:
         """
         Returns a new list contains all items.
 

@@ -3,12 +3,14 @@ import json
 import logging
 import logging.config
 import os
+from typing import cast
 import yaml
 # from importlib import reload
 # from zone_api import zone_parser
 # reload(zone_parser)
 
-from openhab.websocket_client import OpenHabWebSocketClient
+from zone_api.openhab.oh_models import OpenHabSwitchItem
+from zone_api.openhab.websocket_client import OpenHabWebSocketClient
 from zone_api import zone_parser as zp
 from zone_api import platform_encapsulator as pe
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
@@ -20,9 +22,7 @@ class Starter():
         self._config = self._load_configuration()
         self._client: OpenHabWebSocketClient
         self._count = 0
-        self._zm: ImmutableZoneManager
-
-        self._configure_zone_manager()
+        self._zm: ImmutableZoneManager = None # type: ignore
 
     def _configure_logging(self):
         logging_config_file = '/home/yf/git/zone-apis/habapp/logging.yml'
@@ -54,8 +54,8 @@ class Starter():
         with open(config_file, 'r') as file:
             return yaml.safe_load(file)
 
-    def _configure_zone_manager(self):
-        self._zm = zp.parse(self._config)
+    def _configure_zone_manager(self, websocket_client: OpenHabWebSocketClient):
+        self._zm = zp.parse(self._config, websocket_client)
         pe.add_zone_manager_to_context(self._zm)
 
         device_count = 0
@@ -66,11 +66,14 @@ class Starter():
         pe.log_debug(str(self._zm))
 
     async def event_dispatcher(self, event):
-        #if 'FF_Foyer_LightSwitch' in topic:
-        #    print(f"Received event for FF_Foyer_LightSwitch: {event}")
-        #self._count += 1
-        #if self._count == 1:
-        #    await self._client.send_command('FF_Foyer_LightSwitch', 'OnOff', 'ON')
+        if self._zm is None:
+            return # No zone manager available yet, ignore the event.
+
+        self._count += 1
+        if self._count == 1:
+            item = cast(OpenHabSwitchItem, self._zm.get_item('FF_Foyer_LightSwitch'))
+            item.on()
+            #await self._client.send_command('FF_Foyer_LightSwitch', 'OnOff', 'ON')
         event_type = event.get('type')
         topic = event.get('topic')
         if event_type == 'ItemStateUpdatedEvent':
@@ -99,6 +102,8 @@ class Starter():
             ignored_non_item_events=True,)
 
         await self._client.connect()
+
+        self._configure_zone_manager(self._client)
 
         try:
             while True:
