@@ -1,6 +1,9 @@
+from typing import Union
+
 from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
 from zone_api.core.devices.security_aware_mixin import SecurityAwareMixin
+from zone_api.models import ContactItem, SwitchItem
 
 
 class Contact(SecurityAwareMixin, Device):
@@ -8,7 +11,7 @@ class Contact(SecurityAwareMixin, Device):
     Represents a contact such as a door or windows.
     """
 
-    def __init__(self, contact_item, security_tripped_item=None):
+    def __init__(self, contact_item: Union[ContactItem, SwitchItem], security_tripped_item=None):
         """
         Ctor
 
@@ -25,7 +28,10 @@ class Contact(SecurityAwareMixin, Device):
         """
         Returns true if the contact is open; false otherwise.
         """
-        return pe.is_in_open_state(self.get_item()) or pe.is_in_on_state(self.get_item())
+        if isinstance(self.get_item(), ContactItem):
+            return self.get_item().is_open()
+        elif isinstance(self.get_item(), SwitchItem):
+            return self.get_item().is_on()
 
     def is_closed(self):
         """

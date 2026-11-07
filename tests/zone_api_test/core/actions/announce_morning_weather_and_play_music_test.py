@@ -36,7 +36,7 @@ class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
         self.set_items(items)
         super(AnnounceMorningWeatherAndPlayMusicTest, self).setUp()
 
-        self.weather = Weather(items[0], items[1], items[2], None, None, items[4], items[5])
+        self.weather = Weather(items[4], items[5], items[6], None, None, items[7], items[8])
         self.motion = MotionSensor(self.motion_item)
         self.internal_door = Door(self.internal_door_item)
         self.external_door = Door(self.external_door_item)

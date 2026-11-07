@@ -43,7 +43,7 @@ class AlertOnExternalDoorLeftOpenTest(DeviceTest):
         self.assertFalse(value)
 
     def testOnAction_aDoorIsOpen_returnsTrue(self):
-        pe.set_switch_state(self.get_items()[0], True)
+        self.get_items()[0].on()
 
         parameters = MapParameters({'AlertOnExternalDoorLeftOpen.maxElapsedTimeInSeconds': 0.1})
         self.action = AlertOnExternalDoorLeftOpen(parameters)
@@ -59,7 +59,7 @@ class AlertOnExternalDoorLeftOpenTest(DeviceTest):
         self.assertTrue("door" in self.zm.get_alert_manager()._lastEmailedSubject)
 
     def testOnAction_aDoorWasOpenButClosedSoonAfter_returnsTrueAndTimerCancelled(self):
-        pe.set_switch_state(self.get_items()[0], True)
+        self.get_items()[0].on()
 
         self.zone1 = self.zone1.add_action(self.action)
         event_info = EventInfo(ZoneEvent.DOOR_OPEN, self.get_items()[0], self.zone1, self.zm,
@@ -71,7 +71,7 @@ class AlertOnExternalDoorLeftOpenTest(DeviceTest):
         self.assertTrue(self.action.has_running_timer())
 
         # simulate door closed
-        pe.set_switch_state(self.get_items()[0], False)
+        self.get_items()[0].off()
         value = self.action.on_action(event_info)
         self.assertTrue(value)
         self.assertFalse(self.action.has_running_timer())

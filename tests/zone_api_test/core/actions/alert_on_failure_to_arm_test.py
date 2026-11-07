@@ -37,13 +37,13 @@ class AlertOnFailureToArmTest(DeviceTest):
         self.assertTrue(self.zm.get_alert_manager()._lastEmailedSubject is None)
 
     def testOnAction_doorIsOpen_returnsTrueAndSendsInfoAlert(self):
-        pe.set_switch_state(self.door.get_item(), True)
-        pe.set_switch_state(self.door.get_tripped_item(), True)
+        self.door.get_item().on()
+        self.door.get_tripped_item().on()
         self.sendEventAndAssertAlertContainMessage(ZoneEvent.PARTITION_RECEIVE_ARM_AWAY, 'a door is open')
 
     def testOnAction_windowIsOpen_returnsTrueAndSendsInfoAlert(self):
-        pe.set_switch_state(self.window.get_item(), True)
-        pe.set_switch_state(self.window.get_tripped_item(), True)
+        self.window.get_item().on()
+        self.window.get_tripped_item().on()
         self.sendEventAndAssertAlertContainMessage(ZoneEvent.PARTITION_RECEIVE_ARM_STAY, 'a window is open')
 
     def sendEventAndAssertAlertContainMessage(self, event: ZoneEvent, message):

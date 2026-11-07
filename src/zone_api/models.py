@@ -52,8 +52,14 @@ class ContactItem(BaseItem):
     def is_closed(self) -> bool:
         return self.state == 'CLOSED'
 
+    def set_open(self) -> None:
+        self.state = 'OPEN'
 
-class DimmerItem(NumberItem):
+    def set_closed(self) -> None:
+        self.state = 'CLOSED'
+
+
+class DimmerItem(SwitchItem):
     def percentage(self) -> float:
         return cast(int, self.state)
 

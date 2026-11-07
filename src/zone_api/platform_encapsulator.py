@@ -10,13 +10,12 @@ import mimetypes
 from typing import cast, List, Union, Any, TYPE_CHECKING
 
 import HABApp
-from HABApp.core.items import Item
-from zone_api.models import ColorItem, ContactItem, DateTimeItem, DimmerItem, NumberItem, PlayerItem, StringItem, SwitchItem
+from zone_api.core.zone_manager import ZoneManager
+from zone_api.models import BaseItem, ColorItem, ContactItem, DateTimeItem, DimmerItem, NumberItem, PlayerItem, StringItem, SwitchItem
 from zone_api.openhab.oh_models import OpenHabDimmerItem, OpenHabNumberItem, OpenHabStringItem, OpenHabSwitchItem
 from HABApp.core.types.color import RGB
 
 from zone_api.core.immutable_zone_manager import EmailSettings, ImmutableZoneManager
-from zone_api.core.zone_manager import ZoneManager
 
 if TYPE_CHECKING:
     from zone_api.core.immutable_zone_manager import EmailSettings, ImmutableZoneManager
@@ -41,14 +40,14 @@ def is_in_hab_app() -> bool:
     return True
 
 
-def register_test_item(item: Item) -> None:
+def register_test_item(item: BaseItem) -> None:
     """ Register the given item with the runtime. """
-    HABApp.core.Items.add_item(item)
+    get_zone_manager_from_context().add_item(item)
 
 
 def unregister_test_item(item) -> None:
     """ Unregister the given item with the runtime. """
-    HABApp.core.Items.pop_item(item.name)
+    get_zone_manager_from_context().remove_item(item)
 
 
 def add_zone_manager_to_context(zm: 'ImmutableZoneManager'):
@@ -70,10 +69,7 @@ def get_zone_manager_from_context() -> 'ImmutableZoneManager':
 
     :rtype ImmutableZoneManager:
     """
-    if is_in_hab_app():
-        return ZONE_MANAGER
-    else:
-        raise ValueError("Unsupported type op: add_zone_manager_to_context")
+    return ZONE_MANAGER
 
 
 def is_in_on_state(item: SwitchItem):
@@ -275,16 +271,18 @@ def get_event_dispatcher():
         class TestEventDispatcher:
             # noinspection PyMethodMayBeStatic
             def send_command(self, item_name: str, command: Any):
-                item = HABApp.core.Items.get_item(item_name)
-                if isinstance(item, OpenHabSwitchItem):
-                    item = OpenHabSwitchItem.get_item(item_name)
-                    item.post_value(command)
-                elif isinstance(item, OpenHabDimmerItem):
-                    item.post_value(int(command))
-                elif isinstance(item, OpenHabNumberItem):
-                    item.post_value(int(command))
-                elif isinstance(item, OpenHabStringItem):
-                    item.post_value(command)
+                item = get_zone_manager_from_context().get_item(item_name)
+                if isinstance(item, DimmerItem):
+                    item.set_value(int(command))
+                elif isinstance(item, SwitchItem):
+                    if command.upper() == 'ON':
+                        item.on()
+                    elif command.upper() == 'OFF':
+                        item.off()
+                elif isinstance(item, NumberItem):
+                    item.set_value(float(command))
+                elif isinstance(item, StringItem):
+                    item.set_value(str(command))
                 else:
                     log_error("type: {}".format(type(item)))
                     raise ValueError("Unsupported type for item '{}'".format(item_name))
@@ -294,7 +292,10 @@ def get_event_dispatcher():
 
 def set_in_unit_tests():
     global _in_unit_tests
+    global ZONE_MANAGER
 
+    zm = ZoneManager()
+    ZONE_MANAGER = zm.get_immutable_instance()
     if not is_in_unit_tests():
         _in_unit_tests = True
 

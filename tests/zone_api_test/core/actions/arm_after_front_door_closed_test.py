@@ -39,7 +39,7 @@ class ArmAfterFrontDoorClosedTest(DeviceTest):
         self.mockZoneManager = create_zone_manager([self.zone1, self.zone2])
 
     def testOnAction_motionTriggeredInAnExternalZone_ignoreMotionEventAndContinueToArm(self):
-        pe.set_switch_state(self.door.get_item(), False)  # close door
+        self.door.get_item().off() # close door
         self.alarmPartition.disarm(pe.get_event_dispatcher())
 
         event_info = EventInfo(ZoneEvent.DOOR_CLOSED, self.door.get_item(),
@@ -55,7 +55,7 @@ class ArmAfterFrontDoorClosedTest(DeviceTest):
         self.assertTrue(self.alarmPartition.is_armed_away())
 
     def testOnAction_doorClosedWithNoPresenceEvent_armAndReturnsTrue(self):
-        pe.set_switch_state(self.door.get_item(), False)  # close door
+        self.door.get_item().off() # close door
         self.alarmPartition.disarm(pe.get_event_dispatcher())
 
         event_info = EventInfo(ZoneEvent.DOOR_CLOSED, self.door.get_item(),
@@ -68,7 +68,7 @@ class ArmAfterFrontDoorClosedTest(DeviceTest):
         self.assertTrue(self.alarmPartition.is_armed_away())
 
     def testOnAction_doorClosedWithPresenceEvent_notArmedAndReturnsTrue(self):
-        pe.set_switch_state(self.door.get_item(), False)  # close door
+        self.door.get_item().off() # close door
         self.alarmPartition.disarm(pe.get_event_dispatcher())
 
         parameters = MapParameters({'ArmAfterFrontDoorClosed.maximumElapsedTimeInSeconds': 0.2})
