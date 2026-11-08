@@ -70,11 +70,10 @@ class Starter():
         if self._zm is None:
             return # No zone manager available yet, ignore the event.
 
-        self._count += 1
-        if self._count == 1:
-            item = cast(OpenHabSwitchItem, self._zm.get_item('FF_Foyer_LightSwitch'))
-            item.on()
-            #await self._client.send_command('FF_Foyer_LightSwitch', 'OnOff', 'ON')
+        #self._count += 1
+        #if self._count == 1:
+        #    item = cast(OpenHabSwitchItem, self._zm.get_item('FF_Foyer_LightSwitch'))
+        #    item.on()
 
         event_type = event.get('type')
         topic = event.get('topic')

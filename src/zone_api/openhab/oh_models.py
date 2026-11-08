@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import threading
 from datetime import datetime
 from enum import Enum
 from numbers import Number
@@ -53,6 +54,12 @@ class OpenHabBaseItem(BaseItem):
         self.filters: List[Dict[str, Any]] | None = self._raw.get('filters')
         self.unit: Union[str, None]
         self._openhab_connection: OpenHabWebSocketClient
+        self._main_event_loop: asyncio.AbstractEventLoop | None = None
+        if threading.current_thread() is threading.main_thread():
+            try:
+                self._main_event_loop = asyncio.get_running_loop()
+            except RuntimeError:
+                pass
 
         # Import any unknown extra fields using snake_case naming.
         for key, value in self._raw.items():
@@ -66,10 +73,14 @@ class OpenHabBaseItem(BaseItem):
     def _set_value(self, openhab_type: str, value: Any) -> None:
         self.state = value
 
-        background_loop = asyncio.get_event_loop() 
-        asyncio.run_coroutine_threadsafe(
-            self._openhab_connection.send_command(self.name, openhab_type, value),
-            background_loop)
+        if threading.current_thread() is threading.main_thread():
+            background_loop = asyncio.get_running_loop()
+            asyncio.run_coroutine_threadsafe(
+                self._openhab_connection.send_command(self.name, openhab_type, value),
+                background_loop)
+        else:
+            asyncio.run(
+                self._openhab_connection.send_command(self.name, openhab_type, value))
 
     @staticmethod
     def _to_snake_case(value: str) -> str:
