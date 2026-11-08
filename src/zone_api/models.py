@@ -111,6 +111,7 @@ class PlayerItem(BaseItem):
 class OpenHabEvent(Enum):
     ItemStateChanged = 'ItemStateChangedEvent' # the item state changed; i.e. new value differs from the old one.
     ItemStateUpdated = 'ItemStateUpdatedEvent' # the item state is updated, even if the value didn't change
+    ItemCommandReceived = 'ItemCommandEvent' # a command is sent to the item
 
 
 class ValueChangeEvent:
@@ -121,3 +122,14 @@ class ValueChangeEvent:
 
     def __repr__(self) -> str:
         return f'<{self.__class__.__name__} name: {self.name:s}, value: {self.value}, old_value: {self.old_value}>'
+
+class ValueUpdateEvent:
+    def __init__(self, name: str, value: Any) -> None:
+        self.name: Final = name
+        self.value: Final = value
+
+    def __repr__(self) -> str:
+        return f'<{self.__class__.__name__} name: {self.name:s}, value: {self.value}>'
+
+class ItemCommandEvent(ValueUpdateEvent):
+    pass

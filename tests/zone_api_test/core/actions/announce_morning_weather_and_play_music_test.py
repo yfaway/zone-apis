@@ -20,11 +20,13 @@ class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
     def setUp(self):
         self.sink, items = self.create_audio_sink()
 
-        items.append(pe.create_number_item('Weather_Temperature'))
-        items.append(pe.create_number_item('Weather_Humidity'))
+        items.append(pe.create_number_item('Weather_Temperature', 20))
+        items.append(pe.create_number_item('Weather_Humidity', 50))
         items.append(pe.create_string_item('Weather_Condition'))
-        items.append(pe.create_number_item('Weather_ForecastTempMin'))
-        items.append(pe.create_number_item('Weather_ForecastTempMax'))
+        items.append(pe.create_string_item('Weather_AlertTitle'))
+        items.append(pe.create_datetime_item('Weather_Timestamp'))
+        items.append(pe.create_number_item('Weather_ForecastTempMin', 10))
+        items.append(pe.create_number_item('Weather_ForecastTempMax', 15))
         items.append(pe.create_switch_item('Door1'))
         items.append(pe.create_switch_item('Door2'))
         items.append(pe.create_switch_item('MotionSensor'))
@@ -36,7 +38,9 @@ class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
         self.set_items(items)
         super(AnnounceMorningWeatherAndPlayMusicTest, self).setUp()
 
-        self.weather = Weather(items[4], items[5], items[6], None, None, items[7], items[8])
+        self.weather = Weather(items[4], items[5], condition_item=items[6], inout_alert_title_item=items[7],
+                              inout_alert_datetime_item=items[8], forecast_min_temperature_item=items[9],
+                              forecast_max_temperature_item=items[10])
         self.motion = MotionSensor(self.motion_item)
         self.internal_door = Door(self.internal_door_item)
         self.external_door = Door(self.external_door_item)

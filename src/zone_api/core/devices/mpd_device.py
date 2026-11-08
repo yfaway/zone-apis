@@ -1,10 +1,11 @@
 import json
 import os.path
 import subprocess
-from typing import Any, Hashable, Union
+from typing import Any, Hashable, Union, cast
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
+from zone_api.models import PlayerItem
 
 
 class MpdDevice(Device):
@@ -50,7 +51,7 @@ class MpdDevice(Device):
         self.mpc('shuffle')
         self.mpc('play')
 
-        pe.change_player_state_to_play(self.get_item())
+        cast(PlayerItem, self.get_item()).play()
 
         # let's start a timer job to track the playing status
         if item is not None:
@@ -71,7 +72,7 @@ class MpdDevice(Device):
         """ Stop playing the music. """
         self.mpc('stop')
 
-        pe.change_player_state_to_pause(self.get_item())
+        cast(PlayerItem, self.get_item()).pause()
 
         # stop polling for the playing status
         if self._play_status_job:

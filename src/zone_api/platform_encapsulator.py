@@ -12,7 +12,6 @@ from typing import cast, List, Union, Any, TYPE_CHECKING
 from zone_api.core.zone_manager import ZoneManager
 from zone_api.models import BaseItem, ColorItem, ContactItem, DateTimeItem, DimmerItem, NumberItem, PlayerItem, StringItem, SwitchItem
 from zone_api.openhab.oh_models import OpenHabStringItem, OpenHabSwitchItem
-from HABApp.core.types.color import RGB
 
 from zone_api.core.immutable_zone_manager import EmailSettings, ImmutableZoneManager
 
@@ -75,8 +74,8 @@ def create_datetime_item(name: str) -> DateTimeItem:
     return DateTimeItem(name, None)
 
 
-def create_number_item(name: str) -> NumberItem:
-    return NumberItem(name, None)
+def create_number_item(name: str, value = None) -> NumberItem:
+    return NumberItem(name, value)
 
 
 def create_player_item(name: str) -> PlayerItem:
@@ -94,7 +93,7 @@ def create_dimmer_item(name: str, percentage: int = 0) -> DimmerItem:
 
 def create_color_item(name: str, on=False) -> ColorItem:
     """ Create a color item. """
-    return ColorItem(name, RGB(0, 0, 100) if on else RGB(0, 0, 0))
+    return ColorItem(name, [0, 0, 100] if on else [0, 0, 0])
 
 def create_switch_item(name: str, on=False) -> SwitchItem:
     """
@@ -112,26 +111,8 @@ def create_contact_item(name: str, open=False) -> ContactItem:
     """
     return ContactItem(name, "OPEN" if open else "CLOSED")
 
-
 def create_string_item(name: str) -> StringItem:
     return StringItem(name, None)
-
-
-def set_color_value(item: ColorItem, rgb_color: List[int]):
-    """ Change the color of the item. """
-    # OH's color item accepts only HSB value; thus the RGB value needs to be converted to HSB.
-    item.set_value(RGB(*rgb_color))
-    #item.oh_send_command(",".join(map(str, [item.hue, item.saturation, item.brightness])))
-
-
-def set_datetime_value(item_or_item_name: Union[DateTimeItem, str], value: datetime.datetime):
-    item: DateTimeItem
-    if isinstance(item_or_item_name, str):
-        item = cast(DateTimeItem, ZONE_MANAGER.get_item(item_or_item_name)) 
-    else:
-        item = item_or_item_name
-
-    item.set_value(value)
 
 
 def get_datetime_value(item_or_item_name: Union[DateTimeItem, str]) -> datetime.datetime:
@@ -181,18 +162,6 @@ def get_string_value(item_or_item_name: Union[StringItem, str]) -> str:
         item = item_or_item_name
 
     return item.get_value() or ""
-
-
-def change_player_state_to_pause(item: PlayerItem):
-    item.pause()
-
-
-def change_player_state_to_play(item: PlayerItem):
-    item.play()
-
-
-def is_player_playing(item: PlayerItem):
-    return item.is_playing()
 
 
 def has_item(item_name: str):

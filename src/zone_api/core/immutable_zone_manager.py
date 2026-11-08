@@ -1,6 +1,6 @@
 import threading
 import time
-from typing import Type, List, Any, Hashable, TYPE_CHECKING, Union
+from typing import Type, List, Any, Hashable, TYPE_CHECKING, Union, cast
 
 from schedule import Scheduler
 
@@ -14,6 +14,7 @@ from zone_api.core.devices.vacation import Vacation
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.device import Device
+from zone_api.openhab.oh_models import OpenHabBaseItem
 
 if TYPE_CHECKING:
     from zone_api.alert_manager import AlertManager
@@ -249,6 +250,15 @@ class ImmutableZoneManager:
         :rtype: BaseItem
         """
         return self._item_map[item_name] if item_name in self._item_map.keys() else None
+
+    def get_openhab_item_or_raise(self, item_name: str) -> OpenHabBaseItem:
+        """
+        Returns the OpenHab item associated with the given item_name. Raise a runtime error if item does not exist.
+        """
+        if item_name in self._item_map.keys():
+            return cast(OpenHabBaseItem, self._item_map[item_name])
+        else:
+            raise RuntimeError(f"item '{item_name}' doesn't exist.")
 
     def get_items(self) -> List[BaseItem]:
         """

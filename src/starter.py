@@ -9,7 +9,7 @@ import yaml
 # from zone_api import zone_parser
 # reload(zone_parser)
 
-from zone_api.models import OpenHabEvent, ValueChangeEvent
+from zone_api.models import OpenHabEvent, ValueChangeEvent, ValueUpdateEvent
 from zone_api.openhab.oh_models import OpenHabBaseItem, OpenHabSwitchItem
 from zone_api.openhab.websocket_client import OpenHabWebSocketClient
 from zone_api import zone_parser as zp
@@ -81,34 +81,48 @@ class Starter():
         #pe.log_info(f"{event}")
 
         item = None
-        json_obj = None
+        payload = None
         tokens = topic.split('/')
-        if len(tokens) == 4:
-            item_name = tokens[2]
-            payload = event.get('payload', None)
-            if payload is not None:
-                json_obj = json.loads(payload)
+        if len(tokens) < 3: # type, topic, payload, source
+            return
 
-                item = cast(OpenHabBaseItem, self._zm.get_item(item_name))
+        item_name = tokens[2]
+        payload = event.get('payload', None)
+        if payload is None:
+            return
+
+        payload = json.loads(payload)
+        item = cast(OpenHabBaseItem, self._zm.get_item(item_name))
+        if item is None:
+            return
+
+        item_state = payload.get('value')
 
         if event_type == OpenHabEvent.ItemStateChanged.value:
-            if item and json_obj:
-                item_state = json_obj.get('value')
-                old_item_state = json_obj.get('oldValue')
+            old_item_state = payload.get('oldValue')
 
-                handler = item.get_event_handler(OpenHabEvent.ItemStateChanged)
-                if handler:
-                    event = ValueChangeEvent(item.get_name(), item_state, old_item_state)
-                    handler(event)
+            handler = item.get_event_handler(OpenHabEvent.ItemStateChanged)
+            if handler:
+                event = ValueChangeEvent(item.get_name(), item_state, old_item_state)
+                handler(event)
 
-                pe.log_info(f"Received state update for item '{item_name}': {item_state}")
+            pe.log_info(f"State changed for item '{item_name}': {item_state}")
+
         elif event_type == 'ItemStateUpdatedEvent':
-            if item and json_obj:
-                item_state = json_obj.get('value')
-                item.update_value_from_openhab(item_state)
-        elif event_type == 'ItemCommandEvent':
-            pass
+            item.update_value_from_openhab(item_state)
 
+            handler = item.get_event_handler(OpenHabEvent.ItemStateUpdated)
+            if handler:
+                event = ValueUpdateEvent(item.get_name(), item_state)
+                handler(event)
+            pe.log_debug(f"State updated for item '{item_name}': {item_state}")
+
+        elif event_type == 'ItemCommandEvent':
+            handler = item.get_event_handler(OpenHabEvent.ItemCommandReceived)
+            if handler:
+                event = ValueUpdateEvent(item.get_name(), item_state)
+                handler(event)
+            pe.log_debug(f"Received command for item '{item_name}': {item_state}")
 
         #print(f"event: {event}")
         

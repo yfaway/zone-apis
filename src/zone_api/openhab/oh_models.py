@@ -179,6 +179,7 @@ class OpenHabDateTimeItem(OpenHabBaseItem, DateTimeItem):
 class OpenHabColorItem(OpenHabBaseItem, ColorItem):
     def set_value(self, value: Any) -> None:
         self.state = value
+        # todo send the values over to OH
 
 
 class OpenHabPlayerItem(OpenHabBaseItem, PlayerItem):

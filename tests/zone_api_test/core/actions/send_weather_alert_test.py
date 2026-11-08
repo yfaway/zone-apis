@@ -7,6 +7,7 @@ from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.environment_canada import EnvCanada
+from zone_api.models import StringItem
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 
 
@@ -35,20 +36,24 @@ class SendWeatherAlertTest(DeviceTest):
     MOCKED_RETRIEVE_ALERT_FCN = 'zone_api.environment_canada.EnvCanada.retrieve_alert'
 
     def setUp(self):
-        items = [pe.create_number_item('weather-temp'), pe.create_number_item('weather-humidity'),
+        items = [pe.create_number_item('weather-temp', 20), pe.create_number_item('weather-humidity', 50),
                  pe.create_string_item('weather-condition'), pe.create_string_item('weather-alert'),
-                 pe.create_datetime_item('weather-date')]
+                 pe.create_datetime_item('weather-date'),
+                 pe.create_number_item('Weather_ForecastTempMin', 10),
+                 pe.create_number_item('Weather_ForecastTempMax', 15)]
         self.set_items(items)
         super(SendWeatherAlertTest, self).setUp()
 
-        self.alert_item = items[-2]
+        self.alert_item: StringItem = items[3]
         self.action = SendWeatherAlert(MapParameters({}))
-        self.weather = Weather(*items)
+        self.weather = Weather(items[0], items[1], condition_item=items[2], inout_alert_title_item=items[3],
+                              inout_alert_datetime_item=items[4], forecast_min_temperature_item=items[5],
+                              forecast_max_temperature_item=items[6])
         self.zone1 = Zone('office', [], Level.FIRST_FLOOR) \
             .add_action(self.action) \
             .add_device(self.weather)
 
-        pe.set_string_value(self.alert_item, "Bad weather")
+        self.alert_item.set_value("Bad weather")
 
         self.zm = create_zone_manager([self.zone1])
 
@@ -75,7 +80,7 @@ class SendWeatherAlertTest(DeviceTest):
             mock_requests.return_value = description, url, None
 
             self.assertTrue(self.invoke_action())
-            self.assertTrue(pe.get_string_value(self.alert_item) in self.zm.get_alert_manager()._lastEmailedSubject) # type: ignore
+            self.assertTrue(self.alert_item.get_value() in self.zm.get_alert_manager()._lastEmailedSubject) # type: ignore
             self.assertTrue(description in self.zm.get_alert_manager()._lastEmailedBody)
             self.assertTrue(url in self.zm.get_alert_manager()._lastEmailedBody)
 

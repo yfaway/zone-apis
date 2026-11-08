@@ -1,7 +1,7 @@
 import datetime
 
-from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
+from zone_api.models import DateTimeItem, NumberItem, StringItem
 
 
 class Weather(Device):
@@ -10,8 +10,9 @@ class Weather(Device):
     condition. All other parameters are optional.
     """
 
-    def __init__(self, temperature_item, humidity_item, condition_item, inout_alert_title_item=None,
-                 inout_alert_datetime_item=None, forecast_min_temperature_item=None, forecast_max_temperature_item=None):
+    def __init__(self, temperature_item: NumberItem, humidity_item: NumberItem, *, condition_item: StringItem,
+                 inout_alert_title_item: StringItem, inout_alert_datetime_item: DateTimeItem, 
+                 forecast_min_temperature_item: NumberItem, forecast_max_temperature_item: NumberItem):
         """
         Ctor
 
@@ -38,13 +39,13 @@ class Weather(Device):
         self._forecast_max_temperature_item = forecast_max_temperature_item
 
     def get_temperature(self) -> float:
-        return pe.get_number_value(self._temperature_item)
+        return self._temperature_item.get_value()
 
     def get_humidity(self) -> float:
-        return pe.get_number_value(self._humidity_item)
+        return self._humidity_item.get_value()
 
     def get_condition(self) -> str:
-        return pe.get_string_value(self._condition_item)
+        return self._condition_item.get_value()
 
     def support_alert(self):
         """ Returns true if the alert information is available. """
@@ -54,19 +55,19 @@ class Weather(Device):
         if not self.support_alert():
             raise ValueError("alert is not available.")
 
-        return pe.get_string_value(self._inout_alert_title_item)
+        return self._inout_alert_title_item.get_value()
 
     def _set_alert_title(self, alert_title: str):
         if not self.support_alert():
             raise ValueError("alert is not available.")
         else:
-            pe.set_string_value(self._inout_alert_title_item, alert_title)
+            self._inout_alert_title_item.set_value(alert_title)
 
     def _set_alert_datetime(self, value: datetime.datetime):
         if not self.support_alert():
             raise ValueError("alert is not available.")
         else:
-            pe.set_datetime_value(self._inout_alert_datetime_item, value)
+            self._inout_alert_datetime_item.set_value(value)
 
     def support_forecast_min_temperature(self):
         return self._forecast_min_temperature_item is not None
@@ -75,7 +76,7 @@ class Weather(Device):
         if not self.support_forecast_min_temperature():
             raise ValueError("forecast_min_temperature is not available.")
 
-        return pe.get_number_value(self._forecast_min_temperature_item)
+        return self._forecast_min_temperature_item.get_value()
 
     def support_forecast_max_temperature(self):
         return self._forecast_max_temperature_item is not None
@@ -84,7 +85,7 @@ class Weather(Device):
         if not self.support_forecast_max_temperature():
             raise ValueError("forecast_max_temperature is not available.")
 
-        return pe.get_number_value(self._forecast_max_temperature_item)
+        return self._forecast_max_temperature_item.get_value()
 
     def __str__(self):
         """ @override """

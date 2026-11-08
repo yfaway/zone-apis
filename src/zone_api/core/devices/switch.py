@@ -287,7 +287,7 @@ class ColorLight(Light):
         """
         :param rgb_color: a list of 3 integers representing the R, B, and G values, range from 0 to 255.
         """
-        pe.set_color_value(self._color_item, rgb_color)
+        self._color_item.set_value(rgb_color)
 
     def __str__(self):
         """ @override """

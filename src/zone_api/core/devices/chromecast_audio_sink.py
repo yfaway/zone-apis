@@ -1,8 +1,9 @@
 import time
-from typing import Union
+from typing import Union, cast
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
+from zone_api.models import PlayerItem, SwitchItem
 from zone_api.music_streams import MusicStream
 
 MAX_SAY_WAIT_TIME_IN_SECONDS = 30
@@ -177,7 +178,7 @@ class ChromeCastAudioSink(Device):
             self._testLastCommand = 'pause'
             return
 
-        pe.change_player_state_to_pause(self._player_item)
+        cast(PlayerItem, self._player_item).pause()
 
     def resume(self):
         """
@@ -189,13 +190,13 @@ class ChromeCastAudioSink(Device):
             return
 
         pe.play_stream_url(self.get_sink_name(), self.get_stream_url())
-        pe.change_player_state_to_play(self._player_item)
+        cast(PlayerItem, self._player_item).play()
 
     def is_active(self):
         """
         Return true if the chromecast is playing something.
         """
-        return not pe.is_in_on_state(self._idling_item) and pe.is_player_playing(self._player_item)
+        return not cast(SwitchItem, self._idling_item).is_on() and cast(PlayerItem, self._player_item).is_playing()
 
     def _has_title(self):
         """
