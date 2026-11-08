@@ -121,7 +121,7 @@ class Starter():
             if handler:
                 event = ValueUpdateEvent(item.get_name(), item_state)
                 handler(event)
-            pe.log_debug(f"Received command for item '{item_name}': {item_state}")
+            pe.log_info(f"* Received command for item '{item_name}': {item_state}")
 
         #print(f"event: {event}")
         

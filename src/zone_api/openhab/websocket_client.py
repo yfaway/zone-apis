@@ -138,7 +138,15 @@ class OpenHabWebSocketClient:
             'topic': f"openhab/items/{item_name}/command",
             'payload': payload,
         }
-        await self._websocket.send(json.dumps(message))
+        try:
+            await self._websocket.send(json.dumps(message))
+        except websockets.ConnectionClosed:
+            if not self._stop_event.is_set():
+                await asyncio.sleep(2)
+                try:
+                    await self.connect()
+                except Exception as e:
+                    print("Failed to reconnect:", e)
 
 
     async def run_forever(self) -> None:
