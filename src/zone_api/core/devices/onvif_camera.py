@@ -27,10 +27,10 @@ class OnvifCamera(Camera):
         return pe.is_in_on_state(self._ffmpeg_control_item)
 
     def turn_on_ffmpeg(self):
-        pe.set_switch_state(self._ffmpeg_control_item, True)
+        self._ffmpeg_control_item.on()
 
     def turn_off_ffmpeg(self):
-        pe.set_switch_state(self._ffmpeg_control_item, False)
+        self._ffmpeg_control_item.off()
 
     def get_snapshot_images(self, time_in_epoch_seconds=time.time(),
                             max_number_of_seconds=15, offset_seconds=5) -> List[str]:

@@ -395,7 +395,7 @@ class ImmutableZoneManager:
 
         # Small optimization: dispatch directly to the applicable zone first if we can determine
         # the zone id from the item name.
-        owning_zone: Zone = self.get_zone_by_item_name(pe.get_item_name(item)) # type: ignore
+        owning_zone: Zone = self.get_zone_by_item_name(item.get_name()) # type: ignore
         if owning_zone is not None:
             value = owning_zone.dispatch_event(zone_event, open_hab_events, device, item, self, owning_zone)
             return_values.append(value)

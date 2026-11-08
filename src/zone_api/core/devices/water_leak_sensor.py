@@ -25,4 +25,4 @@ class WaterLeakSensor(Device):
 
     def reset_value_states(self):
         """ Override. """
-        pe.set_switch_state(self.get_item(), False)
+        self.get_item().off()

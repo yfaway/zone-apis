@@ -54,16 +54,16 @@ class Wled(Light):
             # Saturation between 50 and 100%, and full Brightness.
             primary_color = "{},{},100".format(
                 random.choice(range(0, 360)), random.choice(range(50, 100)))
-            events.send_command(pe.get_item_name(self.primary_color_item), primary_color)
+            self.primary_color_item.set_value(primary_color)
 
             secondary_color = "{},{},100".format(
                 random.choice(range(0, 360)), random.choice(range(50, 100)))
-            events.send_command(pe.get_item_name(self.secondary_color_item), secondary_color)
+            self.secondary_color_item.set_value(secondary_color)
 
             # now randomize the effect
             # noinspection PyTypeChecker
             effect_id = random.choice(list(get_effects().keys()))
-            events.send_command(pe.get_item_name(self.effect_item), str(effect_id))
+            self.effect_item.set_value(str(effect_id))
 
             # start the next timer
             next_duration_in_minute = random.choice(range(2, 7))
@@ -88,8 +88,8 @@ class Wled(Light):
         @override
         """
         return u"{}, effectItem: {}, primaryColorItem: {}, secondaryColorItem: {}".format(
-            super(Wled, self).__str__(), pe.get_item_name(self.effect_item),
-            pe.get_item_name(self.primary_color_item), pe.get_item_name(self.secondary_color_item))
+            super(Wled, self).__str__(), self.effect_item.get_name(),
+            self.primary_color_item.get_name(), self.secondary_color_item.get_name())
 
 
 def get_effects() -> Dict:

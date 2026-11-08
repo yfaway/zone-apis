@@ -42,8 +42,8 @@ class GasSensor(Device):
 
     def reset_value_states(self):
         """ Override. """
-        pe.set_number_value(self.get_item(), -1)
-        pe.set_switch_state(self._state_item, False)
+        self.get_item().set_value(-1)
+        self._state_item.off()
 
 
 class Co2GasSensor(GasSensor):

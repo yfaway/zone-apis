@@ -9,10 +9,9 @@ import mimetypes
 
 from typing import cast, List, Union, Any, TYPE_CHECKING
 
-import HABApp
 from zone_api.core.zone_manager import ZoneManager
 from zone_api.models import BaseItem, ColorItem, ContactItem, DateTimeItem, DimmerItem, NumberItem, PlayerItem, StringItem, SwitchItem
-from zone_api.openhab.oh_models import OpenHabDimmerItem, OpenHabNumberItem, OpenHabStringItem, OpenHabSwitchItem
+from zone_api.openhab.oh_models import OpenHabStringItem, OpenHabSwitchItem
 from HABApp.core.types.color import RGB
 
 from zone_api.core.immutable_zone_manager import EmailSettings, ImmutableZoneManager
@@ -36,10 +35,6 @@ ZONE_MANAGER: 'ImmutableZoneManager'
 _in_unit_tests = False
 
 
-def is_in_hab_app() -> bool:
-    return True
-
-
 def register_test_item(item: BaseItem) -> None:
     """ Register the given item with the runtime. """
     get_zone_manager_from_context().add_item(item)
@@ -56,11 +51,8 @@ def add_zone_manager_to_context(zm: 'ImmutableZoneManager'):
 
     :param ImmutableZoneManager zm:
     """
-    if is_in_hab_app():
-        global ZONE_MANAGER
-        ZONE_MANAGER = zm
-    else:
-        raise ValueError("Unsupported type op: add_zone_manager_to_context")
+    global ZONE_MANAGER
+    ZONE_MANAGER = zm
 
 
 def get_zone_manager_from_context() -> 'ImmutableZoneManager':
@@ -78,10 +70,6 @@ def is_in_on_state(item: SwitchItem):
     :return: True if the state is ON.
     """
     return item.is_on()
-
-
-def is_in_open_state(item: ContactItem):
-    return item.is_open()
 
 def create_datetime_item(name: str) -> DateTimeItem:
     return DateTimeItem(name, None)
@@ -136,20 +124,6 @@ def set_color_value(item: ColorItem, rgb_color: List[int]):
     #item.oh_send_command(",".join(map(str, [item.hue, item.saturation, item.brightness])))
 
 
-def set_switch_state(item_or_item_name: Union[SwitchItem, str], on: bool):
-    """ Set the switch state for the given item or item name. """
-    item: SwitchItem
-    if isinstance(item_or_item_name, str):
-        item: SwitchItem = cast(SwitchItem, ZONE_MANAGER.get_item(item_or_item_name))
-    else:
-        item = item_or_item_name
-
-    if on:
-        item.on()
-    else:
-        item.off()
-
-
 def set_datetime_value(item_or_item_name: Union[DateTimeItem, str], value: datetime.datetime):
     item: DateTimeItem
     if isinstance(item_or_item_name, str):
@@ -168,15 +142,6 @@ def get_datetime_value(item_or_item_name: Union[DateTimeItem, str]) -> datetime.
         item = item_or_item_name
 
     return item.get_value()
-
-
-def set_dimmer_value(item: DimmerItem, percentage: int):
-    item.set_percentage(percentage)
-
-
-def get_dimmer_percentage(item: DimmerItem) -> int:
-    return int(item.percentage()) or 0 
-
 
 def set_number_value(item_or_item_name: Union[NumberItem, str], value: float):
     item:NumberItem
@@ -234,10 +199,8 @@ def has_item(item_name: str):
     """ Returns true if the item name is present in the back store. """
     return ZONE_MANAGER.has_item(item_name)
 
-
-def get_item_name(item):
-    return item.name
-
+def get_item(item_name: str):
+    return ZONE_MANAGER.get_item(item_name)
 
 def log_debug(message: str):
     """ Log a debug message. """
@@ -260,34 +223,9 @@ def log_warning(message: str):
 
 
 def get_event_dispatcher():
-    if not is_in_unit_tests():
-        class EventDispatcher:
-            # noinspection PyMethodMayBeStatic
-            def send_command(self, item_name: str, command: Any):
-                HABApp.openhab.interface_sync.send_command(item_name, command)
-
-        return EventDispatcher()
-    else:
-        class TestEventDispatcher:
-            # noinspection PyMethodMayBeStatic
-            def send_command(self, item_name: str, command: Any):
-                item = get_zone_manager_from_context().get_item(item_name)
-                if isinstance(item, DimmerItem):
-                    item.set_value(int(command))
-                elif isinstance(item, SwitchItem):
-                    if command.upper() == 'ON':
-                        item.on()
-                    elif command.upper() == 'OFF':
-                        item.off()
-                elif isinstance(item, NumberItem):
-                    item.set_value(float(command))
-                elif isinstance(item, StringItem):
-                    item.set_value(str(command))
-                else:
-                    log_error("type: {}".format(type(item)))
-                    raise ValueError("Unsupported type for item '{}'".format(item_name))
-
-        return TestEventDispatcher()
+    class EventDispatcher:
+        pass
+    return EventDispatcher()
 
 
 def set_in_unit_tests():

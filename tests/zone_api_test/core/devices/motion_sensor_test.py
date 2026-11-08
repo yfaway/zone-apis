@@ -15,7 +15,7 @@ class MotionSensorTest(DeviceTest):
     def test_is_on_various_returnsExpected(self):
         self.assertFalse(self.motionSensor.is_on())
 
-        pe.set_switch_state(self.get_items()[0], True)
+        self.get_items()[0].on()
         self.assertTrue(self.motionSensor.is_on())
 
     def testIsOccupied_various_returnsExpected(self):
@@ -24,7 +24,7 @@ class MotionSensorTest(DeviceTest):
         self.motionSensor.update_last_activated_timestamp()
         self.assertTrue(self.motionSensor.is_occupied())
 
-        pe.set_switch_state(self.get_items()[0], True)
+        self.get_items()[0].on()
         self.assertTrue(self.motionSensor.is_occupied())
 
     def testGetBatteryPercentage_none_returnsExpected(self):

@@ -1,13 +1,13 @@
 from curses import meta
 import re
-from typing import Union, Dict, Any
+from typing import Union, Dict, Any, cast
 
-import HABApp
-from HABApp.core.events import ValueUpdateEventFilter, ValueChangeEventFilter, ValueChangeEvent
+from HABApp.core.events import ValueUpdateEventFilter
 from HABApp.core.events.filter.event import TypeBoundEventFilter
 from HABApp.openhab.events import ItemCommandEvent
 from HABApp.openhab.events import ItemStateUpdatedEvent
 
+from zone_api.models import BaseItem, ContactItem, OpenHabEvent, SwitchItem, ValueChangeEvent
 from zone_api.openhab.oh_models import OpenHabBaseItem
 from zone_api.openhab.oh_models import OpenHabColorItem, OpenHabDimmerItem, OpenHabNumberItem, OpenHabSwitchItem, OpenHabStringItem
 
@@ -78,7 +78,7 @@ def create_switches(zm: ImmutableZoneManager,
         if duration_in_minutes == -1:
             raise ValueError(f"Missing durationInMinutes value for {item_name}'")
     else:
-        duration_in_minutes = None
+        duration_in_minutes = 10
 
     device = None
     if device_name.endswith('LightSwitch'):
@@ -134,7 +134,7 @@ def create_switches(zm: ImmutableZoneManager,
                 if not zm.on_switch_turned_off(pe.get_event_dispatcher(), device, item):
                     pe.log_debug(f'Switch off event for {item.name} is not processed.')
 
-        item.listen_event(handler, ValueChangeEventFilter())
+        item.listen_event(handler, OpenHabEvent.ItemStateUpdated)
 
     return device
 
@@ -177,9 +177,9 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: OpenHabSwitchItem) ->
 
         # Reset the key pad alarm states on unarmed event.
         if AlarmState.UNARMED == AlarmState(int(event.value)):
-            pe.set_switch_state(panel_fire_key_alarm_item, False)
-            pe.set_switch_state(panel_ambulance_key_alarm_item, False)
-            pe.set_switch_state(panel_police_key_alarm_item, False)
+            panel_fire_key_alarm_item.off()
+            panel_ambulance_key_alarm_item.off()
+            panel_police_key_alarm_item.off()
 
     def arm_mode_value_received(event: ItemCommandEvent):
         if AlarmState.ARM_AWAY == AlarmState(int(event.value)):
@@ -196,11 +196,12 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: OpenHabSwitchItem) ->
     def fire_alarm_state_change_handler(event: ValueChangeEvent):
         dispatch_event(zm, ZoneEvent.PARTITION_FIRE_ALARM_STATE_CHANGED, device, panel_fire_key_alarm_item)
 
-    arm_mode_item.listen_event(arm_mode_value_changed, ValueChangeEventFilter())
-    arm_mode_item.listen_event(arm_mode_value_received, ValueUpdateEventFilter())
+    if arm_mode_item is not None:
+        arm_mode_item.listen_event(arm_mode_value_changed, OpenHabEvent.ItemStateUpdated)
+        arm_mode_item.listen_event(arm_mode_value_received, ValueUpdateEventFilter())
 
-    item.listen_event(in_alarm_state_change_handler, ValueChangeEventFilter())
-    panel_fire_key_alarm_item.listen_event(fire_alarm_state_change_handler, ValueChangeEventFilter())
+    item.listen_event(in_alarm_state_change_handler, OpenHabEvent.ItemStateUpdated)
+    panel_fire_key_alarm_item.listen_event(fire_alarm_state_change_handler, OpenHabEvent.ItemStateUpdated)
 
     # Wire the DSC key panels to the soft items. See notes in the .items file.
     def wire_soft_panel_events(dsc_item, panel_item):
@@ -209,9 +210,9 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: OpenHabSwitchItem) ->
             # We don't propagate the OFF state to work around a limitation on the DSC panel (the RESTORE event is sent
             # immediately).
             if pe.is_in_on_state(dsc_item):
-                pe.set_switch_state(panel_item, True)
+                panel_item.on()
 
-        dsc_item.listen_event(handler, ValueChangeEventFilter())
+        dsc_item.listen_event(handler, OpenHabEvent.ItemStateUpdated)
 
     wire_soft_panel_events(zm.get_item(item.name + '_DscPanelFireKeyAlarm'), panel_fire_key_alarm_item)
     wire_soft_panel_events(zm.get_item(item.name + '_DscPanelAmbulanceKeyAlarm'), panel_ambulance_key_alarm_item)
@@ -235,8 +236,8 @@ def create_chrome_cast(zm: ImmutableZoneManager, item: OpenHabStringItem) -> Chr
     if pe.has_item(stream_title_name):
         stream_title_item = zm.get_item(stream_title_name)
 
-    device = _configure_device(ChromeCastAudioSink(
-        sink_name, player_item, volume_item, title_item, idling_item, stream_title_item), zm)
+    device = cast(ChromeCastAudioSink, _configure_device(ChromeCastAudioSink(
+        sink_name, player_item, volume_item, title_item, idling_item, stream_title_item), zm))
 
     def player_command_event(event):
         event_map = {'NEXT': ZoneEvent.PLAYER_NEXT,
@@ -289,7 +290,7 @@ def create_mpd_chrome_cast(zm: ImmutableZoneManager, item: OpenHabStringItem) ->
             event = event_map[event.value]
             dispatch_event(zm, event, device, player_item)
 
-    player_item.listen_event(player_pause_and_play_event, ValueChangeEventFilter())
+    player_item.listen_event(player_pause_and_play_event, OpenHabEvent.ItemStateUpdated)
 
     # noinspection PyTypeChecker
     return device
@@ -369,9 +370,10 @@ def create_motion_sensor(zm: ImmutableZoneManager, item: OpenHabBaseItem) -> Mot
     # noinspection PyUnusedLocal
     def handler(event: ValueChangeEvent):
         if pe.is_in_on_state(item):
+            pe.log_info("*** got event")
             dispatch_event(zm, ZoneEvent.MOTION, sensor, item)
 
-    item.listen_event(handler, ValueChangeEventFilter())
+    item.listen_event(handler, OpenHabEvent.ItemStateUpdated)
 
     # noinspection PyTypeChecker
     return sensor
@@ -389,7 +391,7 @@ def create_humidity_sensor(zm: ImmutableZoneManager, item) -> HumiditySensor:
     def handler(event: ValueChangeEvent):
         dispatch_event(zm, ZoneEvent.HUMIDITY_CHANGED, sensor, item)
 
-    item.listen_event(handler, ValueChangeEventFilter())
+    item.listen_event(handler, OpenHabEvent.ItemStateUpdated)
 
     # noinspection PyTypeChecker
     return sensor
@@ -431,7 +433,7 @@ def create_ikea_remote_control(brightness_up_hold_event: ZoneEvent = None,
                         dispatch_event(zm, mapped_zone_event, sensor, control_item)
                         sensor.reset_value_states()  # Set the switch to off to wait for the next triggering event.
 
-                control_item.listen_event(handler, ValueChangeEventFilter())
+                control_item.listen_event(handler, OpenHabEvent.ItemStateUpdated)
 
         register_event(brightness_up_hold_item, brightness_up_hold_event)
         register_event(brightness_down_hold_item, brightness_down_hold_event)
@@ -457,7 +459,7 @@ def create_network_presence_device(zm: ImmutableZoneManager, item) -> NetworkPre
 
         dispatch_event(zm, ZoneEvent.NETWORK_PRESENCE_CHANGED, sensor, item)
 
-    item.listen_event(handler, ValueChangeEventFilter())
+    item.listen_event(handler, OpenHabEvent.ItemStateUpdated)
 
     # noinspection PyTypeChecker
     return sensor
@@ -478,7 +480,7 @@ def create_temperature_sensor(zm: ImmutableZoneManager, item) -> TemperatureSens
         TemperatureSensor(temperature_item=item, battery_percentage_item=battery_percentage_item), zm)
 
     item.listen_event(lambda event: dispatch_event(zm, ZoneEvent.TEMPERATURE_CHANGED, sensor, item),
-                      ValueChangeEventFilter())
+                      OpenHabEvent.ItemStateUpdated)
 
     # noinspection PyTypeChecker
     return sensor
@@ -528,8 +530,8 @@ def create_gas_sensor(cls):
         def value_change_handler(event: ValueChangeEvent):
             dispatch_event(zm, ZoneEvent.GAS_VALUE_CHANGED, sensor, item)
 
-        item.listen_event(value_change_handler, ValueChangeEventFilter())
-        state_item.listen_event(state_change_handler, ValueChangeEventFilter())
+        item.listen_event(value_change_handler, OpenHabEvent.ItemStateUpdated)
+        state_item.listen_event(state_change_handler, OpenHabEvent.ItemStateUpdated)
 
         # noinspection PyTypeChecker
         return sensor
@@ -543,7 +545,7 @@ def create_door(zm: ImmutableZoneManager, item) -> Door:
     if pe.has_item(in_alarm_name):
         in_alarm_item = zm.get_item(in_alarm_name)
 
-    if 'garage' in pe.get_item_name(item).lower():
+    if 'garage' in item.get_name().lower():
         sensor = GarageDoor(item, in_alarm_item)
     else:
         sensor = Door(item, in_alarm_item)
@@ -552,12 +554,18 @@ def create_door(zm: ImmutableZoneManager, item) -> Door:
 
     # noinspection PyUnusedLocal
     def handler(event: ValueChangeEvent):
-        if pe.is_in_on_state(item) or pe.is_in_open_state(item):
-            dispatch_event(zm, ZoneEvent.DOOR_OPEN, sensor, item)
-        else:
-            dispatch_event(zm, ZoneEvent.DOOR_CLOSED, sensor, item)
+        if isinstance(item, SwitchItem):
+            if item.is_on():
+                dispatch_event(zm, ZoneEvent.DOOR_OPEN, sensor, item)
+            else:
+                dispatch_event(zm, ZoneEvent.DOOR_CLOSED, sensor, item)
+        if isinstance(item, ContactItem):
+            if item.is_open():
+                dispatch_event(zm, ZoneEvent.DOOR_OPEN, sensor, item)
+            else:
+                dispatch_event(zm, ZoneEvent.DOOR_CLOSED, sensor, item)
 
-    item.listen_event(handler, ValueChangeEventFilter())
+    item.listen_event(handler, OpenHabEvent.ItemStateUpdated)
 
     # noinspection PyTypeChecker
     return sensor
@@ -573,12 +581,18 @@ def create_window(zm: ImmutableZoneManager, item) -> Window:
 
     # noinspection PyUnusedLocal
     def handler(event: ValueChangeEvent):
-        if pe.is_in_on_state(item) or pe.is_in_open_state(item):
-            dispatch_event(zm, ZoneEvent.WINDOW_OPEN, sensor, item)
-        else:
-            dispatch_event(zm, ZoneEvent.WINDOW_CLOSED, sensor, item)
+        if isinstance(item, SwitchItem):
+            if item.is_on():
+                dispatch_event(zm, ZoneEvent.WINDOW_OPEN, sensor, item)
+            else:
+                dispatch_event(zm, ZoneEvent.WINDOW_CLOSED, sensor, item)
+        if isinstance(item, ContactItem):
+            if item.is_open():
+                dispatch_event(zm, ZoneEvent.WINDOW_OPEN, sensor, item)
+            else:
+                dispatch_event(zm, ZoneEvent.WINDOW_CLOSED, sensor, item)
 
-    item.listen_event(handler, ValueChangeEventFilter())
+    item.listen_event(handler, OpenHabEvent.ItemStateUpdated)
 
     # noinspection PyTypeChecker
     return sensor
@@ -593,7 +607,7 @@ def create_water_leak_sensor(zm: ImmutableZoneManager, item) -> WaterLeakSensor:
     """
     sensor = _configure_device(WaterLeakSensor(item), zm)
     item.listen_event(lambda event: dispatch_event(zm, ZoneEvent.WATER_LEAK_STATE_CHANGED, sensor, item),
-                      ValueChangeEventFilter())
+                      OpenHabEvent.ItemStateUpdated)
 
     # noinspection PyTypeChecker
     return sensor
@@ -632,16 +646,19 @@ def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> EcobeeThermostat
         if device.is_in_vacation():
             dispatch_event(zm, ZoneEvent.VACATION_MODE_ON, device, event_item)
             if pe.has_item(display_item_name):
-                pe.set_switch_state(display_item_name, True)
+                cast(SwitchItem, pe.get_item(display_item_name)).on()
         elif event.old_value == EcobeeThermostat.VACATION_EVENT_TYPE:
             dispatch_event(zm, ZoneEvent.VACATION_MODE_OFF, device, event_item)
             if pe.has_item(display_item_name):
-                pe.set_switch_state(display_item_name, False)
+                cast(SwitchItem, pe.get_item(display_item_name)).off()
 
-    event_item.listen_event(handler, ValueChangeEventFilter())
+    event_item.listen_event(handler, OpenHabEvent.ItemStateUpdated)
 
     # Set to the correct state on start-up.
-    pe.set_switch_state(display_item_name, device.is_in_vacation())
+    if device.is_in_vacation():
+        cast(SwitchItem, pe.get_item(display_item_name)).on()
+    else:
+        cast(SwitchItem, pe.get_item(display_item_name)).off()
 
     # noinspection PyTypeChecker
     return device
@@ -663,7 +680,7 @@ def create_astro_sensor(zm: ImmutableZoneManager, item) -> AstroSensor:
         if device.is_bed_time(event.value):
             dispatch_event(zm, ZoneEvent.ASTRO_BED_TIME, device, item)
 
-    item.listen_event(handler, ValueChangeEventFilter())
+    item.listen_event(handler, OpenHabEvent.ItemStateUpdated)
 
     # noinspection PyTypeChecker
     return device
@@ -678,7 +695,7 @@ def create_television_device(zm: ImmutableZoneManager, item) -> Tv:
         zone_event = ZoneEvent.ENTERTAINMENT_ON if pe.is_in_on_state(item) else ZoneEvent.ENTERTAINMENT_OFF
         dispatch_event(zm, zone_event, sensor, item)
 
-    item.listen_event(handler, ValueChangeEventFilter())
+    item.listen_event(handler, OpenHabEvent.ItemStateUpdated)
 
     # noinspection PyTypeChecker
     return sensor
@@ -706,17 +723,17 @@ def create_computer(zm: ImmutableZoneManager, item) -> Computer:
     if cpu_temperature_item is not None:
         cpu_temperature_item.listen_event(
             lambda event: dispatch_event(zm, ZoneEvent.COMPUTER_CPU_TEMPERATURE_CHANGED, device, cpu_temperature_item),
-            ValueChangeEventFilter())
+            OpenHabEvent.ItemStateUpdated)
 
     if gpu_temperature_item is not None:
         gpu_temperature_item.listen_event(
             lambda event: dispatch_event(zm, ZoneEvent.COMPUTER_GPU_TEMPERATURE_CHANGED, device, gpu_temperature_item),
-            ValueChangeEventFilter())
+            OpenHabEvent.ItemStateUpdated)
 
     if gpu_fan_speed_item is not None:
         gpu_fan_speed_item.listen_event(
             lambda event: dispatch_event(zm, ZoneEvent.COMPUTER_GPU_FAN_SPEED_CHANGED, device, gpu_fan_speed_item),
-            ValueChangeEventFilter())
+            OpenHabEvent.ItemStateUpdated)
 
     # noinspection PyTypeChecker
     return device
@@ -755,19 +772,19 @@ def create_weather(zm: ImmutableZoneManager, temperature_item: OpenHabNumberItem
 
     temperature_item.listen_event(
         lambda event: dispatch_event(
-            zm, ZoneEvent.WEATHER_TEMPERATURE_CHANGED, device, temperature_item), ValueChangeEventFilter())
+            zm, ZoneEvent.WEATHER_TEMPERATURE_CHANGED, device, temperature_item), OpenHabEvent.ItemStateUpdated)
 
     humidity_item.listen_event(
         lambda event: dispatch_event(
-            zm, ZoneEvent.WEATHER_HUMIDITY_CHANGED, device, humidity_item), ValueChangeEventFilter())
+            zm, ZoneEvent.WEATHER_HUMIDITY_CHANGED, device, humidity_item), OpenHabEvent.ItemStateUpdated)
 
     condition_item.listen_event(
         lambda event: dispatch_event(
-            zm, ZoneEvent.WEATHER_CONDITION_CHANGED, device, condition_item), ValueChangeEventFilter())
+            zm, ZoneEvent.WEATHER_CONDITION_CHANGED, device, condition_item), OpenHabEvent.ItemStateUpdated)
 
     alert_title_item.listen_event(
         lambda event: dispatch_event(
-            zm, ZoneEvent.WEATHER_ALERT_CHANGED, device, alert_title_item), ValueChangeEventFilter())
+            zm, ZoneEvent.WEATHER_ALERT_CHANGED, device, alert_title_item), OpenHabEvent.ItemStateUpdated)
 
     # noinspection PyTypeChecker
     return device
@@ -794,7 +811,7 @@ def create_auto_report_notification_setting(zm: ImmutableZoneManager, device_nam
     device_name_item.listen_event(
         lambda event: dispatch_event(
             zm, ZoneEvent.DEFERRED_NOTIFICATION_DEVICE_NAME_CHANGED, device, device_name_item),
-        ValueChangeEventFilter())
+        OpenHabEvent.ItemStateUpdated)
 
     # noinspection PyTypeChecker
     return device
@@ -819,7 +836,7 @@ def create_mpd_controller(zm: ImmutableZoneManager, item: OpenHabBaseItem) -> Mp
     def dispatch_play_event(event):
         dispatch_event(zm, ZoneEvent.PLAYER_PLAY, device, item)
 
-    predefined_category_item.listen_event(dispatch_play_event, ValueChangeEventFilter())
+    predefined_category_item.listen_event(dispatch_play_event, OpenHabEvent.ItemStateUpdated)
 
     def player_pause_and_play_event(event):
         event_map = {'PLAY': ZoneEvent.PLAYER_PLAY,
@@ -844,14 +861,14 @@ def create_mpd_controller(zm: ImmutableZoneManager, item: OpenHabBaseItem) -> Mp
         def __init__(self):
             super().__init__(ItemCommandEvent)
 
-    item.listen_event(player_pause_and_play_event, ValueChangeEventFilter())
+    item.listen_event(player_pause_and_play_event, OpenHabEvent.ItemStateUpdated)
     item.listen_event(player_next_and_prev_event, ItemCommandEventFilter())
 
     # noinspection PyTypeChecker
     return device
 
 
-def dispatch_event(zm: ImmutableZoneManager, zone_event: ZoneEvent, device: Device, item: OpenHabBaseItem):
+def dispatch_event(zm: ImmutableZoneManager, zone_event: ZoneEvent, device: Device, item: BaseItem):
     """
     Dispatches an event to the ZoneManager. If the event is not processed,
     create a debug log.

@@ -29,4 +29,4 @@ class DeferredAutoReportNotification(Device):
 
     @property
     def duration_in_hour_item_name(self) -> str:
-        return pe.get_item_name(self._duration_in_hour_item)
+        return self._duration_in_hour_item.get_name()

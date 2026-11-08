@@ -21,4 +21,4 @@ class IkeaRemoteControl(Device):
         """ Override to set all switch states to false. """
         for item in self.get_all_items():
             if pe.is_in_on_state(item):
-                pe.set_switch_state(item, False)
+                item.off()

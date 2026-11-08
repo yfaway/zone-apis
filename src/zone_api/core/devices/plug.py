@@ -81,14 +81,14 @@ class Plug(Device):
         Turns on this plug, if it is not on yet.
         """
         if not self.is_on():
-            events.send_command(self.get_item_name(), "ON")
+            self.get_item().on()
 
     def turn_off(self, events):
         """
         Turn off this plug.
         """
         if self.is_on():
-            events.send_command(self.get_item_name(), "OFF")
+            self.get_item().off()
 
     def __str__(self):
         """ @override """

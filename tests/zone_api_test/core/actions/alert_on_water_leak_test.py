@@ -24,16 +24,16 @@ class AlertWaterLeakTest(DeviceTest):
         self.zm = create_zone_manager([self.zone1])
 
     def testOnAction_leakDetected_returnsTrueAndSendAlert(self):
-        pe.set_switch_state(self.get_items()[0], True)
+        self.get_items()[0].on()
         self.sendEventAndAssertAlertContainMessage('Water leak detected in')
 
     def testOnAction_noLongerTriggered_returnsTrueAndSendsInfoAlert(self):
         # initially leak detected
-        pe.set_switch_state(self.get_items()[0], True)
+        self.get_items()[0].on()
         self.sendEventAndAssertAlertContainMessage('Water leak detected in')
 
         # now back to normal
-        pe.set_switch_state(self.get_items()[0], False)
+        self.get_items()[0].off()
         self.sendEventAndAssertAlertContainMessage('No more water leak detected in')
 
     def sendEventAndAssertAlertContainMessage(self, message):

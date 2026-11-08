@@ -468,7 +468,7 @@ class Zone:
 
         switches = self.get_devices_by_type(Switch)
         for switch in switches:
-            if switch.on_switch_turned_on(events, pe.get_item_name(item)):
+            if switch.on_switch_turned_on(events, item.get_name()):
                 for a in actions:
                     a.on_action(event_info)
 
@@ -495,7 +495,7 @@ class Zone:
         switches = self.get_devices_by_type(Switch)
         for switch in switches:
             if switch.get_item().name == item.name:
-                if switch.on_switch_turned_off(events, pe.get_item_name(item)):
+                if switch.on_switch_turned_off(events, item.get_name()):
                     for a in actions:
                         a.on_action(event_info)
 

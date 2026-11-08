@@ -49,9 +49,9 @@ class Device(object):
         """
         Returns true if this device contains the specified item.
         """
-        their_name = pe.get_item_name(item)
+        their_name = item.get_name()
         for item in self.get_all_items():
-            if pe.get_item_name(item) == their_name:
+            if item.get_name() == their_name:
                 return True
 
         return False
@@ -70,7 +70,7 @@ class Device(object):
 
         :rtype: str
         """
-        return pe.get_item_name(self.item)
+        return self.item.get_name()
 
     def get_friendly_item_name(self, zone: 'Zone'):
         """ Returns the friend item name that excludes the zone name (if contained). Also replace hyphen with space. """

@@ -1,6 +1,6 @@
 import random
 from threading import Timer
-from typing import List
+from typing import List, cast
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.action import action, Action
@@ -10,6 +10,7 @@ from zone_api.core.event_info import EventInfo
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 from zone_api.core.parameters import ParameterConstraint, positive_number_validator, Parameters
 from zone_api.core.zone_event import ZoneEvent
+from zone_api.models import SwitchItem
 
 ON_EVENTS = [ZoneEvent.VACATION_MODE_ON, ZoneEvent.ASTRO_LIGHT_ON]
 OFF_EVENTS = [ZoneEvent.ASTRO_LIGHT_OFF, ZoneEvent.ASTRO_BED_TIME, ZoneEvent.VACATION_MODE_OFF]
@@ -88,7 +89,7 @@ class SimulateNighttimePresence(Action):
                 turn_on_random_light()
 
                 if pe.has_item(DISPLAY_ITEM_NAME):
-                    pe.set_switch_state(DISPLAY_ITEM_NAME, True)
+                    cast(SwitchItem, pe.get_item(DISPLAY_ITEM_NAME)).on()
 
         else:  # events to turn off simulation mode
             self.cancel_timer()
@@ -109,4 +110,4 @@ class SimulateNighttimePresence(Action):
             self.log_info("Canceled light simulation mode.")
 
         if pe.has_item(DISPLAY_ITEM_NAME):
-            pe.set_switch_state(DISPLAY_ITEM_NAME, False)
+            cast(SwitchItem, pe.get_item(DISPLAY_ITEM_NAME)).off()

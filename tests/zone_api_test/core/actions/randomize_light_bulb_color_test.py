@@ -35,7 +35,7 @@ class RandomizeLightBulbColorTest(DeviceTest):
         self.action._terminate.assert_called()
 
     def testOnAction_lightIsOn_timerStartedAndColorChanged(self):
-        pe.set_switch_state(self.get_items()[0], True)
+        self.get_items()[0].on()
         self.bulb.change_color = MagicMock()
         self.sendEvent()
 
@@ -43,7 +43,7 @@ class RandomizeLightBulbColorTest(DeviceTest):
         self.bulb.change_color.assert_called()
 
     def testOnAction_lightIsOff_timerNotStartedAndColorNotChanged(self):
-        pe.set_switch_state(self.get_items()[0], False)
+        self.get_items()[0].off()
         self.bulb.change_color = MagicMock()
         self.sendEvent()
 

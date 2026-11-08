@@ -47,8 +47,8 @@ class TellKidsToGoToBedTest(DeviceTest):
         self.assertTrue('put away everything' in self.sink.get_last_tts_message())
 
     def testOnAction_secondNotice_returnsTrue(self):
-        pe.set_switch_state(self.foyer_light.get_item(), False)
-        pe.set_switch_state(self.kitchen_light.get_item(), True)
+        self.foyer_light.get_item().off()
+        self.kitchen_light.get_item().on()
 
         event_info = EventInfo(ZoneEvent.TIMER, None, self.kitchen, self.zm, pe.get_event_dispatcher())
         value = self.action.on_action(

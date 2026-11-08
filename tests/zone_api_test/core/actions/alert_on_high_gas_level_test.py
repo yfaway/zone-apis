@@ -31,16 +31,16 @@ class AlertOnHighGasLevelTest(DeviceTest):
         self.assertFalse(value)
 
     def testOnAction_crossThreshold_returnsTrueAndSendAlert(self):
-        pe.set_switch_state(self.get_items()[0], True)
+        self.get_items()[0].on()
         self.sendEventAndAssertAlertContainMessage('above normal level')
 
     def testOnAction_noLongerTriggered_returnsTrueAndSendsInfoAlert(self):
         # initially below threshold
-        pe.set_switch_state(self.get_items()[0], True)
+        self.get_items()[0].on()
         self.sendEventAndAssertAlertContainMessage('above normal level')
 
         # now back to normal
-        pe.set_switch_state(self.get_items()[0], False)
+        self.get_items()[0].off()
         self.sendEventAndAssertAlertContainMessage('back to normal')
 
     def sendEventAndAssertAlertContainMessage(self, message):

@@ -1,7 +1,7 @@
 import time
 from random import randint
 from threading import Timer
-from typing import List
+from typing import List, Union
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
@@ -51,7 +51,7 @@ class Switch(Device):
 
             (occupied, device) = zone.is_occupied([Switch], 60)
             if not occupied:
-                events.send_command(self.get_item_name(), "OFF")
+                self.get_item().off()
                 pe.log_debug("{}: turning off {}.".format(
                     zone.get_name(), self.get_item_name()))
             else:
@@ -89,14 +89,14 @@ class Switch(Device):
         if self.is_on():  # already on, renew timer
             self._start_timer(events)
         else:
-            events.send_command(self.get_item_name(), "ON")
+            self.get_item().on()
 
     def turn_off(self, events):
         """
         Turn off this light.
         """
         if self.is_on():
-            events.send_command(self.get_item_name(), "OFF")
+            self.get_item().off()
 
         self._cancel_timer()
 
@@ -170,8 +170,8 @@ class Switch(Device):
 class Light(Switch):
     """ Represents a regular light.  """
 
-    def __init__(self, switch_item, duration_in_minutes: float, illuminance_level: int = None,
-                 no_premature_turn_off_time_range: str = None):
+    def __init__(self, switch_item, duration_in_minutes: float, illuminance_level: Union[int, None] = None,
+                 no_premature_turn_off_time_range: Union[str, None] = None):
         """
         :param int illuminance_level: the illuminance level in LUX unit. The \
             light should only be turned on if the light level is below this unit.
@@ -245,8 +245,8 @@ class ColorLight(Light):
 
     DURATION_IN_MINUTES_FOR_HOLIDAY_MODE = 5 * 60  # 5 hours
 
-    def __init__(self, switch_item, color_item, duration_in_minutes: float, illuminance_level: int = None,
-                 no_premature_turn_off_time_range: str = None):
+    def __init__(self, switch_item, color_item, duration_in_minutes: float, illuminance_level: Union[int, None] = None,
+                 no_premature_turn_off_time_range: Union[str, None] = None):
         """
         :param color_item: the OpenHab item to change the color.
         :param int illuminance_level: the illuminance level in LUX unit. The \
@@ -292,7 +292,7 @@ class ColorLight(Light):
     def __str__(self):
         """ @override """
         return u"{}, color item: {}".format(
-            super(ColorLight, self).__str__(), pe.get_item_name(self._color_item))
+            super(ColorLight, self).__str__(), self._color_item.get_name())
 
 
 class Fan(Switch):

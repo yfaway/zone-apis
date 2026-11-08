@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import datetime
-from typing import Any, cast
+from enum import Enum
+from typing import Any, Dict, Final, Union, cast
 
 """
 A set of classes that represent different types of items in the OpenHAB system. These classes however are not bound to
@@ -14,6 +16,21 @@ class BaseItem:
     def __init__(self, name: str, state: Any = None):
         self.name = name
         self.state = state
+        self._event_handlers: Dict[OpenHabEvent, Callable[[Any], Any]] = {}
+
+    def listen_event(self, callback: Callable[[Any], Any],
+                     event_type: OpenHabEvent) -> None:
+        self._event_handlers[event_type] = callback
+
+    def get_name(self):
+        return self.name
+
+    def get_state(self):
+        return self.state
+
+    def get_event_handler(self, event_type) -> Union[Callable[[Any], Any], None]:
+        return self._event_handlers.get(event_type) or None
+
 
 class SwitchItem(BaseItem):
     def on(self) -> None:
@@ -90,3 +107,17 @@ class PlayerItem(BaseItem):
 
     def is_playing(self) -> bool:
         return self.state == "PLAY"
+
+class OpenHabEvent(Enum):
+    ItemStateChanged = 'ItemStateChangedEvent' # the item state changed; i.e. new value differs from the old one.
+    ItemStateUpdated = 'ItemStateUpdatedEvent' # the item state is updated, even if the value didn't change
+
+
+class ValueChangeEvent:
+    def __init__(self, name: str, new_value: Any, old_value: Any) -> None:
+        self.name: Final = name
+        self.value: Final = new_value
+        self.old_value: Final = old_value
+
+    def __repr__(self) -> str:
+        return f'<{self.__class__.__name__} name: {self.name:s}, value: {self.value}, old_value: {self.old_value}>'

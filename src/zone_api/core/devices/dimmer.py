@@ -55,7 +55,7 @@ class Dimmer(Light):
 
         @override
         """
-        return pe.get_dimmer_percentage(self.get_item()) > 0
+        return self.get_item().percentage() > 0
 
     def __str__(self):
         """

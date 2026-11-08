@@ -161,7 +161,7 @@ class TurnOnSwitchTest(DeviceTest):
 
     def testOnAction_renewTimerWhenBothMasterAndSlaveAreOn_returnsTrueAndNotTurningOffNeighbor(self):
         self.setUpNeighborRelationship(self.zone2, NeighborType.OPEN_SPACE_SLAVE, True)
-        pe.set_switch_state(self.lightItem1, True)
+        self.lightItem1.on()
 
         self.assertTrue(self.turnOn())
         self.assertTrue(self.zone2.is_light_on())
@@ -182,8 +182,8 @@ class TurnOnSwitchTest(DeviceTest):
         # area. However, as the great room light was already on, that indicates
         # someone is already in that area. As such, any movement in that 
         # area must not prematurely turn off the the foyer light.
-        pe.set_switch_state(self.lightItem1, True)
-        pe.set_switch_state(self.lightItem3, True)
+        self.lightItem1.on()
+        self.lightItem3.on()
 
         event_info = EventInfo(ZoneEvent.MOTION, self.lightItem1,
                                self.zone2, create_zone_manager([self.zone1, self.zone2, self.zone3]),
@@ -196,7 +196,7 @@ class TurnOnSwitchTest(DeviceTest):
 
     def testOnAction_fanIsTurnedOn_returnsTrueAndDoNotTurnOffNeighborLight(self):
         self.zoneWithFan = self.zoneWithFan.add_neighbor(Neighbor(self.zone1.get_id(), NeighborType.OPEN_SPACE))
-        pe.set_switch_state(self.lightItem1, True)
+        self.lightItem1.on()
         self.assertTrue(self.zone1.is_light_on())
 
         value = self.turnOn(self.zoneWithFan)
@@ -221,4 +221,4 @@ class TurnOnSwitchTest(DeviceTest):
         self.zone1 = self.zone1.add_neighbor(Neighbor(zone.get_id(), neighbor_type))
 
         if neighbor_light_on:
-            pe.set_switch_state(self.lightItem2, True)
+            self.lightItem2.on()

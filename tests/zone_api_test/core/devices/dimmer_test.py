@@ -36,7 +36,7 @@ class DimmerTest(DeviceTest):
 
                 self.dimmer.turn_on(pe.get_event_dispatcher())
                 self.assertTrue(self.dimmer.is_on())
-                self.assertEqual(100, pe.get_dimmer_percentage(self.dimmerItem))
+                self.assertEqual(100, self.dimmerItem.percentage())
                 self.assertTrue(self.dimmer._is_timer_active())
 
     def testTurnOn_lightWasOffWithinDimTimeRange_returnsExpected(self):
@@ -52,18 +52,18 @@ class DimmerTest(DeviceTest):
 
                 self.dimmer.turn_on(pe.get_event_dispatcher())
                 self.assertTrue(self.dimmer.is_on())
-                self.assertEqual(dim_level, pe.get_dimmer_percentage(self.dimmerItem))
+                self.assertEqual(dim_level, self.dimmerItem.percentage())
                 self.assertTrue(self.dimmer._is_timer_active())
 
     def testTurnOn_lightWasAlreadyOn_timerIsRenewed(self):
-        pe.set_dimmer_value(self.dimmerItem, 100)
+        self.dimmerItem.set_percentage(100)
 
         self.dimmer.turn_on(pe.get_event_dispatcher())
         self.assertTrue(self.dimmer.is_on())
         self.assertTrue(self.dimmer._is_timer_active())
 
     def testTurnOff_bothLightAndTimerOn_timerIsRenewed(self):
-        pe.set_dimmer_value(self.dimmerItem, 0)
+        self.dimmerItem.set_percentage(0)
 
         self.dimmer.turn_off(pe.get_event_dispatcher())
         self.assertFalse(self.dimmer.is_on())

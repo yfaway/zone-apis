@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime
+from enum import Enum
 from numbers import Number
-from typing import Any, Dict, List, Tuple, Type, Union
+from typing import Any, Dict, Final, List, Tuple, Type, Union
 from collections.abc import Callable
 
 from zone_api.openhab.websocket_client import OpenHabWebSocketClient
@@ -69,10 +70,6 @@ class OpenHabBaseItem(BaseItem):
         asyncio.run_coroutine_threadsafe(
             self._openhab_connection.send_command(self.name, openhab_type, value),
             background_loop)
-
-    def listen_event(self, callback: Callable[[Any], Any],
-                     event_filter: Any) -> None:
-        pass 
 
     @staticmethod
     def _to_snake_case(value: str) -> str:

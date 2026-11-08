@@ -98,7 +98,7 @@ class AlarmPartition(Device):
 
         :param events:
         """
-        events.send_command(pe.get_item_name(self.arm_mode_item), AlarmState.ARM_AWAY.value)
+        self.arm_mode_item.set_value(AlarmState.ARM_AWAY.value)
 
     def arm_stay(self, events):
         """
@@ -106,7 +106,7 @@ class AlarmPartition(Device):
 
         :param events:
         """
-        events.send_command(pe.get_item_name(self.arm_mode_item), AlarmState.ARM_STAY.value)
+        self.arm_mode_item.set_value(AlarmState.ARM_STAY.value)
 
     def disarm(self, events):
         """
@@ -114,22 +114,22 @@ class AlarmPartition(Device):
 
         :param events:
         """
-        events.send_command(pe.get_item_name(self.arm_mode_item), AlarmState.UNARMED.value)
+        self.arm_mode_item.set_value(AlarmState.UNARMED.value)
 
     def trigger_fire_alarm(self, events):
         """
         Trigger a fire alarm. For the DSC board, a restore event will be sent immediately. This is a known
         limitation.
         """
-        events.send_command(pe.get_item_name(self.send_command_item), "060,1")
+        self.send_command_item.set_value("060,1")
 
     def trigger_ambulance_alarm(self, events):
         """ Trigger a ambulance alarm (may not be supported by the panel). """
-        events.send_command(pe.get_item_name(self.send_command_item), "060,2")
+        self.send_command_item.set_value("060,2")
 
     def trigger_police_alarm(self, events):
         """ Trigger a ambulance alarm (may not be supported by the panel). """
-        events.send_command(pe.get_item_name(self.send_command_item), "060,3")
+        self.send_command_item.set_value("060,3")
 
     def has_fire_alarm(self):
         return pe.is_in_on_state(self.get_panel_fire_key_alarm_item())
@@ -137,7 +137,7 @@ class AlarmPartition(Device):
     def cancel_panic_alarm(self, events):
         """ Turn off the panic alarm. """
         self.disarm(events)
-        pe.set_switch_state(self.get_panel_fire_key_alarm_item(), False)
+        self.get_panel_fire_key_alarm_item().off()
 
     def get_arm_mode_item(self):
         return self.arm_mode_item

@@ -25,8 +25,8 @@ class AlertOnSecurityAlarmTriggeredTest(DeviceTest):
         self.zm = create_zone_manager([self.zone1])
 
     def testOnAction_triggered_returnsTrueAndSendAlert(self):
-        pe.set_switch_state(self.alarm_partition.get_item(), True)  # alarm
-        pe.set_switch_state(self.get_items()[-1], True)  # tripped
+        self.alarm_partition.get_item().on()
+        self.get_items()[-1].on() # tripped
         self.sendEventAndAssertAlertContainMessage(
             ZoneEvent.PARTITION_IN_ALARM_STATE_CHANGED, self.alarm_partition.get_item(),
             'Security system is on alarm (Foyer Door).')
@@ -35,14 +35,14 @@ class AlertOnSecurityAlarmTriggeredTest(DeviceTest):
         self.testOnAction_triggered_returnsTrueAndSendAlert()  # set up the regular alarm first.
 
         # now back to normal
-        pe.set_switch_state(self.alarm_partition.get_item(), False)
+        self.alarm_partition.get_item().off()
         self.sendEventAndAssertAlertContainMessage(
             ZoneEvent.PARTITION_IN_ALARM_STATE_CHANGED, self.alarm_partition.get_item(),
             'Security system is NO LONGER in alarm')
 
     def testOnAction_fireKeyTriggered_returnsTrueAndSendAlert(self):
         item = self.alarm_partition.get_panel_fire_key_alarm_item()
-        pe.set_switch_state(item, True)
+        item.on()
         self.sendEventAndAssertAlertContainMessage(
             ZoneEvent.PARTITION_FIRE_ALARM_STATE_CHANGED, item, 'Security system is on FIRE alarm.')
 
@@ -50,7 +50,7 @@ class AlertOnSecurityAlarmTriggeredTest(DeviceTest):
         self.testOnAction_fireKeyTriggered_returnsTrueAndSendAlert()  # set up the fire alarm first.
 
         item = self.alarm_partition.get_panel_fire_key_alarm_item()
-        pe.set_switch_state(item, False)
+        item.off()
         self.sendEventAndAssertAlertContainMessage(
             ZoneEvent.PARTITION_FIRE_ALARM_STATE_CHANGED, item, "Security system is NO LONGER in FIRE alarm")
 

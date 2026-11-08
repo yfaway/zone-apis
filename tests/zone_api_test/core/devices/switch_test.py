@@ -28,7 +28,7 @@ class LightTest(DeviceTest):
         self.assertTrue(pe.is_in_on_state(self.lightItem))
 
     def testTurnOn_lightWasAlreadyOn_timerIsRenewed(self):
-        pe.set_switch_state(self.lightItem, True)
+        self.lightItem.on()
         self.assertFalse(self.light._is_timer_active())
 
         self.light.turn_on(pe.get_event_dispatcher())
@@ -36,7 +36,7 @@ class LightTest(DeviceTest):
         self.assertTrue(self.light._is_timer_active())
 
     def testOnSwitchTurnedOn_validParams_timerIsTurnedOn(self):
-        pe.set_switch_state(self.lightItem, True)
+        self.lightItem.on()
 
         is_processed = self.light.on_switch_turned_on(pe.get_event_dispatcher(), self.light.get_item_name())
         self.assertTrue(is_processed)
@@ -44,7 +44,7 @@ class LightTest(DeviceTest):
         self.assertEqual(self.defaultTimerDurationInSec * 60, self.light.timer.interval)
 
     def testOnSwitchTurnedOn_recentlyTurnedOff_timerIsTurnedOn(self):
-        pe.set_switch_state(self.lightItem, True)
+        self.lightItem.on()
         self.light.lastOffTimestampInSeconds = time.time() - 10  # simulated light turned off 10 secs ago.
 
         is_processed = self.light.on_switch_turned_on(pe.get_event_dispatcher(), self.light.get_item_name())
@@ -58,7 +58,7 @@ class LightTest(DeviceTest):
         self.assertFalse(is_processed)
 
     def testTurnOff_bothLightAndTimerOn_timerIsRenewed(self):
-        pe.set_switch_state(self.lightItem, True)
+        self.lightItem.on()
         self.light._start_timer(pe.get_event_dispatcher())
         self.assertTrue(self.light._is_timer_active())
 
@@ -66,7 +66,7 @@ class LightTest(DeviceTest):
         self.assertFalse(self.light._is_timer_active())
 
     def testOnSwitchTurnedOff_validParams_timerIsTurnedOn(self):
-        pe.set_switch_state(self.lightItem, True)
+        self.lightItem.on()
         self.light._start_timer(pe.get_event_dispatcher())
 
         is_processed = self.light.on_switch_turned_off(
@@ -102,7 +102,7 @@ class LightTest(DeviceTest):
         zone = Zone('ff', [self.light])
         zm.add_zone(zone)
 
-        pe.set_switch_state(self.lightItem, True)
+        self.lightItem.on()
         self.light._start_timer(pe.get_event_dispatcher())
         self.assertTrue(self.light._is_timer_active())
 
