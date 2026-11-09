@@ -3,7 +3,7 @@ from typing import Union, cast
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
-from zone_api.models import PlayerItem, SwitchItem
+from zone_api.models import DimmerItem, PlayerItem, SwitchItem
 from zone_api.music_streams import MusicStream
 
 MAX_SAY_WAIT_TIME_IN_SECONDS = 30
@@ -14,7 +14,7 @@ class ChromeCastAudioSink(Device):
     Represents a ChromeCast audio sink.
     """
 
-    def __init__(self, sink_name, player_item, volume_item, title_item, idling_item, out_current_stream_item=None):
+    def __init__(self, sink_name, player_item, volume_item: DimmerItem, title_item, idling_item, out_current_stream_item=None):
         """
         Ctor
 
@@ -69,9 +69,9 @@ class ChromeCastAudioSink(Device):
             raise ValueError('message must not be null or empty')
 
         was_active = self.is_active()
-        previous_volume = pe.get_number_value(self._volume_item)
+        previous_volume = int(self._volume_item.percentage())
 
-        pe.set_number_value(self._volume_item, volume)
+        self._volume_item.set_percentage(volume)
         if not self._testMode:
             pe.play_text_to_speech_message(self.get_sink_name(), message)
         else:
@@ -96,7 +96,7 @@ class ChromeCastAudioSink(Device):
             self.pause()
 
         if was_active:
-            pe.set_number_value(self._volume_item, previous_volume)
+            self._volume_item.set_percentage(previous_volume)
             self.resume()
 
         return True
@@ -119,16 +119,16 @@ class ChromeCastAudioSink(Device):
             return True
 
         was_active = self.is_active()
-        previous_volume = pe.get_number_value(self._volume_item)
+        previous_volume = int(self._volume_item.percentage())
 
         if volume is not None:
-            pe.set_number_value(self._volume_item, volume)
+            self._volume_item.set_percentage(volume)
 
         pe.play_local_audio_file(self.get_sink_name(), local_file)
 
         if was_active:
             time.sleep(duration_in_secs + 1)
-            pe.set_number_value(self._volume_item, previous_volume)
+            self._volume_item.set_percentage(previous_volume)
             self.resume()
 
         return True
@@ -153,7 +153,7 @@ class ChromeCastAudioSink(Device):
             return True
 
         if volume is not None:
-            pe.set_number_value(self._volume_item, volume)
+            self._volume_item.set_percentage(volume)
 
         if isinstance(url_or_stream, MusicStream):
             url = url_or_stream.url

@@ -110,7 +110,7 @@ def create_switches(zm: ImmutableZoneManager,
         # noinspection PyUnusedLocal
         def handler(event: ValueChangeEvent):
             if isinstance(item, OpenHabDimmerItem):
-                is_off = pe.get_number_value(item) == 0
+                is_off = item.is_off()
                 is_on = not is_off and event.old_value == 0
             elif isinstance(item, OpenHabColorItem):
                 was_on = (event.old_value[2] > 0)  # index 2 for brightness

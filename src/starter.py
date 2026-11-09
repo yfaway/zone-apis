@@ -10,7 +10,7 @@ import yaml
 # reload(zone_parser)
 
 from zone_api.models import OpenHabEvent, ValueChangeEvent, ValueUpdateEvent
-from zone_api.openhab.oh_models import OpenHabBaseItem, OpenHabSwitchItem
+from zone_api.openhab.oh_models import OpenHabBaseItem
 from zone_api.openhab.websocket_client import OpenHabWebSocketClient
 from zone_api import zone_parser as zp
 from zone_api import platform_encapsulator as pe
@@ -97,31 +97,34 @@ class Starter():
 
         item_state = payload.get('value')
 
-        if event_type == OpenHabEvent.ItemStateChanged.value:
-            old_item_state = payload.get('oldValue')
+        try:
+            if event_type == OpenHabEvent.ItemStateChanged.value:
+                old_item_state = payload.get('oldValue')
 
-            handler = item.get_event_handler(OpenHabEvent.ItemStateChanged)
-            if handler:
-                event = ValueChangeEvent(item.get_name(), item_state, old_item_state)
-                handler(event)
+                handler = item.get_event_handler(OpenHabEvent.ItemStateChanged)
+                if handler:
+                    event = ValueChangeEvent(item.get_name(), item_state, old_item_state)
+                    handler(event)
 
-            pe.log_info(f"State changed for item '{item_name}': {item_state}")
+                pe.log_debug(f"State changed for item '{item_name}': {item_state}")
 
-        elif event_type == 'ItemStateUpdatedEvent':
-            item.update_value_from_openhab(item_state)
+            elif event_type == 'ItemStateUpdatedEvent':
+                item.update_value_from_openhab(item_state)
 
-            handler = item.get_event_handler(OpenHabEvent.ItemStateUpdated)
-            if handler:
-                event = ValueUpdateEvent(item.get_name(), item_state)
-                handler(event)
-            pe.log_debug(f"State updated for item '{item_name}': {item_state}")
+                handler = item.get_event_handler(OpenHabEvent.ItemStateUpdated)
+                if handler:
+                    event = ValueUpdateEvent(item.get_name(), item_state)
+                    handler(event)
+                pe.log_debug(f"State updated for item '{item_name}': {item_state}")
 
-        elif event_type == 'ItemCommandEvent':
-            handler = item.get_event_handler(OpenHabEvent.ItemCommandReceived)
-            if handler:
-                event = ValueUpdateEvent(item.get_name(), item_state)
-                handler(event)
-            pe.log_info(f"* Received command for item '{item_name}': {item_state}")
+            elif event_type == 'ItemCommandEvent':
+                handler = item.get_event_handler(OpenHabEvent.ItemCommandReceived)
+                if handler:
+                    event = ValueUpdateEvent(item.get_name(), item_state)
+                    handler(event)
+                pe.log_info(f"* Received command for item '{item_name}': {item_state}")
+        except Exception as e:
+            pe.log_error(f"Error in event_dispatcher: {e}")
 
         #print(f"event: {event}")
         

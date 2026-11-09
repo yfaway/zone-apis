@@ -3,10 +3,7 @@ from __future__ import annotations
 import asyncio
 import threading
 from datetime import datetime
-from enum import Enum
-from numbers import Number
-from typing import Any, Dict, Final, List, Tuple, Type, Union
-from collections.abc import Callable
+from typing import Any, Dict, List, Tuple, Type, Union
 
 from zone_api.openhab.websocket_client import OpenHabWebSocketClient
 from zone_api.models import (
@@ -116,13 +113,6 @@ class OpenHabSwitchItem(OpenHabBaseItem, SwitchItem):
     def off(self) -> None:
         self._set_value('OnOff', 'OFF')
 
-    def is_on(self) -> bool:
-        return self.state == 'ON'
-
-    def is_off(self) -> bool:
-        return self.state == 'OFF'
-
-
 class OpenHabNumberItem(OpenHabBaseItem, NumberItem):
     def get_value(self) -> float:
         if self.state is None:
@@ -135,9 +125,6 @@ class OpenHabNumberItem(OpenHabBaseItem, NumberItem):
             else:
                 return float(self.state)
         except (ValueError, TypeError):
-            print(self.unit)
-            print(self.pattern)
-            print(self._raw)
             raise ValueError(f"Cannot convert state '{self.state}' to float for item '{self.name}'.")
 
     def set_value(self, value: Any) -> None:
@@ -154,7 +141,7 @@ class OpenHabStringItem(OpenHabBaseItem, StringItem):
             raise ValueError(f"Cannot convert state '{self.state}' to string for item '{self.name}'.")
 
     def set_value(self, value: Any) -> None:
-        self._set_value('String', value)
+        self._set_value('String', str(value))
 
 
 class OpenHabContactItem(OpenHabBaseItem, ContactItem):
@@ -165,10 +152,7 @@ class OpenHabContactItem(OpenHabBaseItem, ContactItem):
         return self.state == 'CLOSED'
 
 
-class OpenHabDimmerItem(OpenHabNumberItem, DimmerItem):
-    def percentage(self) -> float:
-        return self.get_value()
-
+class OpenHabDimmerItem(OpenHabSwitchItem, DimmerItem):
     def set_percentage(self, value: float) -> None:
         self._set_value('Percent', value)
 

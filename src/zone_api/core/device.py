@@ -131,7 +131,7 @@ class Device(object):
             return None
         else:
             # noinspection PyTypeChecker
-            return pe.get_number_value(self.battery_percentage_item)
+            return self.battery_percentage_item.get_value()
 
     def set_use_wifi(self, bool_value):
         """

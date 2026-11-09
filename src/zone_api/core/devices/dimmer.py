@@ -43,9 +43,9 @@ class Dimmer(Light):
                 if activity is not None and activity.is_sleep_time():
                     self.get_item().set_percentage(self.dim_level)
                 else:
-                    self.get_item().set_percentage(100)
+                    self.get_item().on()
             else:
-                self.get_item().set_percentage(100)
+                self.get_item().on()
 
         self._handle_common_on_action(events)
 
@@ -55,7 +55,7 @@ class Dimmer(Light):
 
         @override
         """
-        return self.get_item().percentage() > 0
+        return self.get_item().is_on()
 
     def __str__(self):
         """

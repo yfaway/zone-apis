@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import Any, Awaitable, Callable, Optional, cast
-
+import logging
+from typing import Any, Callable, Optional, cast
 import websockets
+
+logger = logging.getLogger('ZoneApis')
 
 
 class OpenHabWebSocketClient:
@@ -91,7 +93,7 @@ class OpenHabWebSocketClient:
                     message = json.loads(raw)
                 except json.JSONDecodeError:
                     message = {'raw': raw}
-                    print("Failed to decode JSON message:", raw)
+                    logger.error(f"Failed to decode JSON message: {raw}")
 
                 source = message.get('source') or None
                 if source is not None and source.strip() == self.client_name:
@@ -106,8 +108,8 @@ class OpenHabWebSocketClient:
                     result = self.on_event(message)
                     if asyncio.iscoroutine(result):
                         await result
-                else:
-                    print(json.dumps(message, indent=2, sort_keys=True))
+                #else:
+                #    print(json.dumps(message, indent=2, sort_keys=True))
             except websockets.ConnectionClosed:
                 # Reconnect if the connection is closed unexpectedly
                 if not self._stop_event.is_set():
@@ -115,13 +117,13 @@ class OpenHabWebSocketClient:
                     try:
                         await self.connect()
                     except Exception as e:
-                        print("Failed to reconnect:", e)
+                        logger.error(f"Failed to reconnect: {e}")
                 break
             except asyncio.CancelledError as e:
-                print("Listener task cancelled:", e)
+                logger.error(f"Listener task cancelled: {e}")
                 break
             except Exception as e:
-                print("Error in listener:", e)
+                logger.error(f"Error in listener: {e}")
                 if not self._stop_event.is_set():
                     await asyncio.sleep(1)
 
@@ -146,7 +148,7 @@ class OpenHabWebSocketClient:
                 try:
                     await self.connect()
                 except Exception as e:
-                    print("Failed to reconnect:", e)
+                    logger.error(f"Failed to reconnect: {e}")
 
 
     async def run_forever(self) -> None:
@@ -157,28 +159,3 @@ class OpenHabWebSocketClient:
                 await asyncio.sleep(1)
         finally:
             await self.disconnect()
-
-
-async def main() -> None:
-    client = OpenHabWebSocketClient(
-        host='192.168.0.1',
-        port=8080,
-        client_name='ZoneApi',
-        on_event=lambda event: print('received:', json.dumps(event, sort_keys=True)),
-    )
-    await client.connect()
-
-    # Example of sending an event to OpenHAB.
-    #client.generate({'itemName': 'TestSwitch', 'value': 'ON'}, topic='smarthome/items')
-
-    try:
-        while True:
-            await asyncio.sleep(1)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        await client.disconnect()
-
-
-if __name__ == '__main__':
-    asyncio.run(main())

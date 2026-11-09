@@ -77,11 +77,25 @@ class ContactItem(BaseItem):
 
 
 class DimmerItem(SwitchItem):
+    def is_on(self) -> bool:
+        if self.state == 'ON':
+            return True
+        else:
+            return self.percentage() > 0
+
+    def is_off(self) -> bool:
+        return self.state == 'OFF' or self.percentage() == 0
+
     def percentage(self) -> float:
-        return cast(int, self.state)
+        if self.state == 'ON':
+            return 100
+        elif self.state == 'OFF':
+            return 0
+        else:
+            return int(self.state)
 
     def set_percentage(self, value: int) -> None:
-        self.state = value
+        self.state = str(value)
 
 
 class DateTimeItem(BaseItem):

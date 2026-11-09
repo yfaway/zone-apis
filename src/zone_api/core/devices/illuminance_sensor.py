@@ -1,5 +1,4 @@
 from zone_api.core.device import Device
-from zone_api import platform_encapsulator as pe
 
 
 class IlluminanceSensor(Device):
@@ -21,7 +20,7 @@ class IlluminanceSensor(Device):
         """
         Returns an positive integer representing the LUX value.
         """
-        return pe.get_number_value(self.get_item())
+        return self.get_item().get_value()
 
 
 class FixedValueIlluminanceSensor(IlluminanceSensor):
