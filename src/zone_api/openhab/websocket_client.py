@@ -13,8 +13,11 @@ class OpenHabWebSocketClient:
     """OpenHAB event WebSocket client.
 
     Connects to the OpenHAB event adapter at ws://<host>:<port>/ws/events.
-    It subscribes to the default event topics and forwards events to a callback,
-    filtering out messages that originated from the same client name.
+    It subscribes to the default event topics and forwards events to a callback, filtering out messages that originated
+    from the same client name.
+    An OpenHab-layer keep-alive ping message is send periodically based on the provided ping interval.
+    Messages to be sent to OpenHab aer queued to ensure correct transmission in multi-threaded env, which is the case
+    due to usage of the Scheduling library within zone_api.
     """
 
     def __init__(
@@ -28,7 +31,6 @@ class OpenHabWebSocketClient:
         on_event: Optional[Callable[[dict[str, Any]], Any]] = None,
         ping_interval: int = 5,
         ping_timeout: int = 5,
-        topics: Optional[list[str]] = None,
     ):
         self.host = host
         self.port = port
@@ -38,12 +40,14 @@ class OpenHabWebSocketClient:
         self.on_event = on_event
         self.ping_interval = ping_interval
         self.ping_timeout = ping_timeout
-        self.topics = topics or ['smarthome/items/#', 'smarthome/events']
 
         self.uri = f'ws://{self.host}:{self.port}{self.path}'
         self._websocket = None
         self._listener_task: Optional[asyncio.Task] = None
+        self._heartbeat_task: Optional[asyncio.Task] = None
+        self._sender_task: Optional[asyncio.Task] = None
         self._stop_event = asyncio.Event()
+        self._send_queue: asyncio.Queue[tuple[str, asyncio.Future[None]]] = asyncio.Queue()
 
     async def connect(self) -> None:
         """Connect to the server and subscribe to the selected topics."""
@@ -57,26 +61,85 @@ class OpenHabWebSocketClient:
             close_timeout=None,
         )
 
-        for topic in self.topics:
-            await self._websocket.send(json.dumps({
-                'type': 'subscribe',
-                'topic': topic,
-            }))
-
         self._stop_event.clear()
+        self._sender_task = asyncio.create_task(self._send_queued_messages())
         self._listener_task = asyncio.create_task(self._listen_forever())
+        self._heartbeat_task = asyncio.create_task(self._send_heartbeat())
 
     async def disconnect(self) -> None:
         self._stop_event.set()
+        if self._heartbeat_task is not None:
+            self._heartbeat_task.cancel()
+            try:
+                await self._heartbeat_task
+            except asyncio.CancelledError:
+                pass
+            self._heartbeat_task = None
+
+        if self._sender_task is not None:
+            self._sender_task.cancel()
+            try:
+                await self._sender_task
+            except asyncio.CancelledError:
+                pass
+            self._sender_task = None
+
+        while not self._send_queue.empty():
+            _, completion = self._send_queue.get_nowait()
+            if not completion.done():
+                completion.cancel()
+            self._send_queue.task_done()
+
         if self._listener_task is not None:
             self._listener_task.cancel()
             try:
                 await self._listener_task
             except asyncio.CancelledError:
                 pass
+
         if self._websocket is not None:
             await self._websocket.close()
             self._websocket = None
+
+    async def _send_queued_messages(self) -> None:
+        """Serialize websocket writes through a single queue consumer."""
+        while True:
+            serialized_message, completion = await self._send_queue.get()
+            try:
+                if self._websocket is None:
+                    raise RuntimeError('WebSocket is not connected.')
+                await self._websocket.send(serialized_message)
+            except asyncio.CancelledError:
+                if not completion.done():
+                    completion.cancel()
+                raise
+            except Exception as error:
+                if not completion.done():
+                    completion.set_exception(error)
+            else:
+                if not completion.done():
+                    completion.set_result(None)
+            finally:
+                self._send_queue.task_done()
+
+    async def _send_heartbeat(self) -> None:
+        """Send OpenHAB heartbeat messages at the configured ping interval."""
+        while not self._stop_event.is_set():
+            await asyncio.sleep(self.ping_interval)
+            if self._websocket is None:
+                continue
+
+            message = {
+                'type': 'WebSocketEvent',
+                'topic': 'openhab/websocket/heartbeat',
+                'payload': 'PING',
+                'source': self.client_name
+            }
+            try:
+                await self._safe_send(message)
+            except websockets.ConnectionClosed:
+                logger.error("WebSocket closed while sending heartbeat")
+                return
 
     async def _listen_forever(self) -> None:
         while not self._stop_event.is_set():
@@ -100,6 +163,7 @@ class OpenHabWebSocketClient:
                     continue
 
                 event_type: str = cast(str, message.get('type')) or ""
+
                 if event_type is not None and self.ignored_non_item_events \
                         and not event_type.strip().startswith('Item'):  
                     continue
@@ -140,8 +204,9 @@ class OpenHabWebSocketClient:
             'topic': f"openhab/items/{item_name}/command",
             'payload': payload,
         }
+        #logger.info(f"{json.dumps(message)}")
         try:
-            await self._websocket.send(json.dumps(message))
+            await self._safe_send(message)
         except websockets.ConnectionClosed:
             if not self._stop_event.is_set():
                 await asyncio.sleep(2)
@@ -151,11 +216,15 @@ class OpenHabWebSocketClient:
                     logger.error(f"Failed to reconnect: {e}")
 
 
-    async def run_forever(self) -> None:
-        """Convenience loop to keep the WebSocket connection alive."""
-        await self.connect()
-        try:
-            while not self._stop_event.is_set():
-                await asyncio.sleep(1)
-        finally:
-            await self.disconnect()
+    async def _safe_send(self, message_dict):
+        """
+        Queue a serialized message and wait until the websocket writer sends it.
+        """
+
+        if self._websocket is None or self._sender_task is None:
+            raise RuntimeError('WebSocket is not connected. Call connect() first.')
+
+        loop = asyncio.get_running_loop()
+        completion = loop.create_future()
+        await self._send_queue.put((json.dumps(message_dict), completion))
+        await completion

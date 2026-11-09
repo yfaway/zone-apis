@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import threading
 from datetime import datetime
 from typing import Any, Dict, List, Tuple, Type, Union
@@ -18,6 +19,7 @@ from zone_api.models import (
     SwitchItem,
 )
 
+logger = logging.getLogger('ZoneApis')
 
 class OpenHabBaseItem(BaseItem):
     """Base model mirroring the OpenHAB REST item payload."""
@@ -78,6 +80,8 @@ class OpenHabBaseItem(BaseItem):
         else:
             asyncio.run(
                 self._openhab_connection.send_command(self.name, openhab_type, value))
+
+        #logger.info(f"Sent command {value} to {self.name} ({openhab_type})")
 
     @staticmethod
     def _to_snake_case(value: str) -> str:
