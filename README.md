@@ -2,12 +2,10 @@
 <!-- vim-markdown-toc GFM -->
 
 * [Quick intro and setup instructions](#quick-intro-and-setup-instructions)
-    * [1. Install the libraries](#1-install-the-libraries)
-    * [2. Configure HABapp](#2-configure-habapp)
-    * [3. Create the zone-api configuration file.](#3-create-the-zone-api-configuration-file)
-    * [4. Create a HABapp rule to integrate with ZoneApi.](#4-create-a-habapp-rule-to-integrate-with-zoneapi)
-    * [5. Change OpenHab item names to patterns recognized by the default Zone API parser](#5-change-openhab-item-names-to-patterns-recognized-by-the-default-zone-api-parser)
-    * [6. Start HABapp and observe the action via the log file](#6-start-habapp-and-observe-the-action-via-the-log-file)
+    * [1. Install zone-apis](#1-install-zone-apis)
+    * [2. Modify the config file to your system's specifications](#2-modify-the-config-file-to-your-systems-specifications)
+    * [3. Change OpenHab item names to patterns recognized by the default Zone API parser](#3-change-openhab-item-names-to-patterns-recognized-by-the-default-zone-api-parser)
+    * [4. Run zone_api and observe the actions via the log file](#4-run-zone_api-and-observe-the-actions-via-the-log-file)
 * [Zone API - an alternative approach to writing rules](#zone-api---an-alternative-approach-to-writing-rules)
 * [Core concepts and API](#core-concepts-and-api)
     * [ZoneManager](#zonemanager)
@@ -45,60 +43,29 @@
 <!-- vim-markdown-toc -->
 
 # Quick intro and setup instructions
-This framework contains a set of reusable rules for OpenHab. It contains the following components:
-1. The item definitions and bindings in OpenHab.
-2. The [HABApp](https://habapp.readthedocs.io/en/latest/installation.html) process that communicates with OpenHab via
-   the REST API. 
-3. This Zone API Python library, integrated with HABapp via a single HABApp rule.
+This repository contains a set of reusable rules for OpenHab. It interact with OpenHab via the REST endpoints and the WebSocket connection to trigger the action logic defined here.
 
-It is a more complicated architecture compared to having everything running within OpenHab process,
-but on the other hand, we can use Python 3 libraries. See [here](https://community.openhab.org/t/habapp-vs-jsr223-jython/112914)
-for the comparison between HABApp and JSR223 Jython.
+It is a more complicated architecture compared to having everything running within OpenHab process, but on the other 
+hand, we can use Python 3 libraries.
 
-## 1. Install the libraries
+## 1. Install zone-apis
+Clone this repositories into a folder, then
+
 ```bash
+  cd zone-apis
   sudo apt-get install python3-venv # to install python3-venv library
-  python3 -m venv my-home # this will create 'my-home' folder
-  cd my-home
+  python3 -m venv . # this will create 'my-home' folder
   source bin/activate
-  python3 -m pip install zone-api # this will install zone-api and its dependencies including HABapp
+  python3 -m pip install . # this will install all dependencies
 ```
-
-Refer to the instructions on the [official HABApp website](https://habapp.readthedocs.io/en/latest/installation.html).
-for additional clarifications.
-
-## 2. Configure HABapp
-First run the following commands within the `my-home` folder to start HABapp and to generate the HABapp configuration
-files.
-```bash
-  mkdir habapp
-  ./bin/habapp --config habapp/ # HABapp will create the config.yml and logging.yml files.
-```
-
-Now that the config files have been created, press Ctrl-C to kill HABapp. We will change the following 4 values in
-`config.yml` file to specify the OpenHab server.
-```
-  host: localhost  # the OpenHab server IP address
-  port: 8080                                                                  
-  user: ''         # the OpenHab3 username
-  password: ''     # the OpenHab3 password
-```
-
-Next, add a new logger for Zone API to the file `logging.xml` under the section "**loggers:**".
-```
-  ZoneApis:                                                                     
-    level: INFO                                                                 
-    handlers:                                                                   
-      - HABApp_default                                                          
-    propagate: False 
-```
-
-See [the HABApp website](https://habapp.readthedocs.io) for additional detail.
-
-## 3. Create the zone-api configuration file.
-Create the file `my-home/habapp/zone-api-config.yml` with the content below:
+## 2. Modify the config file to your system's specifications
+Edit the file `zone-apis/conf/zone-api-config.yml` to specify the OpenHab server, and various settings.
 ```yaml
 system:
+  openhab:
+    host: '192.168.0.2'
+    port: 8080
+
   activity-times:
     wakeup: '6:35 - 9'
     lunch: '12:00 - 13:30'
@@ -126,54 +93,13 @@ action-parameters:
   AlertOnBadComputerStates:
     maxCpuTemperatureInDegree: 60
 ```
-The latest version of this file can be found [here](https://github.com/yfaway/zone-apis/blob/master/habapp/zone-api-config.yml).
+The latest version of this file can be found [here](https://github.com/yfaway/zone-apis/blob/master/conf/zone-api-config.yml).
 
 All actions support the following parameters:
 - disabled: true | false
 - notificationAudiences: "administrators" or "owners"
 
-## 4. Create a HABapp rule to integrate with ZoneApi.
-Next create the file `configure_zone_manager.py` under `my-home/habapp/rules` (HABapp created this folder earlier). Copy
-the following content into that file.
-```python
-import HABApp
-import os
-import yaml
-
-from zone_api import zone_parser as zp
-from zone_api import platform_encapsulator as pe
-
-
-class ConfigureZoneManagerRule(HABApp.Rule):
-    def __init__(self):
-        super().__init__()
-
-        self.run.soon(self.configure_zone_manager)
-
-    # noinspection PyMethodMayBeStatic
-    def configure_zone_manager(self):
-        config_file = './habapp/zone-api-config.yml'
-        if not os.path.exists(config_file):
-            raise ValueError("Missing zone-api-config.yml file.")
-
-        pe.log_info(f"Reading zone-api configuration from '{config_file}'")
-
-        with open(config_file, 'r') as file:
-            config = yaml.safe_load(file)
-
-        zm = zp.parse(config)
-        pe.add_zone_manager_to_context(zm)
-
-        pe.log_info(str(pe.get_zone_manager_from_context()))
-
-
-ConfigureZoneManagerRule()
-```
-This is the only rule that is needed to bootstrap the framework. It reads the configuration from the yaml file in the
-section above.
-The latest version of this file can be found [here](https://github.com/yfaway/zone-apis/blob/master/habapp/rules/configure_zone_manager.py).
-
-## 5. Change OpenHab item names to patterns recognized by the default Zone API parser
+## 3. Change OpenHab item names to patterns recognized by the default Zone API parser
 Let's adjust the OpenHab items files to something like this:
 ```
 String Zone_Office { level="FF" }
@@ -188,17 +114,19 @@ first floor (`FF` abbreviation). The next two items define a [Light](https://git
 device and a [MotionSensor](https://github.com/yfaway/zone-apis/blob/master/src/zone_api/core/devices/motion_sensor.py)
 in the `Office` zone (via the convention `FF_Office` prefix).
 
-## 6. Start HABapp and observe the action via the log file
-Restart HABapp with `./bin/habapp --config habapp/` and then monitor the HABapp activity via `tail -F habapp/log/HABApp.log`.
+## 4. Run zone_api and observe the actions via the log file
+Go into `zone-apis` folder and run `PYTHONPATH=src:lib/python3.12/site-packages python3 src/starter.py`.
+Then monitor the application activity via ` tail -F /var/log/openhab/zones-api.log`.
 You should see something like this:
 ```
-[2021-06-20 22:42:06,155] [             HABApp.Rules]     INFO | Added rule "ConfigureZoneManagerRule" from rules/configure_zone_manager.py
-Zone: Office, floor: FIRST_FLOOR, internal, 2 devices
-  Light: FF_Office_LightSwitch, duration: 15 minutes, illuminance: 8
-  MotionSensor: FF_Office_LightSwitch_MotionSensor, battery powered
-
-  Action: MOTION -> TurnOnSwitch
-  Action: SWITCH_TURNED_ON -> TurnOffAdjacentZones
+[2026-11-09 21:30:07,767] [                 ZoneApis]     INFO | Loaded logging configuration from '.../logging.yml'
+[2026-11-09 21:30:07,767] [                 ZoneApis]     INFO | Reading zone-api configuration from '.../zone-api-config.yml'
+[2026-11-09 21:30:08,093] [                 ZoneApis]     INFO | 6 label mappings.
+[2026-11-09 21:30:08,093] [                 ZoneApis]     INFO | Email service settings: ...
+[2026-11-09 21:30:08,093] [                 ZoneApis]     INFO | Configured 7 activities.
+[2026-11-09 21:30:08,638] [                 ZoneApis]     INFO | Started the scheduler service.
+[2026-11-09 21:30:08,647] [                 ZoneApis]     INFO | SetSwitchTimerAfterStartup: Set timer for switch FF_KitchenSink_LightSwitch.
+[2026-11-09 21:30:08,651] [                 ZoneApis]     INFO | Loaded 29 zones and 115 devices.
 ```
 
 Based on the zone attributes, and the devices available, certain actions will be enabled. In this case, the action
@@ -300,17 +228,6 @@ Zone: Foyer, floor: FIRST_FLOOR, internal, displayIcon: groundfloor, displayOrde
   Neighbor: SF_Lobby, OPEN_SPACE                                                
   Neighbor: FF_Office, OPEN_SPACE_MASTER 
 ```
-
-
-**Running on top of HABApp:**
-> [The original Zone API modules](https://github.com/yfaway/openhab-rules/tree/master/legacy-jython-code)
-> were written in Jython. It was then migrated over to the [HABApp](https://habapp.readthedocs.io/en/latest/installation.html)
-> framework with minimal changes needed to the core code. See [here](https://community.openhab.org/t/habapp-vs-jsr223-jython/112914)
-> for the comparison between HABApp and JSR223 Jython.
-> 
-> There are several peripheral modules that are tightly coupled to the HABApp API. The rest of the modules
-> is framework neutral. It is possible to migrate Zone API to another framework running on top of GravVM when it is
-> available. Zone API is now written in Python 3 and thus is not compatible with Jython (equivalent to Python 2.8).
 
 # Core concepts and API
 ## ZoneManager
@@ -710,7 +627,7 @@ appropriate implementation.
 
 Currently three mechanisms are supported:
 1. Email: send an email notification to either the owners or the administrators.
-   See [zone-api-config.yml](https://github.com/yfaway/zone-apis/blob/master/habapp/zone-api-config.yml) for more info.
+   See [zone-api-config.yml](https://github.com/yfaway/zone-apis/blob/master/conf/zone-api-config.yml) for more info.
 
 2. Audio: send a text-to-speed (TTS) to one or more connected audio devices. The volume is set based on the criticality
    of the alert.

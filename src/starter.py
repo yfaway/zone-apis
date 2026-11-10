@@ -26,11 +26,9 @@ class Starter():
         self._zm: ImmutableZoneManager = None # type: ignore
 
     def _configure_logging(self):
-        logging_config_file = '/home/yf/git/zone-apis/habapp/logging.yml'
+        logging_config_file = 'conf/logging.yml'
         if not os.path.exists(logging_config_file):
-            logging_config_file = './habapp/logging.yml'
-            if not os.path.exists(logging_config_file):
-                raise ValueError("Missing habapp/logging.yml file.")
+            raise ValueError("Missing logging.yml file.")
 
         with open(logging_config_file, 'r') as file:
             config = yaml.safe_load(file) or {}
@@ -44,11 +42,9 @@ class Starter():
 
     def _load_configuration(self):
         # When running on the PI
-        config_file = '/home/yf/git/zone-apis/habapp/zone-api-config.yml'
-        if not os.path.exists(config_file):  # In development machine
-            config_file = './habapp/zone-api-config.yml'
-            if not os.path.exists(config_file):
-                raise ValueError("Missing zone-api-config.yml file.")
+        config_file = 'conf/zone-api-config.yml'
+        if not os.path.exists(config_file):
+            raise ValueError("Missing zone-api-config.yml file.")
 
         pe.log_info(f"Reading zone-api configuration from '{config_file}'")
 
