@@ -21,14 +21,14 @@ setup(
     # author_email='',
     url='https://github.com/yfaway/zone-apis',
     download_url='https://github.com/yfaway/zone-apis/archive/refs/tags/v_01.tar.gz',
-    keywords=['zone api', 'home automation', 'openhab', 'habapp'],
+    keywords=['zone api', 'home automation', 'openhab'],
     install_requires=[
-        'habapp>=0.30.3',
         'holidays',
         'requests',
         'schedule',
         'feedparser',
         'pyyaml',
+        'websockets',
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

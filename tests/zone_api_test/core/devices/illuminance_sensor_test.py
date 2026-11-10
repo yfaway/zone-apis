@@ -8,7 +8,7 @@ class IlluminanceSensorTest(DeviceTest):
     """ Unit tests for illuminance_sensor.py. """
 
     def setUp(self):
-        self.item = pe.create_number_item('IlluminanceSensorName')
+        self.item = pe.create_number_item('IlluminanceSensorName', 0)
         self.set_items([self.item])
         super(IlluminanceSensorTest, self).setUp()
 

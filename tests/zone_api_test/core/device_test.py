@@ -3,8 +3,6 @@ from datetime import datetime
 from typing import List, Tuple
 from unittest.mock import MagicMock
 
-from HABApp.core.errors import ItemAlreadyExistsError
-
 from zone_api import platform_encapsulator as pe
 from zone_api.alert_manager import AlertManager
 from zone_api.core.device import Device
@@ -53,10 +51,7 @@ class DeviceTest(unittest.TestCase):
         pe.set_in_unit_tests()
 
         for item in self.items:
-            try:
-                pe.register_test_item(item)
-            except ItemAlreadyExistsError:
-                pass
+            pe.register_test_item(item)
 
     def tearDown(self):
         """ Removes the items from the registry. """
@@ -77,7 +72,7 @@ class DeviceTest(unittest.TestCase):
     def create_audio_sink(self, suffix='1') -> Tuple[ChromeCastAudioSink, List]:
         """ Returns an audio sink and its items. """
         items = [pe.create_player_item(f'_testPlayer_{suffix}'),
-                 pe.create_number_item(f'_testVolume_{suffix}'),
+                 pe.create_dimmer_item(f'_testVolume_{suffix}'),
                  pe.create_string_item(f'_testTitle_{suffix}'),
                  pe.create_switch_item(f'_testIdling_{suffix}'),
                  ]
