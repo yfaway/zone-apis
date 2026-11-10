@@ -1,5 +1,4 @@
 from zone_api.core.device import Device
-from zone_api import platform_encapsulator as pe
 
 
 class AstroSensor(Device):
@@ -28,7 +27,7 @@ class AstroSensor(Device):
         :rtype: bool
         """
         if value is None:
-            value = pe.get_string_value(self.get_item())
+            value = self.get_item().get_value()
 
         return any(s == value for s in self.LIGHT_ON_TIMES)
 
@@ -40,16 +39,22 @@ class AstroSensor(Device):
         :rtype: bool
         """
         if value is None:
-            value = pe.get_string_value(self.get_item())
+            value = self.get_item().get_value()
 
         return value == self.BED_TIME
 
     def current_period(self) -> str:
-        return pe.get_string_value(self.get_item())
+        return self.get_item().get_value()
 
     def _set_current_period(self, value: str) -> None:
         """
         Sets the current period of the day. This method is meant for an internal action, and shall not be invoked
         in the public context.
         """
-        pe.set_string_value(self.get_item(), value)
+        self.get_item().set_value(value)
+
+    def __str__(self):
+        """
+        @override
+        """
+        return u"{}, {}".format(super(AstroSensor, self).__str__(), self.current_period())

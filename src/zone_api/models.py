@@ -25,6 +25,9 @@ class BaseItem:
     def get_name(self):
         return self.name
 
+    def get_value(self):
+        return self.state
+
     def get_state(self):
         return self.state
 

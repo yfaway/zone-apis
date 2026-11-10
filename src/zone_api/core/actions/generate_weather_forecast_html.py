@@ -1,10 +1,11 @@
-from typing import List
+from typing import List, cast
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.event_info import EventInfo
 from zone_api.core.parameters import Parameters, ParameterConstraint, positive_number_validator
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.action import action, Action
+from zone_api.models import DateTimeItem
 
 
 @action(events=[ZoneEvent.TIMER], devices=[], zone_name_pattern='.*Virtual.*')
@@ -84,7 +85,7 @@ class GenerateWeatherForecastHtml(Action):
             return associated_html
 
         for segment in ['Quarter1', 'Quarter2', 'Quarter3', 'Quarter4']:
-            date_time = pe.get_datetime_value(prefix + segment + "_Datetime")
+            date_time = cast(DateTimeItem, pe.get_item(prefix + segment + "_Datetime")).get_value()
             temperature = round(pe.get_number_value(prefix + segment))
             weather_symbol = int(pe.get_number_value(prefix + segment + "_WeatherSymbol"))
 
@@ -101,7 +102,7 @@ class GenerateWeatherForecastHtml(Action):
             items_html += item_div_templates.format(day_segment, icon_html + str(temperature) + " &deg;C")
 
         for segment in ['Tomorrow', 'In2Days', 'In3Days', 'In4Days']:
-            date_time = pe.get_datetime_value(prefix + segment + "_Datetime")
+            date_time = cast(DateTimeItem, pe.get_item(prefix + segment + "_Datetime")).get_value()
             temperature_high = round(pe.get_number_value(prefix + segment + "_TempHigh"))
             temperature_low = round(pe.get_number_value(prefix + segment + "_TempLow"))
             weather_symbol = int(pe.get_number_value(prefix + segment + "_WeatherSymbol"))

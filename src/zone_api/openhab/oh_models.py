@@ -72,16 +72,15 @@ class OpenHabBaseItem(BaseItem):
     def _set_value(self, openhab_type: str, value: Any) -> None:
         self.state = value
 
-        if threading.current_thread() is threading.main_thread():
-            background_loop = asyncio.get_running_loop()
+        if self._main_event_loop:
             asyncio.run_coroutine_threadsafe(
                 self._openhab_connection.send_command(self.name, openhab_type, value),
-                background_loop)
+                self._main_event_loop) # type: ignore
         else:
-            asyncio.run(
-                self._openhab_connection.send_command(self.name, openhab_type, value))
+            is_main_thread = threading.current_thread() is threading.main_thread()
+            logger.error(f"Main event loop is undefined (main-thread: {is_main_thread})")
 
-        #logger.info(f"Sent command {value} to {self.name} ({openhab_type})")
+        # logger.debug(f"Sent command {value} to {self.name} ({openhab_type})")
 
     @staticmethod
     def _to_snake_case(value: str) -> str:
@@ -132,7 +131,7 @@ class OpenHabNumberItem(OpenHabBaseItem, NumberItem):
             raise ValueError(f"Cannot convert state '{self.state}' to float for item '{self.name}'.")
 
     def set_value(self, value: Any) -> None:
-        self._set_value('Decimal', value)
+        self._set_value('Decimal', str(value))
 
 
 class OpenHabStringItem(OpenHabBaseItem, StringItem):
@@ -158,7 +157,7 @@ class OpenHabContactItem(OpenHabBaseItem, ContactItem):
 
 class OpenHabDimmerItem(OpenHabSwitchItem, DimmerItem):
     def set_percentage(self, value: float) -> None:
-        self._set_value('Percent', value)
+        self._set_value('Percent', str(value))
 
 
 class OpenHabDateTimeItem(OpenHabBaseItem, DateTimeItem):

@@ -115,15 +115,6 @@ def create_string_item(name: str) -> StringItem:
     return StringItem(name, None)
 
 
-def get_datetime_value(item_or_item_name: Union[DateTimeItem, str]) -> datetime.datetime:
-    item: DateTimeItem
-    if isinstance(item_or_item_name, str):
-        item: DateTimeItem = cast(DateTimeItem, ZONE_MANAGER.get_item(item_or_item_name)) 
-    else:
-        item = item_or_item_name
-
-    return item.get_value()
-
 def set_number_value(item_or_item_name: Union[NumberItem, str], value: float):
     item:NumberItem
     if isinstance(item_or_item_name, str):

@@ -1,5 +1,5 @@
 from datetime import datetime, time
-from typing import List
+from typing import List, cast
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.devices.astro_sensor import AstroSensor
@@ -7,6 +7,7 @@ from zone_api.core.event_info import EventInfo
 from zone_api.core.parameters import ParameterConstraint, no_op_validator, Parameters, positive_number_validator
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.action import action, Action
+from zone_api.models import DateTimeItem
 
 
 @action(events=[ZoneEvent.STARTUP], devices=[], zone_name_pattern='.*Virtual.*')
@@ -52,16 +53,16 @@ class SetTimeOfDay(Action):
         scheduler.every(self._check_period_in_minutes).minutes.do(handle_timer_event)
 
     def on_action(self, event_info):
-        self._set_time_of_day(event_info.get_zone_manager())
+        return self._set_time_of_day(event_info.get_zone_manager())
 
     def _set_time_of_day(self, zm):
         morning_start = time(hour=6)
         bed_start = time(hour=0)
         night_start = time(hour=23)
 
-        day_start = pe.get_datetime_value(self._sunrise_time_item_name).time()
-        evening_start = pe.get_datetime_value(self._sunset_time_item_name).time()
-        afternoon_start = pe.get_datetime_value(self._evening_time_item_name).time()
+        day_start = cast(DateTimeItem, pe.get_item(self._sunrise_time_item_name)).get_value().time()
+        evening_start = cast(DateTimeItem, pe.get_item(self._sunset_time_item_name)).get_value().time()
+        afternoon_start = cast(DateTimeItem, pe.get_item(self._evening_time_item_name)).get_value().time()
 
         current_value = ''
         now = datetime.now().time()
@@ -83,3 +84,5 @@ class SetTimeOfDay(Action):
             # noinspection PyProtectedMember
             sensor._set_current_period(current_value)
             self.log_info(f"Set day period to {current_value}")
+
+        return True
