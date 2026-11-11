@@ -14,7 +14,8 @@ class MpdDevice(Device):
     @see https://www.musicpd.org/
     """
 
-    INTERVAL_IN_MINUTES = 0.25
+    INTERVAL_IN_SECONDS = 15
+    MCP_TIME_OUT_IN_SECONDS = 5
 
     def __init__(self, player_item, host: str, port: int, predefined_category_item, custom_category_item):
         Device.__init__(self, player_item)
@@ -28,14 +29,14 @@ class MpdDevice(Device):
         self._play_status_job = None
         self._title_item = None
 
-    def shuffle_and_play(self, file_name_pattern: Union[str | None] = None, item=None):
+    def shuffle_and_play(self, file_name_pattern: Union[str, None] = None, item=None):
         """
         The following actions are performed:
           - Clear the play list queue
           - Filter the music library using simple pattern matching (grep), then shuffle and play the music.
         """
-        pe.set_string_value(self._predefined_category_item, file_name_pattern)  # update the UI
-        pe.set_string_value(self._custom_category_item, '')  # update the UI
+        self._predefined_category_item.set_value(file_name_pattern if file_name_pattern else '')  # update the UI
+        self._custom_category_item.set_value('')  # update the UI
 
         self.clear()
 
@@ -59,12 +60,13 @@ class MpdDevice(Device):
                 data = self.current_playing_status()
                 if data is not None:
                     json_str = json.dumps(data)
-                    pe.set_string_value(item, json_str)
+                    if item.get_value() != json_str:
+                        item.set_value(json_str)
                 else:
-                    pe.set_string_value(item, "{}")
+                    item.set_value("{}")
 
             scheduler = pe.get_zone_manager_from_context().get_scheduler()
-            self._play_status_job = scheduler.every(MpdDevice.INTERVAL_IN_MINUTES).minutes.do(update_play_status)
+            self._play_status_job = scheduler.every(MpdDevice.INTERVAL_IN_SECONDS).seconds.do(update_play_status)
 
             self._title_item = item
 
@@ -81,7 +83,7 @@ class MpdDevice(Device):
             self._play_status_job = None
 
             if self._title_item is not None:
-                pe.set_string_value(self._title_item, '')
+                self._title_item.set_value("")
                 self._title_item = None
 
     def next(self):
@@ -133,11 +135,11 @@ class MpdDevice(Device):
         Returns the specified music category via the custom category or the selected pre-defined category, or None if
         nothing is specified.
         """
-        custom_value = pe.get_string_value(self._custom_category_item)
+        custom_value = self._custom_category_item.get_value()
         if custom_value:
             return custom_value
-        elif pe.get_string_value(self._predefined_category_item):
-            return pe.get_string_value(self._predefined_category_item)
+        elif self._predefined_category_item.get_value():
+            return self._predefined_category_item.get_value()
         else:
             return None
 
@@ -147,7 +149,7 @@ class MpdDevice(Device):
 
     def mpc(self, command: str):
         """ Invoke mpc with the specified command"""
-        subprocess.run([f"{self._wrapped_mpc()} {command}"], shell=True)
+        subprocess.run([f"{self._wrapped_mpc()} {command}"], timeout=MpdDevice.MCP_TIME_OUT_IN_SECONDS, shell=True)
 
     def _wrapped_mpc(self) -> str:
         return f"mpc --host={self._host} --port={self._port}"
