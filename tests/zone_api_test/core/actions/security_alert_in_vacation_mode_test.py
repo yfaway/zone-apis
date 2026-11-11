@@ -7,6 +7,7 @@ from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
+from zone_api.models import StringItem, SwitchItem
 
 
 class SecurityAlertInVacationModeTest(DeviceTest):
@@ -14,8 +15,8 @@ class SecurityAlertInVacationModeTest(DeviceTest):
 
     def setUp(self):
         self.alarmPartition, items = self.create_alarm_partition()
-        items = items + [pe.create_switch_item('door'), pe.create_switch_item('window'),
-                         pe.create_string_item('EcobeeName'), pe.create_string_item('EcobeeState')]
+        items = items + [SwitchItem('door', "OFF"), SwitchItem('window', "OFF"),
+                         StringItem('EcobeeName', None), StringItem('EcobeeState', None)]
         self.set_items(items)
         super(SecurityAlertInVacationModeTest, self).setUp()
 

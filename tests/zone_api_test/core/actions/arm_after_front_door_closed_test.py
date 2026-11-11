@@ -11,6 +11,7 @@ from zone_api.core.devices.contact import Door
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 
 from zone_api.core.actions.arm_after_front_door_closed import ArmAfterFrontDoorClosed
+from zone_api.models import SwitchItem
 
 
 class ArmAfterFrontDoorClosedTest(DeviceTest):
@@ -18,8 +19,8 @@ class ArmAfterFrontDoorClosedTest(DeviceTest):
 
     def setUp(self):
         self.alarmPartition, items = self.create_alarm_partition()
-        items = items + [pe.create_switch_item('Door1'), pe.create_switch_item('ExternalMotionSensor'),
-                         pe.create_switch_item('InternalMotionSensor')]
+        items = items + [SwitchItem('Door1', "OFF"), SwitchItem('ExternalMotionSensor', "OFF"),
+                         SwitchItem('InternalMotionSensor', "OFF")]
         self.set_items(items)
         super(ArmAfterFrontDoorClosedTest, self).setUp()
 

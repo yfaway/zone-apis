@@ -11,6 +11,7 @@ from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.actions.turn_on_switch import TurnOnSwitch
 
 from zone_api_test.core.device_test import DeviceTest
+from zone_api.models import DimmerItem, NumberItem, StringItem, SwitchItem
 
 ILLUMINANCE_THRESHOLD_IN_LUX = 8
 INVALID_ITEM_NAME = 'invalid item name'
@@ -20,12 +21,12 @@ class ZoneManagerTest(DeviceTest):
     """ Unit tests for zone_manager.py. """
 
     def setUp(self):
-        items = [pe.create_switch_item('TestLightName'),
-                 pe.create_switch_item('TestMotionSensorName'),
-                 pe.create_number_item('IlluminanceSensorName'),
-                 pe.create_string_item('AstroSensorName'),
-                 pe.create_dimmer_item('TestDimmerName'),
-                 pe.create_switch_item('TestFanName'),
+        items = [SwitchItem('TestLightName', "OFF"),
+                 SwitchItem('TestMotionSensorName', "OFF"),
+                 NumberItem('IlluminanceSensorName', None),
+                 StringItem('AstroSensorName', None),
+                 DimmerItem('TestDimmerName', 0),
+                 SwitchItem('TestFanName', "OFF"),
                  ]
 
         self.set_items(items)
@@ -124,14 +125,14 @@ class ZoneManagerTest(DeviceTest):
 
     def testOnMotionSensorTurnedOn_noZone_returnsFalse(self):
         self.assertFalse(self.zm.get_immutable_instance().dispatch_event(
-            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor, pe.create_string_item(INVALID_ITEM_NAME)))
+            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor, StringItem(INVALID_ITEM_NAME, None)))
 
     def testOnMotionSensorTurnedOn_withNonApplicableZone_returnsFalse(self):
         zone = Zone('ff', [self.light, self.motionSensor])
         self.zm.add_zone(zone)
 
         self.assertFalse(self.zm.get_immutable_instance().dispatch_event(
-            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor, pe.create_string_item(INVALID_ITEM_NAME)))
+            ZoneEvent.MOTION, pe.get_event_dispatcher(), self.motionSensor, StringItem(INVALID_ITEM_NAME, None)))
 
     def testOnMotionSensorTurnedOn_withApplicableZone_returnsTrue(self):
         self.assertFalse(self.light.is_on())
@@ -146,14 +147,14 @@ class ZoneManagerTest(DeviceTest):
 
     def testOnSwitchTurnedOn_noZone_returnsFalse(self):
         self.assertFalse(self.zm.get_immutable_instance().on_switch_turned_on(
-            pe.get_event_dispatcher(), self.light, pe.create_string_item(INVALID_ITEM_NAME)))
+            pe.get_event_dispatcher(), self.light, StringItem(INVALID_ITEM_NAME, None)))
 
     def testOnSwitchTurnedOn_withNonApplicableZone_returnsFalse(self):
         zone = Zone('ff', [self.light, self.motionSensor])
         self.zm.add_zone(zone)
 
         self.assertFalse(self.zm.get_immutable_instance().on_switch_turned_on(
-            pe.get_event_dispatcher(), self.light, pe.create_string_item(INVALID_ITEM_NAME)))
+            pe.get_event_dispatcher(), self.light, StringItem(INVALID_ITEM_NAME, None)))
 
     def testOnSwitchTurnedOn_withApplicableZone_returnsTrue(self):
         zone = Zone('ff', [self.light, self.motionSensor])
@@ -164,14 +165,14 @@ class ZoneManagerTest(DeviceTest):
 
     def testOnSwitchTurnedOff_noZone_returnsFalse(self):
         self.assertFalse(self.zm.get_immutable_instance().on_switch_turned_off(
-            pe.get_event_dispatcher(), self.light, pe.create_string_item(INVALID_ITEM_NAME)))
+            pe.get_event_dispatcher(), self.light, StringItem(INVALID_ITEM_NAME, None)))
 
     def testOnSwitchTurnedOff_withNonApplicableZone_returnsFalse(self):
         zone = Zone('ff', [self.light, self.motionSensor])
         self.zm.add_zone(zone)
 
         self.assertFalse(self.zm.get_immutable_instance().on_switch_turned_off(
-            pe.get_event_dispatcher(), self.light, pe.create_string_item(INVALID_ITEM_NAME)))
+            pe.get_event_dispatcher(), self.light, StringItem(INVALID_ITEM_NAME, None)))
 
     def testOnSwitchTurnedOff_withApplicableZone_returnsTrue(self):
         zone = Zone('ff', [self.light, self.motionSensor])

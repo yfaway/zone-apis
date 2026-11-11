@@ -6,6 +6,7 @@ from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
+from zone_api.models import SwitchItem
 
 
 class AlertOnFailureToArmTest(DeviceTest):
@@ -14,8 +15,8 @@ class AlertOnFailureToArmTest(DeviceTest):
     def setUp(self):
         self.alarmPartition, items = self.create_alarm_partition()
 
-        items = items + [pe.create_switch_item('door'), pe.create_switch_item('door-tripped'),
-                         pe.create_switch_item('window'), pe.create_switch_item('window-tripped')]
+        items = items + [SwitchItem('door', "OFF"), SwitchItem('door-tripped', "OFF"),
+                         SwitchItem('window', "OFF"), SwitchItem('window-tripped', "OFF")]
         self.set_items(items)
         super(AlertOnFailureToArmTest, self).setUp()
 

@@ -9,6 +9,7 @@ from zone_api.core.neighbor import Neighbor, NeighborType
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.actions.play_music_during_shower import PlayMusicDuringShower
+from zone_api.models import SwitchItem
 
 
 class PlayMusicDuringShowerTest(DeviceTest):
@@ -17,7 +18,7 @@ class PlayMusicDuringShowerTest(DeviceTest):
     def setUp(self):
         self.sink, items = self.create_audio_sink()
 
-        items.append(pe.create_switch_item('Fan1'))
+        items.append(SwitchItem('Fan1', "OFF"))
         self.fan_item = items[-1]
 
         self.set_items(items)

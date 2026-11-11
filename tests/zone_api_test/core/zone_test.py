@@ -20,6 +20,7 @@ from zone_api.core.actions.turn_on_switch import TurnOnSwitch
 from zone_api.core.actions.turn_off_adjacent_zones import TurnOffAdjacentZones
 
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
+from zone_api.models import DimmerItem, NumberItem, StringItem, SwitchItem
 
 ILLUMINANCE_THRESHOLD_IN_LUX = 10
 
@@ -28,15 +29,15 @@ class ZoneTest(DeviceTest):
     """ Unit tests for zone_manager.py. """
 
     def setUp(self):
-        items = [pe.create_switch_item('TestLightName'),
-                 pe.create_switch_item('TestMotionSensorName'),
-                 pe.create_number_item('IlluminanceSensorName'),
-                 pe.create_string_item('AstroSensorName'),
-                 pe.create_dimmer_item('TestDimmerName'),
-                 pe.create_switch_item('TestFanName'),
-                 pe.create_switch_item('TestPlug'),
-                 pe.create_number_item('TestPlugPower'),
-                 pe.create_switch_item('SecondTestLightName'),
+        items = [SwitchItem('TestLightName', "OFF"),
+                 SwitchItem('TestMotionSensorName', "OFF"),
+                 NumberItem('IlluminanceSensorName', None),
+                 StringItem('AstroSensorName', None),
+                 DimmerItem('TestDimmerName', 0),
+                 SwitchItem('TestFanName', "OFF"),
+                 SwitchItem('TestPlug', "OFF"),
+                 NumberItem('TestPlugPower', None),
+                 SwitchItem('SecondTestLightName', "OFF"),
                  ]
         self.set_items(items)
         super(ZoneTest, self).setUp()

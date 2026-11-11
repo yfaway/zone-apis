@@ -12,6 +12,7 @@ from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 from zone_api.core.event_info import EventInfo
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
+from zone_api.models import DateTimeItem, NumberItem, StringItem, SwitchItem
 
 
 class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
@@ -20,16 +21,16 @@ class AnnounceMorningWeatherAndPlayMusicTest(DeviceTest):
     def setUp(self):
         self.sink, items = self.create_audio_sink()
 
-        items.append(pe.create_number_item('Weather_Temperature', 20))
-        items.append(pe.create_number_item('Weather_Humidity', 50))
-        items.append(pe.create_string_item('Weather_Condition'))
-        items.append(pe.create_string_item('Weather_AlertTitle'))
-        items.append(pe.create_datetime_item('Weather_Timestamp'))
-        items.append(pe.create_number_item('Weather_ForecastTempMin', 10))
-        items.append(pe.create_number_item('Weather_ForecastTempMax', 15))
-        items.append(pe.create_switch_item('Door1'))
-        items.append(pe.create_switch_item('Door2'))
-        items.append(pe.create_switch_item('MotionSensor'))
+        items.append(NumberItem('Weather_Temperature', 20))
+        items.append(NumberItem('Weather_Humidity', 50))
+        items.append(StringItem('Weather_Condition', None))
+        items.append(StringItem('Weather_AlertTitle', None))
+        items.append(DateTimeItem('Weather_Timestamp', None))
+        items.append(NumberItem('Weather_ForecastTempMin', 10))
+        items.append(NumberItem('Weather_ForecastTempMax', 15))
+        items.append(SwitchItem('Door1', "OFF"))
+        items.append(SwitchItem('Door2', "OFF"))
+        items.append(SwitchItem('MotionSensor', "OFF"))
 
         self.motion_item = items[-1]
         self.internal_door_item = items[-2]

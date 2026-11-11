@@ -8,6 +8,7 @@ from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.environment_canada import Forecast
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
+from zone_api.models import NumberItem
 
 
 class AlertOnRainOrSnowDuringTheDayTest(DeviceTest):
@@ -16,7 +17,7 @@ class AlertOnRainOrSnowDuringTheDayTest(DeviceTest):
     MOCKED_OBJECT_PATH = "zone_api.core.actions.alert_on_rain_or_snow_during_the_day.EnvCanada"
 
     def setUp(self):
-        items = [pe.create_number_item('weather-temp')]
+        items = [NumberItem('weather-temp', None)]
         self.set_items(items)
         super(AlertOnRainOrSnowDuringTheDayTest, self).setUp()
 

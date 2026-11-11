@@ -6,6 +6,7 @@ from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
+from zone_api.models import SwitchItem
 
 
 class AlertOnSecurityAlarmTriggeredTest(DeviceTest):
@@ -13,7 +14,7 @@ class AlertOnSecurityAlarmTriggeredTest(DeviceTest):
 
     def setUp(self):
         self.alarm_partition, items = self.create_alarm_partition()
-        items = items + [pe.create_switch_item('Door'), pe.create_switch_item('Tripped')]
+        items = items + [SwitchItem('Door', "OFF"), SwitchItem('Tripped', "OFF")]
 
         self.set_items(items)
         super(AlertOnSecurityAlarmTriggeredTest, self).setUp()

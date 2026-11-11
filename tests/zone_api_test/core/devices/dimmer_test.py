@@ -4,6 +4,7 @@ from zone_api import platform_encapsulator as pe
 from zone_api.core.devices.dimmer import Dimmer
 
 from zone_api_test.core.device_test import DeviceTest
+from zone_api.models import DimmerItem
 
 
 class DimmerTest(DeviceTest):
@@ -12,7 +13,7 @@ class DimmerTest(DeviceTest):
     MOCKED_ZONE_MANAGER_PATH = "zone_api.core.immutable_zone_manager.ImmutableZoneManager"
 
     def setUp(self):
-        items = [pe.create_dimmer_item('TestDimmerName')]
+        items = [DimmerItem('TestDimmerName', 0)]
         self.set_items(items)
         super(DimmerTest, self).setUp()
 

@@ -1,5 +1,4 @@
 from asyncio import AbstractEventLoop
-import datetime
 import logging
 import smtplib
 import ssl
@@ -8,10 +7,10 @@ from email.message import EmailMessage
 from email.utils import make_msgid
 import mimetypes
 
-from typing import cast, List, Union, Any, TYPE_CHECKING
+from typing import cast, List, Union, TYPE_CHECKING
 
 from zone_api.core.zone_manager import ZoneManager
-from zone_api.models import BaseItem, ColorItem, ContactItem, DateTimeItem, DimmerItem, NumberItem, PlayerItem, StringItem, SwitchItem
+from zone_api.models import BaseItem, DimmerItem, NumberItem, StringItem, SwitchItem
 from zone_api.openhab.oh_models import OpenHabStringItem, OpenHabSwitchItem
 
 from zone_api.core.immutable_zone_manager import EmailSettings, ImmutableZoneManager
@@ -76,51 +75,6 @@ def is_in_on_state(item: SwitchItem):
     :return: True if the state is ON.
     """
     return item.is_on()
-
-def create_datetime_item(name: str) -> DateTimeItem:
-    return DateTimeItem(name, None)
-
-
-def create_number_item(name: str, value = None) -> NumberItem:
-    return NumberItem(name, value)
-
-
-def create_player_item(name: str) -> PlayerItem:
-    return PlayerItem(name, None)
-
-
-def create_dimmer_item(name: str, percentage: int = 0) -> DimmerItem:
-    """
-    :param name: the item name
-    :param int percentage: 0 (OFF) to 100 (full brightness)
-    :return: DimmerItem
-    """
-    return DimmerItem(name, percentage)
-
-
-def create_color_item(name: str, on=False) -> ColorItem:
-    """ Create a color item. """
-    return ColorItem(name, [0, 0, 100] if on else [0, 0, 0])
-
-def create_switch_item(name: str, on=False) -> SwitchItem:
-    """
-    :param name: the item name
-    :param on: if True, the state is ON, else the state is OFF
-    :return: SwitchItem
-    """
-    return SwitchItem(name, "ON" if on else "OFF")
-
-def create_contact_item(name: str, open=False) -> ContactItem:
-    """
-    :param name: the item name
-    :param on: if True, the state is OPEN, else the state is CLOSED
-    :return: ContactItem
-    """
-    return ContactItem(name, "OPEN" if open else "CLOSED")
-
-def create_string_item(name: str) -> StringItem:
-    return StringItem(name, None)
-
 
 def set_number_value(item_or_item_name: Union[NumberItem, str], value: float):
     item:NumberItem

@@ -7,7 +7,7 @@ from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.environment_canada import EnvCanada
-from zone_api.models import StringItem
+from zone_api.models import DateTimeItem, NumberItem, StringItem
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 
 
@@ -36,11 +36,11 @@ class SendWeatherAlertTest(DeviceTest):
     MOCKED_RETRIEVE_ALERT_FCN = 'zone_api.environment_canada.EnvCanada.retrieve_alert'
 
     def setUp(self):
-        items = [pe.create_number_item('weather-temp', 20), pe.create_number_item('weather-humidity', 50),
-                 pe.create_string_item('weather-condition'), pe.create_string_item('weather-alert'),
-                 pe.create_datetime_item('weather-date'),
-                 pe.create_number_item('Weather_ForecastTempMin', 10),
-                 pe.create_number_item('Weather_ForecastTempMax', 15)]
+        items = [NumberItem('weather-temp', 20), NumberItem('weather-humidity', 50),
+                 StringItem('weather-condition', None), StringItem('weather-alert', None),
+                 DateTimeItem('weather-date', None),
+                 NumberItem('Weather_ForecastTempMin', 10),
+                 NumberItem('Weather_ForecastTempMax', 15)]
         self.set_items(items)
         super(SendWeatherAlertTest, self).setUp()
 

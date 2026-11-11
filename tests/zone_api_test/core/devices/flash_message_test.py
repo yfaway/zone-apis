@@ -3,6 +3,7 @@ from zone_api import platform_encapsulator as pe
 from zone_api.core.devices.flash_message import FlashMessage
 
 from zone_api_test.core.device_test import DeviceTest
+from zone_api.models import StringItem
 
 
 class FlashMessageTest(DeviceTest):
@@ -11,7 +12,7 @@ class FlashMessageTest(DeviceTest):
     def setUp(self):
         self.defaultTimerDurationInSec = 10
 
-        items = [pe.create_string_item('TestMessageName')]
+        items = [StringItem('TestMessageName', None)]
         self.set_items(items)
         super(FlashMessageTest, self).setUp()
 

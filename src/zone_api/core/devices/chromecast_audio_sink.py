@@ -3,7 +3,7 @@ from typing import Union, cast
 
 from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
-from zone_api.models import DimmerItem, PlayerItem, SwitchItem
+from zone_api.models import DimmerItem, PlayerItem, StringItem, SwitchItem
 from zone_api.music_streams import MusicStream
 
 MAX_SAY_WAIT_TIME_IN_SECONDS = 30
@@ -28,7 +28,7 @@ class ChromeCastAudioSink(Device):
         :param StringItem out_current_stream_item: the optional item to display the current music stream name
         :raise ValueError: if any parameter is invalid
         """
-        Device.__init__(self, pe.create_string_item(f'Chromecast-{sink_name}'),
+        Device.__init__(self, StringItem(f'Chromecast-{sink_name}', None),
                         [player_item, volume_item, title_item, idling_item])
 
         self._sink_name = sink_name

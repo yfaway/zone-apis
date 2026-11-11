@@ -16,20 +16,21 @@ from zone_api.core.devices.illuminance_sensor import IlluminanceSensor
 from zone_api.core.devices.motion_sensor import MotionSensor
 
 from zone_api_test.core.device_test import DeviceTest
+from zone_api.models import NumberItem, StringItem, SwitchItem
 
 
 class ImmutableZoneManagerTest(DeviceTest):
     """ Unit tests for immutable_zone_manager.py. """
 
     def setUp(self):
-        items = [pe.create_switch_item('FF_Kitchen_TestLightName'),
-                 pe.create_switch_item('TestMotionSensorName'),
-                 pe.create_number_item('IlluminanceSensorName'),
-                 pe.create_switch_item('BM_Utility_TestFanName'),
-                 pe.create_switch_item('SharedLight'),
-                 pe.create_string_item('EcobeeName'),
-                 pe.create_string_item('EcobeeEventType'),
-                 pe.create_string_item('AstroSensorName'),
+        items = [SwitchItem('FF_Kitchen_TestLightName', "OFF"),
+                 SwitchItem('TestMotionSensorName', "OFF"),
+                 NumberItem('IlluminanceSensorName', None),
+                 SwitchItem('BM_Utility_TestFanName', "OFF"),
+                 SwitchItem('SharedLight', "OFF"),
+                 StringItem('EcobeeName', None),
+                 StringItem('EcobeeEventType', None),
+                 StringItem('AstroSensorName', None),
                  ]
 
         self.set_items(items)

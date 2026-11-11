@@ -11,13 +11,14 @@ from zone_api.core.devices.contact import Door
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 
 from zone_api.core.actions.alert_on_external_door_left_open import AlertOnExternalDoorLeftOpen
+from zone_api.models import SwitchItem
 
 
 class AlertOnExternalDoorLeftOpenTest(DeviceTest):
     """ Unit tests for alert_on_external_door_left_open.py. """
 
     def setUp(self):
-        items = [pe.create_switch_item('Door1'), pe.create_switch_item('Door2')]
+        items = [SwitchItem('Door1', "OFF"), SwitchItem('Door2', "OFF")]
 
         self.set_items(items)
         super(AlertOnExternalDoorLeftOpenTest, self).setUp()

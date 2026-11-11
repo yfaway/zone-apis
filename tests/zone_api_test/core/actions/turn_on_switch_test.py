@@ -11,6 +11,7 @@ from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api.core.devices.switch import Light, Fan
 
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
+from zone_api.models import NumberItem, SwitchItem
 
 ILLUMINANCE_THRESHOLD_IN_LUX = 10
 
@@ -19,13 +20,13 @@ class TurnOnSwitchTest(DeviceTest):
     """ Unit tests for zone_manager.py. """
 
     def setUp(self):
-        items = [pe.create_switch_item('TestLightName1'),
-                 pe.create_switch_item('TestLightName2'),
-                 pe.create_number_item('IlluminanceSensorName'),
-                 pe.create_switch_item('TestMotionSensor1'),
-                 pe.create_switch_item('TestMotionSensor2'),
-                 pe.create_switch_item('TestLightName3'),
-                 pe.create_switch_item('TestFan'),
+        items = [SwitchItem('TestLightName1', "OFF"),
+                 SwitchItem('TestLightName2', "OFF"),
+                 NumberItem('IlluminanceSensorName', None),
+                 SwitchItem('TestMotionSensor1', "OFF"),
+                 SwitchItem('TestMotionSensor2', "OFF"),
+                 SwitchItem('TestLightName3', "OFF"),
+                 SwitchItem('TestFan', "OFF"),
                  ]
         self.set_items(items)
         super(TurnOnSwitchTest, self).setUp()

@@ -2,11 +2,12 @@ from zone_api import platform_encapsulator as pe
 from zone_api.core.devices.motion_sensor import MotionSensor
 
 from zone_api_test.core.device_test import DeviceTest
+from zone_api.models import SwitchItem
 
 
 class MotionSensorTest(DeviceTest):
     def setUp(self):
-        items = [pe.create_switch_item('MotionSensorName')]
+        items = [SwitchItem('MotionSensorName', "OFF")]
         self.set_items(items)
         super(MotionSensorTest, self).setUp()
 

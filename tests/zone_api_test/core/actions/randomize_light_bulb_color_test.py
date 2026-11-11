@@ -8,13 +8,14 @@ from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
+from zone_api.models import ColorItem, SwitchItem
 
 
 class RandomizeLightBulbColorTest(DeviceTest):
     """ Unit tests for RandomizeLightBulbColor. """
 
     def setUp(self):
-        items = [pe.create_switch_item('light_bulb_switch'), pe.create_color_item('light_bulb_color', True)]
+        items = [SwitchItem('light_bulb_switch', "OFF"), ColorItem('light_bulb_color', [0, 0, 100] if True else [0, 0, 0])]
         self.set_items(items)
         super(RandomizeLightBulbColorTest, self).setUp()
 

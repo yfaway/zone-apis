@@ -10,6 +10,7 @@ from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
+from zone_api.models import SwitchItem
 
 
 class ArmIfNoMovementTest(DeviceTest):
@@ -18,7 +19,7 @@ class ArmIfNoMovementTest(DeviceTest):
     def setUp(self):
         self.alarmPartition, items = self.create_alarm_partition()
 
-        items = items + [pe.create_switch_item('InternalMotionSensor')]
+        items = items + [SwitchItem('InternalMotionSensor', "OFF")]
         self.set_items(items)
         super(ArmIfNoMovementTest, self).setUp()
 

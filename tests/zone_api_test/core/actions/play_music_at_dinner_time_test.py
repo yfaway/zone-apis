@@ -11,6 +11,7 @@ from zone_api.core.event_info import EventInfo
 from zone_api.core.neighbor import Neighbor, NeighborType
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
+from zone_api.models import SwitchItem
 
 
 class PlayMusicAtDinnerTimeTest(DeviceTest):
@@ -19,7 +20,7 @@ class PlayMusicAtDinnerTimeTest(DeviceTest):
     def setUp(self):
         self.sink, items = self.create_audio_sink()
 
-        items.append(pe.create_switch_item('MotionSensor'))
+        items.append(SwitchItem('MotionSensor', "OFF"))
         self.motion_item = items[-1]
 
         self.set_items(items)

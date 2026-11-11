@@ -10,14 +10,15 @@ from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
+from zone_api.models import NumberItem, StringItem, SwitchItem
 
 
 class AlertOnInactiveDevicesTest(DeviceTest):
     """ Unit tests for AlertOnInactiveDevices.py. """
 
     def setUp(self):
-        items = [pe.create_switch_item('motion1'), pe.create_switch_item('motion2'),
-                 pe.create_string_item("deferred-device-name"), pe.create_number_item("deferred-duration")]
+        items = [SwitchItem('motion1', "OFF"), SwitchItem('motion2', "OFF"),
+                 StringItem("deferred-device-name", None), NumberItem("deferred-duration", None)]
 
         self.set_items(items)
         super(AlertOnInactiveDevicesTest, self).setUp()

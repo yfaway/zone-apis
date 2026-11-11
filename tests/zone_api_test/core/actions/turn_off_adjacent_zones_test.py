@@ -8,6 +8,7 @@ from zone_api.core.neighbor import Neighbor, NeighborType
 from zone_api.core.devices.switch import Fan, Light
 
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
+from zone_api.models import SwitchItem
 
 ILLUMINANCE_THRESHOLD_IN_LUX = 10
 
@@ -16,10 +17,10 @@ class TurnOffAdjacentZonesTest(DeviceTest):
     """ Unit tests for turn_off_adjacent_zones.py """
 
     def setUp(self):
-        self.items = [pe.create_switch_item('TestLightName1'),
-                      pe.create_switch_item('TestLightName2'),
-                      pe.create_switch_item('TestLightName3'),
-                      pe.create_switch_item('TestFanName'),
+        self.items = [SwitchItem('TestLightName1', "OFF"),
+                      SwitchItem('TestLightName2', "OFF"),
+                      SwitchItem('TestLightName3', "OFF"),
+                      SwitchItem('TestFanName', "OFF"),
                       ]
         self.set_items(self.items)
         super(TurnOffAdjacentZonesTest, self).setUp()

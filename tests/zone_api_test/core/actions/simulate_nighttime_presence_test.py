@@ -9,17 +9,18 @@ from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
+from zone_api.models import StringItem, SwitchItem
 
 
 class SimulateNighttimePresenceTest(DeviceTest):
     """ Unit tests for SimulateNighttimePresence. """
 
     def setUp(self):
-        items = [pe.create_switch_item('_testLight1'),
-                 pe.create_switch_item('_testLight2'),
-                 pe.create_string_item('_testAstroItem'),
-                 pe.create_string_item('_testThermostatName'),
-                 pe.create_string_item('_testThermostatState')
+        items = [SwitchItem('_testLight1', "OFF"),
+                 SwitchItem('_testLight2', "OFF"),
+                 StringItem('_testAstroItem', None),
+                 StringItem('_testThermostatName', None),
+                 StringItem('_testThermostatState', None)
                  ]
         self.set_items(items)
         super(SimulateNighttimePresenceTest, self).setUp()

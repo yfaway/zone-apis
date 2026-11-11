@@ -7,6 +7,7 @@ from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 from zone_api.core.event_info import EventInfo
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
+from zone_api.models import SwitchItem
 
 
 class TellKidsToGoToBedTest(DeviceTest):
@@ -15,8 +16,8 @@ class TellKidsToGoToBedTest(DeviceTest):
     def setUp(self):
         self.sink, items = self.create_audio_sink()
 
-        items.append(pe.create_switch_item('Light1'))
-        items.append(pe.create_switch_item('Light2'))
+        items.append(SwitchItem('Light1', "OFF"))
+        items.append(SwitchItem('Light2', "OFF"))
         self.light1_item = items[-2]
         self.light2_item = items[-1]
 

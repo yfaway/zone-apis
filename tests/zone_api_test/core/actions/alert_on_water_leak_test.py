@@ -6,13 +6,14 @@ from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
+from zone_api.models import SwitchItem
 
 
 class AlertWaterLeakTest(DeviceTest):
     """ Unit tests for AlertOnWaterLeak. """
 
     def setUp(self):
-        items = [pe.create_switch_item('gas_state')]
+        items = [SwitchItem('gas_state', "OFF")]
         self.set_items(items)
         super(AlertWaterLeakTest, self).setUp()
 

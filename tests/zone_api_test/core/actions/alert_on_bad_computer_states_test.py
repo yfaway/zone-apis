@@ -6,13 +6,14 @@ from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
+from zone_api.models import NumberItem
 
 
 class AlertOnBadComputerStatesTest(DeviceTest):
     """ Unit tests for AlertOnBadComputerStates. """
 
     def setUp(self):
-        items = [pe.create_number_item('cpu_temp'), pe.create_number_item('gpu_temp')]
+        items = [NumberItem('cpu_temp', None), NumberItem('gpu_temp', None)]
         self.set_items(items)
         super(AlertOnBadComputerStatesTest, self).setUp()
 

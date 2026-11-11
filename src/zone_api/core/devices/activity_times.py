@@ -1,8 +1,8 @@
 from enum import unique, Enum
 
-from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
 from zone_api import time_utilities
+from zone_api.models import StringItem
 
 
 @unique
@@ -34,7 +34,7 @@ class ActivityTimes(Device):
             (wrap around)
         :raise ValueError: if any parameter is invalid
         """
-        Device.__init__(self, pe.create_string_item('ActivityTimesItem'))
+        Device.__init__(self, StringItem('ActivityTimesItem', None))
 
         for key in time_range_map.keys():
             if isinstance(key, ActivityType):

@@ -7,13 +7,14 @@ from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
+from zone_api.models import NumberItem, SwitchItem
 
 
 class AlertOnLowBatteryLevelTest(DeviceTest):
     """ Unit tests for AlertOnLowBatteryLevel. """
 
     def setUp(self):
-        items = [pe.create_switch_item('motion1'), pe.create_number_item('percentage')]
+        items = [SwitchItem('motion1', "OFF"), NumberItem('percentage', None)]
 
         self.set_items(items)
         super(AlertOnLowBatteryLevelTest, self).setUp()

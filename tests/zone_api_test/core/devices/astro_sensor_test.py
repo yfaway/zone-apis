@@ -1,13 +1,14 @@
 from zone_api import platform_encapsulator as pe
 from zone_api.core.devices.astro_sensor import AstroSensor
 from zone_api_test.core.device_test import DeviceTest
+from zone_api.models import StringItem
 
 
 class AstroSensorTest(DeviceTest):
     """ Unit tests for astro_sensor.py. """
 
     def setUp(self):
-        self.item = pe.create_string_item('AstroSensorName')
+        self.item = StringItem('AstroSensorName', None)
         self.set_items([self.item])
         super(AstroSensorTest, self).setUp()
 

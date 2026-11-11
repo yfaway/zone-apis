@@ -10,6 +10,7 @@ from zone_api.core.event_info import EventInfo
 from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
+from zone_api.models import ContactItem, StringItem
 
 
 class TrackSignificantEventsTest(DeviceTest):
@@ -18,13 +19,13 @@ class TrackSignificantEventsTest(DeviceTest):
     def setUp(self):
         self.alarmPartition, _ = self.create_alarm_partition()
 
-        self.internal_door = Door(contact_item=pe.create_contact_item('Door1'))
-        self.external_door = Door(contact_item=pe.create_contact_item('Door2'))
-        self.window = Window(contact_item=pe.create_contact_item('window'))
+        self.internal_door = Door(contact_item=ContactItem('Door1', "CLOSED"))
+        self.external_door = Door(contact_item=ContactItem('Door2', "CLOSED"))
+        self.window = Window(contact_item=ContactItem('window', "CLOSED"))
 
         items =  self.alarmPartition.get_all_items() + [
             self.internal_door.get_item(), self.external_door.get_item(), self.window.get_item(),
-            pe.create_string_item(TrackSignificantEvents.DEFAULT_OUTPUT_ITEM_NAME)]
+            StringItem(TrackSignificantEvents.DEFAULT_OUTPUT_ITEM_NAME, None)]
         self.set_items(items)
 
         super(TrackSignificantEventsTest, self).setUp()

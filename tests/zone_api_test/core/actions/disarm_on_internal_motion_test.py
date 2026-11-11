@@ -9,6 +9,7 @@ from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
+from zone_api.models import SwitchItem
 
 
 class DisarmOnInternalMotionTest(DeviceTest):
@@ -17,7 +18,7 @@ class DisarmOnInternalMotionTest(DeviceTest):
     def setUp(self):
         self.alarmPartition, items = self.create_alarm_partition()
 
-        items = items + [pe.create_switch_item('InternalMotionSensor'), pe.create_switch_item('ExternalDoor')]
+        items = items + [SwitchItem('InternalMotionSensor', "OFF"), SwitchItem('ExternalDoor', "OFF")]
         self.set_items(items)
 
         super(DisarmOnInternalMotionTest, self).setUp()

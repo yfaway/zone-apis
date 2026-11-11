@@ -2,13 +2,14 @@ from zone_api_test.core.device_test import DeviceTest
 
 from zone_api.core.devices.plug import Plug
 from zone_api import platform_encapsulator as pe
+from zone_api.models import NumberItem, SwitchItem
 
 
 class PlugTest(DeviceTest):
     """ Unit tests for plug.py. """
 
     def setUp(self):
-        items = [pe.create_switch_item('_Plug'), pe.create_number_item('_Power')]
+        items = [SwitchItem('_Plug', "OFF"), NumberItem('_Power', None)]
         self.set_items(items)
         super(PlugTest, self).setUp()
 

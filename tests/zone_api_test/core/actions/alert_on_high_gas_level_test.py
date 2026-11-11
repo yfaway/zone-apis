@@ -7,13 +7,14 @@ from zone_api.core.devices.gas_sensor import SmokeSensor
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 
 from zone_api.core.actions.alert_on_high_gas_level import AlertOnHighGasLevel
+from zone_api.models import NumberItem, SwitchItem
 
 
 class AlertOnHighGasLevelTest(DeviceTest):
     """ Unit tests for alert_on_high_gas_level.py. """
 
     def setUp(self):
-        items = [pe.create_switch_item('gas_state'), pe.create_number_item('gas_value'), ]
+        items = [SwitchItem('gas_state', "OFF"), NumberItem('gas_value', None), ]
         self.set_items(items)
         super(AlertOnHighGasLevelTest, self).setUp()
 

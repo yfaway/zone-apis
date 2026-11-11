@@ -5,6 +5,7 @@ from zone_api.core.zone_manager import ZoneManager
 from zone_api.core.devices.switch import Light
 
 from zone_api_test.core.device_test import DeviceTest
+from zone_api.models import SwitchItem
 
 
 class LightTest(DeviceTest):
@@ -12,7 +13,7 @@ class LightTest(DeviceTest):
     def setUp(self):
         self.defaultTimerDurationInSec = 10
 
-        items = [pe.create_switch_item('TestLightName')]
+        items = [SwitchItem('TestLightName', "OFF")]
         self.set_items(items)
         super(LightTest, self).setUp()
 

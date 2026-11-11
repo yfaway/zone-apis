@@ -9,6 +9,7 @@ from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.devices.motion_sensor import MotionSensor
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
+from zone_api.models import SwitchItem
 
 
 class ManagePlugsTest(DeviceTest):
@@ -16,7 +17,7 @@ class ManagePlugsTest(DeviceTest):
 
     def setUp(self):
         self.alarm_partition, items = self.create_alarm_partition()
-        items = items + [pe.create_switch_item('_Motion1'), pe.create_switch_item('_Plug1')]
+        items = items + [SwitchItem('_Motion1', "OFF"), SwitchItem('_Plug1', "OFF")]
         self.set_items(items)
         super(ManagePlugsTest, self).setUp()
 

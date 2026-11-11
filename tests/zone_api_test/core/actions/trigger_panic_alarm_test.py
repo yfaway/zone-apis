@@ -9,6 +9,7 @@ from zone_api.core.map_parameters import MapParameters
 from zone_api.core.zone import Zone, Level
 from zone_api.core.zone_event import ZoneEvent
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
+from zone_api.models import SwitchItem
 
 
 class TriggerPanicAlarmTest(DeviceTest):
@@ -36,7 +37,7 @@ class TriggerPanicAlarmTest(DeviceTest):
         self.zone1.contains_open_hab_item = MagicMock(side_effect=lambda x: True)
         self.zone1.get_devices_by_type = MagicMock(side_effect=mock_get_devices_by_type)
 
-        self.motion_sensor_item = pe.create_switch_item("blah")
+        self.motion_sensor_item = SwitchItem("blah", "OFF")
 
         self.zm = create_zone_manager([self.zone1])
 

@@ -6,6 +6,7 @@ from zone_api.core.zone import Zone
 from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.devices.switch import Light
 from zone_api.core.actions.turn_off_devices_on_alarm_mode_change import TurnOffDevicesOnAlarmModeChange
+from zone_api.models import SwitchItem
 
 
 class TurnOffDevicesOnAlarmModeChangeTest(DeviceTest):
@@ -16,7 +17,7 @@ class TurnOffDevicesOnAlarmModeChangeTest(DeviceTest):
         self.partition, partition_items = self.create_alarm_partition()
 
         items = sink_items + partition_items + \
-                [pe.create_switch_item('_testLight1'), pe.create_switch_item('_testLight2')]
+                [SwitchItem('_testLight1', "OFF"), SwitchItem('_testLight2', "OFF")]
         self.set_items(items)
         super(TurnOffDevicesOnAlarmModeChangeTest, self).setUp()
 

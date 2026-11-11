@@ -1,5 +1,6 @@
 from zone_api import platform_encapsulator as pe
 from zone_api.core.device import Device
+from zone_api.models import StringItem
 
 
 class Computer(Device):
@@ -21,7 +22,7 @@ class Computer(Device):
             value.
         :raise ValueError: if any parameter is invalid
         """
-        Device.__init__(self, pe.create_string_item(f'Computer: {name}'),
+        Device.__init__(self, StringItem(f'Computer: {name}', None),
                         [cpu_temperature_item, gpu_temperature_item, gpu_fan_speed_item],
                         battery_powered=False, wifi=False, auto_report=always_on)
 

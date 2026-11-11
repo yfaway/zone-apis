@@ -8,13 +8,14 @@ from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.devices.humidity_sensor import HumiditySensor
 
 from zone_api.core.actions.alert_on_humidity_out_of_range import AlertOnHumidityOutOfRange
+from zone_api.models import NumberItem
 
 
 class AlertOnHumidityOutOfRangeTest(DeviceTest):
     """ Unit tests for alert_on_humidity_out_of_range.py. """
 
     def setUp(self):
-        items = [pe.create_number_item('humidity_sensor')]
+        items = [NumberItem('humidity_sensor', None)]
         self.set_items(items)
         super(AlertOnHumidityOutOfRangeTest, self).setUp()
 

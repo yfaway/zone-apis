@@ -10,6 +10,7 @@ from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.devices.activity_times import ActivityTimes, ActivityType
 from zone_api_test.core.device_test import DeviceTest, create_zone_manager
 from zone_api.core.actions.simulate_daytime_presence import SimulateDaytimePresence
+from zone_api.models import SwitchItem
 
 
 class SimulateDaytimePresenceTest(DeviceTest):
@@ -19,7 +20,7 @@ class SimulateDaytimePresenceTest(DeviceTest):
         self.audioSink, sink_items = self.create_audio_sink()
         self.partition, partition_items = self.create_alarm_partition()
 
-        items = sink_items + partition_items + [pe.create_switch_item('_testMotion')]
+        items = sink_items + partition_items + [SwitchItem('_testMotion', "OFF")]
         self.set_items(items)
         super(SimulateDaytimePresenceTest, self).setUp()
 

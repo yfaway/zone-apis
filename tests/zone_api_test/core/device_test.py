@@ -11,6 +11,7 @@ from zone_api.core.devices.chromecast_audio_sink import ChromeCastAudioSink
 from zone_api.core.immutable_zone_manager import ImmutableZoneManager
 from zone_api.core.zone import Zone
 from zone_api.core.zone_manager import ZoneManager
+from zone_api.models import DimmerItem, NumberItem, PlayerItem, StringItem, SwitchItem
 
 
 # noinspection PyProtectedMember
@@ -71,10 +72,10 @@ class DeviceTest(unittest.TestCase):
     # noinspection PyMethodMayBeStatic
     def create_audio_sink(self, suffix='1') -> Tuple[ChromeCastAudioSink, List]:
         """ Returns an audio sink and its items. """
-        items = [pe.create_player_item(f'_testPlayer_{suffix}'),
-                 pe.create_dimmer_item(f'_testVolume_{suffix}'),
-                 pe.create_string_item(f'_testTitle_{suffix}'),
-                 pe.create_switch_item(f'_testIdling_{suffix}'),
+        items = [PlayerItem(f'_testPlayer_{suffix}', None),
+                 DimmerItem(f'_testVolume_{suffix}', 0),
+                 StringItem(f'_testTitle_{suffix}', None),
+                 SwitchItem(f'_testIdling_{suffix}', "OFF"),
                  ]
         sink = ChromeCastAudioSink('sinkName', items[0], items[1], items[2], items[3])
         sink._set_test_mode()
@@ -92,8 +93,8 @@ class DeviceTest(unittest.TestCase):
 
     # noinspection PyMethodMayBeStatic
     def create_alarm_partition(self):
-        items = [pe.create_switch_item('AlarmStatus'), pe.create_number_item('_AlarmMode'),
-                 pe.create_string_item("send-command"), pe.create_switch_item('fire-alarm')]
+        items = [SwitchItem('AlarmStatus', "OFF"), NumberItem('_AlarmMode', None),
+                 StringItem("send-command", None), SwitchItem('fire-alarm', "OFF")]
         alarm_partition = AlarmPartition(*items)
 
         return alarm_partition, items
