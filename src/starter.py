@@ -167,6 +167,8 @@ class Starter():
 
 
 async def main() -> None:
+    pe.set_main_event_loop(asyncio.get_running_loop())
+
     instance = Starter()
     await instance.establish_websocket_connection()
 

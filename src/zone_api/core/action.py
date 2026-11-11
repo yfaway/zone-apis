@@ -71,8 +71,9 @@ class Action(object):
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def on_action(self, event_info: EventInfo) -> bool:
         """
-        Invoked when an event is triggered.
-        Subclass must override this method with its own handling.
+        Invoked when an event is triggered. Subclass must override this method with its own handling.
+        The action is invoked in a normal (not asyncio) multi-consistency model. I.e. preemptive multitasking instead
+        of asyncio cooperative multi-tasking. Normal time.sleep(int) function can be used.
 
         :param EventInfo event_info:
         :return: True if the event is processed; False otherwise.

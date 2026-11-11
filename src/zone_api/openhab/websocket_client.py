@@ -169,9 +169,9 @@ class OpenHabWebSocketClient:
                     continue
 
                 if self.on_event is not None:
-                    result = self.on_event(message)
+                    result = await asyncio.to_thread(self.on_event, message)
                     if asyncio.iscoroutine(result):
-                        await result
+                        result = await result
                 #else:
                 #    print(json.dumps(message, indent=2, sort_keys=True))
             except websockets.ConnectionClosed:

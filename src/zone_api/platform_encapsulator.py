@@ -1,3 +1,4 @@
+from asyncio import AbstractEventLoop
 import datetime
 import logging
 import smtplib
@@ -30,6 +31,7 @@ The corresponding script to process these actions are in JSR223 side, within Ope
 """
 
 ZONE_MANAGER: 'ImmutableZoneManager'
+MAIN_EVENT_LOOP: AbstractEventLoop
 
 _in_unit_tests = False
 
@@ -53,7 +55,6 @@ def add_zone_manager_to_context(zm: 'ImmutableZoneManager'):
     global ZONE_MANAGER
     ZONE_MANAGER = zm
 
-
 def get_zone_manager_from_context() -> 'ImmutableZoneManager':
     """
     Gets the zone manager from the context.
@@ -62,6 +63,12 @@ def get_zone_manager_from_context() -> 'ImmutableZoneManager':
     """
     return ZONE_MANAGER
 
+def set_main_event_loop(loop):
+    global MAIN_EVENT_LOOP
+    MAIN_EVENT_LOOP = loop
+
+def get_main_event_loop() -> AbstractEventLoop:
+    return MAIN_EVENT_LOOP
 
 def is_in_on_state(item: SwitchItem):
     """
