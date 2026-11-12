@@ -28,7 +28,7 @@ class MotionSensor(SecurityAwareMixin, Device):
         """
         Returns true if the motion sensor's state is on; false otherwise.
         """
-        return pe.is_in_on_state(self.get_item())
+        return self.get_item().is_on()
 
     def is_occupied(self, seconds_from_last_event=5 * 60):
         """

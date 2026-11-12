@@ -23,14 +23,14 @@ class Camera(Device):
     @property
     def image_url(self):
         if self._image_url_item is not None:
-            return pe.get_string_value(self._image_url_item)
+            return self._image_url_item.get_value()
         else:
             return None
 
     @property
     def mjpeg_url(self):
         if self._mjpeg_url_item is not None:
-            return pe.get_string_value(self._mjpeg_url_item)
+            return self._mjpeg_url_item.get_value()
         else:
             return None
 

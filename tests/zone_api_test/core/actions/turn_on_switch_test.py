@@ -66,17 +66,17 @@ class TurnOnSwitchTest(DeviceTest):
         super(TurnOnSwitchTest, self).tearDown()
 
     def testOnAction_illuminanceBelowThreshold_turnsOnLight(self):
-        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
+        self.illuminanceSensorItem.set_value(ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
         self.assertTrue(self.turnOn())
 
     def testOnAction_illuminanceAboveThreshold_returnsFalse(self):
-        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX + 1)
+        self.illuminanceSensorItem.set_value(ILLUMINANCE_THRESHOLD_IN_LUX + 1)
 
         self.assertFalse(self.turnOn())
 
     def testOnAction_renewTimerIfLightIsAlreadyOnEvenIfIlluminanceIsAboveThreshold_returnsTrue(self):
-        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX + 1)
+        self.illuminanceSensorItem.set_value(ILLUMINANCE_THRESHOLD_IN_LUX + 1)
         self.light1.turn_on(pe.get_event_dispatcher())
 
         self.assertTrue(self.turnOn())
@@ -85,14 +85,14 @@ class TurnOnSwitchTest(DeviceTest):
         motion_sensor: MotionSensor = self.zone1.get_devices_by_type(MotionSensor)[0]
         motion_sensor._can_trigger_switches = False
 
-        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
+        self.illuminanceSensorItem.set_value(ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
         self.assertFalse(self.turnOn())
 
     def testOnAction_switchWasJustTurnedOff_returnsFalse(self):
         self.light1.on_switch_turned_off(pe.get_event_dispatcher(), self.light1.get_item_name())
 
-        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
+        self.illuminanceSensorItem.set_value(ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
         self.assertFalse(self.turnOn())
 
@@ -103,7 +103,7 @@ class TurnOnSwitchTest(DeviceTest):
         self.motionSensor1.get_channel = lambda: 'a channel'
         self.motionSensor2.get_channel = lambda: 'a channel'
 
-        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
+        self.illuminanceSensorItem.set_value(ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
         self.assertTrue(self.turnOn())
 
@@ -116,7 +116,7 @@ class TurnOnSwitchTest(DeviceTest):
 
         self.light2.on_switch_turned_off(pe.get_event_dispatcher(), self.light2.get_item_name())
 
-        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
+        self.illuminanceSensorItem.set_value(ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
         self.assertFalse(self.turnOn())
 
@@ -168,7 +168,7 @@ class TurnOnSwitchTest(DeviceTest):
         self.assertTrue(self.zone2.is_light_on())
 
     def testOnAction_masterIsOn_returnsTrueAndNotTurningOffOpenSpaceNeighbor(self):
-        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
+        self.illuminanceSensorItem.set_value(ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
         # zone3 (foyer) is an open space neighbor with zone2
         self.zone2 = self.zone2.add_neighbor(Neighbor(self.zone3.get_id(), NeighborType.OPEN_SPACE))
@@ -218,7 +218,7 @@ class TurnOnSwitchTest(DeviceTest):
 
     # Helper method to set up the relationship between the provided zone and zone1.
     def setUpNeighborRelationship(self, zone, neighbor_type, neighbor_light_on):
-        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
+        self.illuminanceSensorItem.set_value(ILLUMINANCE_THRESHOLD_IN_LUX - 1)
         self.zone1 = self.zone1.add_neighbor(Neighbor(zone.get_id(), neighbor_type))
 
         if neighbor_light_on:

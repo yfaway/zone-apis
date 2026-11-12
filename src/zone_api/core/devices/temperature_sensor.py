@@ -22,8 +22,8 @@ class TemperatureSensor(Device):
         :return: the current temperature in degree.
         :rtype: int
         """
-        return pe.get_number_value(self.get_item())
+        return self.get_item().get_value()
 
     def reset_value_states(self):
         """ Override. """
-        pe.set_number_value(self.get_item(), -999)
+        self.get_item().set_value(-999)

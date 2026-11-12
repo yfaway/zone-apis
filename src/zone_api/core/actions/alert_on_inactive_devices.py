@@ -65,8 +65,8 @@ class AlertOnInactiveDevices(Action):
         zm = event_info.get_zone_manager()
         setting: DeferredAutoReportNotification = zm.get_first_device_by_type(DeferredAutoReportNotification)
         if setting is not None:
-            pe.set_number_value(setting.duration_in_hour_item_name, 0)
-            pe.set_string_value(setting.get_item_name(), '')
+            pe.get_item_or_throw(setting.duration_in_hour_item_name).set_value(0)
+            setting.get_item().set_value('')
 
     def on_action(self, event_info):
         zone_manager = event_info.get_zone_manager()
@@ -120,7 +120,7 @@ class AlertOnInactiveDevices(Action):
             flash_message.set_value(msg)
 
         # reset
-        pe.set_string_value(setting.get_item_name(), '')
+        setting.get_item().set_value('')
 
     def _cancel_all_auto_report_defer_timer(self):
         for timer in self._deferred_auto_report_devices.values():

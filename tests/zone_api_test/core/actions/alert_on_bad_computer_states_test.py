@@ -26,37 +26,37 @@ class AlertOnBadComputerStatesTest(DeviceTest):
         self.zm = create_zone_manager([self.zone1])
 
     def testOnAction_cpuTemperatureAboveThreshold_returnsTrueAndSendAlert(self):
-        pe.set_number_value(self.get_items()[0], 80)
+        self.get_items()[0].set_value(80)
         self.sendEventAndAssertAlertContainMessage(
             ZoneEvent.COMPUTER_CPU_TEMPERATURE_CHANGED, self.get_items()[0],
             'CPU temperature for Computer: Desktop at 80 is above the threshold of 70 degree.')
 
     def testOnAction_cpuTemperatureBackToNormal_returnsTrueAndSendsInfoAlert(self):
         # initially cross threshold
-        pe.set_number_value(self.get_items()[0], 80)
+        self.get_items()[0].set_value(80)
         self.sendEventAndAssertAlertContainMessage(
             ZoneEvent.COMPUTER_CPU_TEMPERATURE_CHANGED, self.get_items()[0], 'above the threshold')
 
         # now back to normal
-        pe.set_number_value(self.get_items()[0], 60)
+        self.get_items()[0].set_value(60)
         self.sendEventAndAssertAlertContainMessage(
             ZoneEvent.COMPUTER_CPU_TEMPERATURE_CHANGED, self.get_items()[0], 'is back to normal')
         self.assertTrue(self.action._alerts[0] is None)
 
     def testOnAction_gpuTemperatureAboveThreshold_returnsTrueAndSendAlert(self):
-        pe.set_number_value(self.get_items()[1], 80)
+        self.get_items()[1].set_value(80)
         self.sendEventAndAssertAlertContainMessage(
             ZoneEvent.COMPUTER_GPU_TEMPERATURE_CHANGED, self.get_items()[1],
             'GPU temperature for Computer: Desktop at 80 is above the threshold of 70 degree.')
 
     def testOnAction_gpuTemperatureBackToNormal_returnsTrueAndSendsInfoAlert(self):
         # initially cross threshold
-        pe.set_number_value(self.get_items()[1], 80)
+        self.get_items()[1].set_value(80)
         self.sendEventAndAssertAlertContainMessage(
             ZoneEvent.COMPUTER_GPU_TEMPERATURE_CHANGED, self.get_items()[1], 'above the threshold')
 
         # now back to normal
-        pe.set_number_value(self.get_items()[1], 60)
+        self.get_items()[1].set_value(60)
         self.sendEventAndAssertAlertContainMessage(
             ZoneEvent.COMPUTER_GPU_TEMPERATURE_CHANGED, self.get_items()[1], 'is back to normal')
         self.assertTrue(self.action._alerts[1] is None)

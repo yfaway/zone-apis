@@ -35,7 +35,7 @@ class Dimmer(Light):
 
         @override
         """
-        if not pe.is_in_on_state(self.get_item()):
+        if not self.get_item().is_on():
             zm = pe.get_zone_manager_from_context()
 
             if zm is not None:

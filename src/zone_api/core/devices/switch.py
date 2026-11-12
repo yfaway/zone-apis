@@ -104,7 +104,7 @@ class Switch(Device):
         """
         Returns true if the switch is turned on; false otherwise.
         """
-        return pe.is_in_on_state(self.get_item())
+        return self.get_item().is_on()
 
     def on_switch_turned_on(self, events, item_name):
         """

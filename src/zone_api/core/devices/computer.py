@@ -42,7 +42,7 @@ class Computer(Device):
         if self._cpu_temperature_item is None:
             raise ValueError("CPU temperature not available.")
 
-        return pe.get_number_value(self._cpu_temperature_item)
+        return self._cpu_temperature_item.get_value()
 
     def has_gpu_temperature(self):
         return self._gpu_temperature_item is not None
@@ -51,7 +51,7 @@ class Computer(Device):
         if self._gpu_temperature_item is None:
             raise ValueError("GPU temperature not available.")
 
-        return pe.get_number_value(self._gpu_temperature_item)
+        return self._gpu_temperature_item.get_value()
 
     def has_gpu_fan_speed(self):
         return self._gpu_fan_speed_item is not None
@@ -60,7 +60,7 @@ class Computer(Device):
         if self._gpu_fan_speed_item is None:
             raise ValueError("GPU Fan Speed not available.")
 
-        return pe.get_number_value(self._gpu_fan_speed_item)
+        return self._gpu_fan_speed_item.get_value()
 
     def __str__(self):
         """ @override """

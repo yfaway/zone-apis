@@ -89,7 +89,7 @@ class SimulateNighttimePresence(Action):
                 turn_on_random_light()
 
                 if pe.has_item(DISPLAY_ITEM_NAME):
-                    cast(SwitchItem, pe.get_item(DISPLAY_ITEM_NAME)).on()
+                    cast(SwitchItem, pe.get_item_or_throw(DISPLAY_ITEM_NAME)).on()
 
         else:  # events to turn off simulation mode
             self.cancel_timer()
@@ -110,4 +110,4 @@ class SimulateNighttimePresence(Action):
             self.log_info("Canceled light simulation mode.")
 
         if pe.has_item(DISPLAY_ITEM_NAME):
-            cast(SwitchItem, pe.get_item(DISPLAY_ITEM_NAME)).off()
+            cast(SwitchItem, pe.get_item_or_throw(DISPLAY_ITEM_NAME)).off()

@@ -136,7 +136,7 @@ class ZoneManagerTest(DeviceTest):
 
     def testOnMotionSensorTurnedOn_withApplicableZone_returnsTrue(self):
         self.assertFalse(self.light.is_on())
-        pe.set_number_value(self.illuminanceSensorItem, ILLUMINANCE_THRESHOLD_IN_LUX - 1)
+        self.illuminanceSensorItem.set_value(ILLUMINANCE_THRESHOLD_IN_LUX - 1)
 
         zone = Zone('ff', [self.light, self.motionSensor, self.illuminanceSensor])
         zone = zone.add_action(TurnOnSwitch(MapParameters({})))

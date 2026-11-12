@@ -45,7 +45,7 @@ class GenerateWeatherForecastHtml(Action):
         # generate the initial content immediately
         self._generate_html(event_info)
 
-    def on_action(self, event_info):
+    def on_action(self, event_info): # type: ignore
         self._generate_html(event_info)
 
     def _generate_html(self, event_info):
@@ -85,32 +85,38 @@ class GenerateWeatherForecastHtml(Action):
             return associated_html
 
         for segment in ['Quarter1', 'Quarter2', 'Quarter3', 'Quarter4']:
-            date_time = cast(DateTimeItem, pe.get_item(prefix + segment + "_Datetime")).get_value()
-            temperature = round(pe.get_number_value(prefix + segment))
-            weather_symbol = int(pe.get_number_value(prefix + segment + "_WeatherSymbol"))
+            try:
+                date_time = cast(DateTimeItem, pe.get_item_or_throw(prefix + segment + "_Datetime")).get_value()
+                temperature = round(float(pe.get_item_or_throw(prefix + segment + "_Temperature").get_value()))
+                weather_symbol = int(pe.get_item_or_throw(prefix + segment + "_WeatherSymbol").get_value())
 
-            if date_time.time().hour == 0:
-                day_segment = 'Night'
-            elif date_time.time().hour == 6:
-                day_segment = 'Morning'
-            elif date_time.time().hour == 12:
-                day_segment = 'Afternoon'
-            else:
-                day_segment = 'Evening'
+                if date_time.time().hour == 0:
+                    day_segment = 'Night'
+                elif date_time.time().hour == 6:
+                    day_segment = 'Morning'
+                elif date_time.time().hour == 12:
+                    day_segment = 'Afternoon'
+                else:
+                    day_segment = 'Evening'
 
-            icon_html = map_to_icon_html(weather_symbol)
-            items_html += item_div_templates.format(day_segment, icon_html + str(temperature) + " &deg;C")
+                icon_html = map_to_icon_html(weather_symbol)
+                items_html += item_div_templates.format(day_segment, icon_html + str(temperature) + " &deg;C")
+            except BaseException:
+                pass 
 
         for segment in ['Tomorrow', 'In2Days', 'In3Days', 'In4Days']:
-            date_time = cast(DateTimeItem, pe.get_item(prefix + segment + "_Datetime")).get_value()
-            temperature_high = round(pe.get_number_value(prefix + segment + "_TempHigh"))
-            temperature_low = round(pe.get_number_value(prefix + segment + "_TempLow"))
-            weather_symbol = int(pe.get_number_value(prefix + segment + "_WeatherSymbol"))
+            try:
+                date_time = cast(DateTimeItem, pe.get_item_or_throw(prefix + segment + "_Datetime")).get_value()
+                temperature_high = round(float(pe.get_item_or_throw(prefix + segment + "_TempHigh").get_value()))
+                temperature_low = round(float(pe.get_item_or_throw(prefix + segment + "_TempLow").get_value()))
+                weather_symbol = int(pe.get_item_or_throw(prefix + segment + "_WeatherSymbol").get_value())
 
-            day_of_week = date_time.strftime("%A")
-            icon_html = map_to_icon_html(weather_symbol)
-            items_html += item_div_templates.format(
-                day_of_week, icon_html + str(temperature_high) + " &deg;C &#8594; " + str(temperature_low) + " &deg;C")
+                day_of_week = date_time.strftime("%A")
+                icon_html = map_to_icon_html(weather_symbol)
+                items_html += item_div_templates.format(
+                    day_of_week, icon_html + str(temperature_high) + " &deg;C &#8594; " + str(temperature_low) + " &deg;C")
+            except:
+                pass
 
         html = f"""
         <!doctype html>

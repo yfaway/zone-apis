@@ -43,62 +43,62 @@ class AlertOnHumidityOutOfRangeTest(DeviceTest):
         self.assertFalse(value)
 
     def testOnAction_humidityJustBelowMinThresholdButAboveNoticeThreshold_sendsNoAlert(self):
-        pe.set_number_value(self.get_items()[0], 34)
+        self.get_items()[0].set_value(34)
         self.sendEventAndAssertNoAlert()
 
     def testOnAction_lowHumidityAtFirstThreshold_TrueAndSendAlert(self):
-        pe.set_number_value(self.get_items()[0], 32)
+        self.get_items()[0].set_value(32)
         self.sendEventAndAssertAlertContainMessage('below the threshold')
 
     def testOnAction_lowHumidityButNotYetAtSecondThreshold_doNotSendAlert(self):
-        pe.set_number_value(self.get_items()[0], 32)
+        self.get_items()[0].set_value(32)
         self.sendEventAndAssertAlertContainMessage('below the threshold')
 
         self.zm.get_alert_manager().reset()
-        pe.set_number_value(self.get_items()[0], 33)
+        self.get_items()[0].set_value(33)
         self.sendEventAndAssertNoAlert()
 
     def testOnAction_lowHumidityAtSecondThreshold_sendAlert(self):
-        pe.set_number_value(self.get_items()[0], 32)
+        self.get_items()[0].set_value(32)
         self.sendEventAndAssertAlertContainMessage('below the threshold')
 
-        pe.set_number_value(self.get_items()[0], 29)
+        self.get_items()[0].set_value(29)
         self.sendEventAndAssertAlertContainMessage('below the threshold')
 
     def testOnAction_humidityJustAboveMinThresholdButAboveNoticeThreshold_sendsNoAlert(self):
-        pe.set_number_value(self.get_items()[0], 51)
+        self.get_items()[0].set_value(51)
         self.sendEventAndAssertNoAlert()
 
     def testOnAction_highHumidityAtFirstThreshold_TrueAndSendAlert(self):
-        pe.set_number_value(self.get_items()[0], 53)
+        self.get_items()[0].set_value(53)
         self.sendEventAndAssertAlertContainMessage('above the threshold')
 
     def testOnAction_highHumidityButNotYetAtSecondThreshold_doNotSendAlert(self):
-        pe.set_number_value(self.get_items()[0], 53)
+        self.get_items()[0].set_value(53)
         self.sendEventAndAssertAlertContainMessage('above the threshold')
 
         self.zm.get_alert_manager().reset()
-        pe.set_number_value(self.get_items()[0], 54)
+        self.get_items()[0].set_value(54)
         self.sendEventAndAssertNoAlert()
 
     def testOnAction_highHumidityAtSecondThreshold_sendAlert(self):
-        pe.set_number_value(self.get_items()[0], 54)
+        self.get_items()[0].set_value(54)
         self.sendEventAndAssertAlertContainMessage('above the threshold')
 
-        pe.set_number_value(self.get_items()[0], 56)
+        self.get_items()[0].set_value(56)
         self.sendEventAndAssertAlertContainMessage('above the threshold')
 
     def testOnAction_humidityWithinThreshold_returnsTrueAndSendsNoAlert(self):
-        pe.set_number_value(self.get_items()[0], 40)
+        self.get_items()[0].set_value(40)
         self.sendEventAndAssertNoAlert()
 
     def testOnAction_humidityBackToNormal_returnsTrueAndSendsInfoAlert(self):
         # initially below threshold
-        pe.set_number_value(self.get_items()[0], 20)
+        self.get_items()[0].set_value(20)
         self.sendEventAndAssertAlertContainMessage('below the threshold')
 
         # now back to normal
-        pe.set_number_value(self.get_items()[0], 40)
+        self.get_items()[0].set_value(40)
         self.sendEventAndAssertAlertContainMessage('back to the normal range')
 
     def sendEventAndAssertNoAlert(self):

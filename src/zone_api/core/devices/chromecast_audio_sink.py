@@ -158,7 +158,7 @@ class ChromeCastAudioSink(Device):
         if isinstance(url_or_stream, MusicStream):
             url = url_or_stream.url
             if self._out_current_stream_item is not None:
-                pe.set_string_value(self._out_current_stream_item, url_or_stream.name)
+                self._out_current_stream_item.set_value(url_or_stream.name)
         else:
             url = url_or_stream
 
@@ -202,7 +202,7 @@ class ChromeCastAudioSink(Device):
         """
         :rtype: bool
         """
-        title = pe.get_string_value(self._title_item)
+        title = self._title_item.get_value()
         return title is not None and title != ''
 
     def get_stream_url(self):

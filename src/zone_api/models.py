@@ -28,6 +28,9 @@ class BaseItem:
     def get_value(self):
         return self.state
 
+    def set_value(self, value: Any) -> None:
+        self.state = value
+
     def get_state(self):
         return self.state
 

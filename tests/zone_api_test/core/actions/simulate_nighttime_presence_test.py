@@ -42,7 +42,7 @@ class SimulateNighttimePresenceTest(DeviceTest):
         self.izm = create_zone_manager([self.zone1, self.zone2])
 
     def tearDown(self):
-        pe.set_string_value(self.thermostat_state, 'not vacation')
+        self.thermostat_state.set_value('not vacation')
         self.action.cancel_timer()
 
         super(SimulateNighttimePresenceTest, self).tearDown()
@@ -54,24 +54,24 @@ class SimulateNighttimePresenceTest(DeviceTest):
         self.assertFalse(value)
 
     def testOnAction_vacationOnEventButNotInLightOnTime_returnsFalse(self):
-        pe.set_string_value(self.thermostat_state, EcobeeThermostat.VACATION_EVENT_TYPE)
-        pe.set_string_value(self.astro_item, "DAY")
+        self.thermostat_state.set_value(EcobeeThermostat.VACATION_EVENT_TYPE)
+        self.astro_item.set_value("DAY")
         event_info = EventInfo(ZoneEvent.VACATION_MODE_ON, self.thermostat_state, self.zone2,
                                self.izm, pe.get_event_dispatcher())
         value = self.action.on_action(event_info)
         self.assertFalse(value)
 
     def testOnAction_vacationOnEvent_returnsTrue(self):
-        pe.set_string_value(self.thermostat_state, EcobeeThermostat.VACATION_EVENT_TYPE)
-        pe.set_string_value(self.astro_item, "EVENING")
+        self.thermostat_state.set_value(EcobeeThermostat.VACATION_EVENT_TYPE)
+        self.astro_item.set_value("EVENING")
 
         event_info = EventInfo(ZoneEvent.VACATION_MODE_ON, self.thermostat_state, self.zone2,
                                self.izm, pe.get_event_dispatcher(), self.thermostat)
         self.invoke_and_assert_simulation_running(event_info)
 
     def testOnAction_lightOnEvent_returnsTrue(self):
-        pe.set_string_value(self.thermostat_state, EcobeeThermostat.VACATION_EVENT_TYPE)
-        pe.set_string_value(self.astro_item, "EVENING")
+        self.thermostat_state.set_value(EcobeeThermostat.VACATION_EVENT_TYPE)
+        self.astro_item.set_value("EVENING")
 
         event_info = EventInfo(ZoneEvent.ASTRO_LIGHT_ON, self.astro_item, self.zone2,
                                self.izm, pe.get_event_dispatcher(), self.astro)
@@ -82,8 +82,8 @@ class SimulateNighttimePresenceTest(DeviceTest):
         #self.action.cancel_timer()
 
     def testOnAction_lightOffEvent_returnsTrue(self):
-        pe.set_string_value(self.thermostat_state, EcobeeThermostat.VACATION_EVENT_TYPE)
-        pe.set_string_value(self.astro_item, "EVENING")
+        self.thermostat_state.set_value(EcobeeThermostat.VACATION_EVENT_TYPE)
+        self.astro_item.set_value("EVENING")
 
         # turn on light simulation first
         event_info = EventInfo(ZoneEvent.ASTRO_LIGHT_ON, self.astro_item, self.zone2,
@@ -96,8 +96,8 @@ class SimulateNighttimePresenceTest(DeviceTest):
         self.invoke_and_assert_simulation_turned_off(event_info)
 
     def testOnAction_bedTimeEvent_returnsTrue(self):
-        pe.set_string_value(self.thermostat_state, EcobeeThermostat.VACATION_EVENT_TYPE)
-        pe.set_string_value(self.astro_item, AstroSensor.BED_TIME)
+        self.thermostat_state.set_value(EcobeeThermostat.VACATION_EVENT_TYPE)
+        self.astro_item.set_value(AstroSensor.BED_TIME)
 
         # turn on light simulation first
         event_info = EventInfo(ZoneEvent.ASTRO_LIGHT_ON, self.astro_item, self.zone2,
@@ -110,8 +110,8 @@ class SimulateNighttimePresenceTest(DeviceTest):
         self.invoke_and_assert_simulation_turned_off(event_info)
 
     def testOnAction_vacationModeOffEvent_returnsTrue(self):
-        pe.set_string_value(self.thermostat_state, EcobeeThermostat.VACATION_EVENT_TYPE)
-        pe.set_string_value(self.astro_item, "EVENING")
+        self.thermostat_state.set_value(EcobeeThermostat.VACATION_EVENT_TYPE)
+        self.astro_item.set_value("EVENING")
 
         # turn on light simulation first
         event_info = EventInfo(ZoneEvent.ASTRO_LIGHT_ON, self.astro_item, self.zone2,

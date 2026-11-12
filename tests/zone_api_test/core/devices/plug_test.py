@@ -20,7 +20,7 @@ class PlugTest(DeviceTest):
 
     def testTurnOn_withScopeEvents_returnsTrue(self):
         self.plug.turn_on(pe.get_event_dispatcher())
-        pe.set_number_value(self.get_items()[1], 100)
+        self.get_items()[1].set_value(100)
 
         self.assertTrue(self.plug.is_on())
         self.assertEqual(100, self.plug.get_wattage())

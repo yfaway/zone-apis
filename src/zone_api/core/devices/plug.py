@@ -36,7 +36,7 @@ class Plug(Device):
         :return: True if the partition is in alarm; False otherwise
         :rtype: bool
         """
-        return pe.is_in_on_state(self.get_item())
+        return self.get_item().is_on()
 
     def has_power_reading(self):
         """
@@ -53,7 +53,7 @@ class Plug(Device):
         if self.power_reading_item is None:
             raise ValueError("Plug has no power reading capability")
 
-        return pe.get_number_value(self.power_reading_item)
+        return self.power_reading_item.get_value()
 
     def is_always_on(self) -> bool:
         """ Returns true if this plug should not be turned off automatically. """

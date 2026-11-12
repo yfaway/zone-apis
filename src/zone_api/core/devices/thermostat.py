@@ -59,8 +59,8 @@ class EcobeeThermostat(Thermostat, Vacation):
 
     def is_in_vacation(self):
         """ @Override """
-        return pe.get_string_value(self.event_type_item) == EcobeeThermostat.VACATION_EVENT_TYPE
+        return self.event_type_item.get_value() == EcobeeThermostat.VACATION_EVENT_TYPE
 
     def __str__(self):
-        return f"{super(Thermostat, self).__str__()}, {pe.get_string_value(self.get_item())}, " \
-               f"{pe.get_string_value(self.event_type_item)}"
+        return f"{super(Thermostat, self).__str__()}, {self.get_item().get_value()}, " \
+               f"{self.event_type_item.get_value()}"

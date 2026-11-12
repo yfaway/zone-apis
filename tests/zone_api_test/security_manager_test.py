@@ -24,7 +24,7 @@ class SecurityManagerTest(DeviceTest):
         self.assertFalse(sm.is_armed_away(self.mockZoneManager))
 
     def testIsArmedAway_armedAway_returnsTrue(self):
-        pe.set_number_value(self.alarmPartition.get_arm_mode_item(), AlarmState.ARM_AWAY.value)
+        self.alarmPartition.get_arm_mode_item().set_value(AlarmState.ARM_AWAY.value)
         self.assertTrue(sm.is_armed_away(self.mockZoneManager))
 
     def testIsArmedStayed_noAlarmPartition_returnsFalse(self):
@@ -35,5 +35,5 @@ class SecurityManagerTest(DeviceTest):
         self.assertFalse(sm.is_armed_stay(self.mockZoneManager))
 
     def testIsArmedStayed_armedStay_returnsTrue(self):
-        pe.set_number_value(self.alarmPartition.get_arm_mode_item(), AlarmState.ARM_STAY.value)
+        self.alarmPartition.get_arm_mode_item().set_value(AlarmState.ARM_STAY.value)
         self.assertTrue(sm.is_armed_stay(self.mockZoneManager))

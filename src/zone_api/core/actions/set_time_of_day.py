@@ -60,9 +60,9 @@ class SetTimeOfDay(Action):
         bed_start = time(hour=0)
         night_start = time(hour=23)
 
-        day_start = cast(DateTimeItem, pe.get_item(self._sunrise_time_item_name)).get_value().time()
-        evening_start = cast(DateTimeItem, pe.get_item(self._sunset_time_item_name)).get_value().time()
-        afternoon_start = cast(DateTimeItem, pe.get_item(self._evening_time_item_name)).get_value().time()
+        day_start = cast(DateTimeItem, pe.get_item_or_throw(self._sunrise_time_item_name)).get_value().time()
+        evening_start = cast(DateTimeItem, pe.get_item_or_throw(self._sunset_time_item_name)).get_value().time()
+        afternoon_start = cast(DateTimeItem, pe.get_item_or_throw(self._evening_time_item_name)).get_value().time()
 
         current_value = ''
         now = datetime.now().time()

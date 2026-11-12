@@ -12,7 +12,7 @@ class AlarmPartitionTest(DeviceTest):
         self.set_items(items)
         super(AlarmPartitionTest, self).setUp()
 
-        pe.set_number_value(items[1], AlarmState.UNARMED.value)
+        items[1].set_value(AlarmState.UNARMED.value)
 
     def testIsInAlarm_notInAlarm_returnsFalse(self):
         self.assertFalse(self.alarmPartition.is_in_alarm())

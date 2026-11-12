@@ -76,7 +76,7 @@ class TurnOffAdjacentZonesTest(DeviceTest):
 
         self.assertTrue(self.trigger_action_from_zone(self.washroom))
         self.assertFalse(self.lobby.is_light_on())
-        self.assertTrue(pe.is_in_on_state(self.fan_item))
+        self.assertTrue(self.fan_item.is_on())
 
     def trigger_action_from_zone(self, zone):
         """

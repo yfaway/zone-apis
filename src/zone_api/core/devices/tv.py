@@ -21,7 +21,7 @@ class Tv(Device):
         """
         Returns true if the TV is on; false otherwise.
         """
-        return pe.is_in_on_state(self.get_item())
+        return self.get_item().is_on()
 
     def is_off(self):
         """

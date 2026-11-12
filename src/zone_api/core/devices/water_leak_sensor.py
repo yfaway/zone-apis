@@ -21,8 +21,7 @@ class WaterLeakSensor(Device):
         :return: true if the sensor has detected a water leak.
         :rtype: bool
         """
-        return pe.is_in_on_state(self.get_item())
-
+        return self.get_item().is_on()
     def reset_value_states(self):
         """ Override. """
         self.get_item().off()

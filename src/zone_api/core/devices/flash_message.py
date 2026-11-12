@@ -20,24 +20,24 @@ class FlashMessage(Device):
         Device.__init__(self, value_item, [], False, False, False)
 
         self.timer = None
-        pe.set_string_value(value_item, '')  # by default the value with OH would be UNDEF
+        value_item.set_value('')  # by default the value with OH would be UNDEF
 
     def get_value(self):
         """
         :return: the current sensor value.
         :rtype: int
         """
-        return pe.get_string_value(self.get_item())
+        return self.get_item().get_value()
 
     def set_value(self, value: str, display_time_in_seconds=10.0):
         """
         Set the message and retain the value for the specified time, after which the message will be reset to an
         empty string.
         """
-        pe.set_string_value(self.get_item(), value)
+        self.get_item().set_value(value)
 
         def reset_message():
-            pe.set_string_value(self.get_item(), '')
+            self.get_item().set_value('')
 
         self._cancel_timer()  # cancel the previous timer, if any.
 

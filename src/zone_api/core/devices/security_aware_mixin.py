@@ -21,8 +21,7 @@ class SecurityAwareMixin:
         if not self.is_connected_to_security_system():
             return False
 
-        return pe.is_in_on_state(self._security_tripped_item)
-
+        return self._security_tripped_item.is_on()
     def get_tripped_item(self):
         return self._security_tripped_item
 

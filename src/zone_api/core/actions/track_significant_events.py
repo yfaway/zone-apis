@@ -37,7 +37,7 @@ class TrackSignificantEvents(Action):
         super().__init__(parameters)
 
         self._max_event_count = self.parameters().get(self, TrackSignificantEvents.MAX_EVENT_COUNT_KEY, 100)
-        self._output_item = self.parameters().get(self, TrackSignificantEvents.OUTPUT_ITEM_KEY,
+        self._output_item_name = self.parameters().get(self, TrackSignificantEvents.OUTPUT_ITEM_KEY,
                                                   TrackSignificantEvents.DEFAULT_OUTPUT_ITEM_NAME)
         self._events = deque(maxlen=self._max_event_count)
 
@@ -133,8 +133,7 @@ class TrackSignificantEvents(Action):
         self._events.append(new_event)
 
         json_str = json.dumps(list(reversed(self._events)))
-        pe.set_string_value(self._output_item, json_str)
-        # self.log_error(json_str)
+        pe.get_item_or_throw(self._output_item_name).set_value(json_str)
 
     def _map_network_presence_to_friendly_name(self, zm, device : NetworkPresence):
         friendly_name = device.get_item_name()

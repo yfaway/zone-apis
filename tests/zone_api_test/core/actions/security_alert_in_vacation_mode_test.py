@@ -57,7 +57,7 @@ class SecurityAlertInVacationModeTest(DeviceTest):
                                                                  self.window, "Porch event: WINDOW_CLOSED")
 
     def send_event_and_assert_alert_contain_message(self, event, message):
-        pe.set_string_value(self.get_items()[-1], 'vacation')
+        self.get_items()[-1].set_value('vacation')
 
         event_info = EventInfo(event, self.get_items()[0], self.zone1,
                                self.zm, pe.get_event_dispatcher(), None, self.alarmPartition)
@@ -72,7 +72,7 @@ class SecurityAlertInVacationModeTest(DeviceTest):
         self.assertFalse(value)
 
     def send_contact_event_and_assert_alert_contain_message(self, event, sensor, message):
-        pe.set_string_value(self.get_items()[-1], 'vacation')
+        self.get_items()[-1].set_value('vacation')
 
         event_info = EventInfo(event, sensor.get_item(), self.zone1,
                                self.zm, pe.get_event_dispatcher(), self.zone2, sensor)

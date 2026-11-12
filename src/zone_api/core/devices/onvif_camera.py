@@ -24,7 +24,7 @@ class OnvifCamera(Camera):
         self._ffmpeg_control_item = ffmpeg_control_item
 
     def is_ffmpeg_on(self) -> bool:
-        return pe.is_in_on_state(self._ffmpeg_control_item)
+        return self._ffmpeg_control_item.is_on()
 
     def turn_on_ffmpeg(self):
         self._ffmpeg_control_item.on()

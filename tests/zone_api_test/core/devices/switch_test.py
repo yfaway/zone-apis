@@ -26,14 +26,14 @@ class LightTest(DeviceTest):
 
     def testTurnOn_lightWasOff_returnsExpected(self):
         self.light.turn_on(pe.get_event_dispatcher())
-        self.assertTrue(pe.is_in_on_state(self.lightItem))
+        self.assertTrue(self.lightItem.is_on())
 
     def testTurnOn_lightWasAlreadyOn_timerIsRenewed(self):
         self.lightItem.on()
         self.assertFalse(self.light._is_timer_active())
 
         self.light.turn_on(pe.get_event_dispatcher())
-        self.assertTrue(pe.is_in_on_state(self.lightItem))
+        self.assertTrue(self.lightItem.is_on())
         self.assertTrue(self.light._is_timer_active())
 
     def testOnSwitchTurnedOn_validParams_timerIsTurnedOn(self):

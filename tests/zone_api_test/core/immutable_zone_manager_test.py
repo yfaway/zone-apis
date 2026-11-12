@@ -111,7 +111,7 @@ class ImmutableZoneManagerTest(DeviceTest):
         self.assertFalse(izm.is_in_vacation())
 
     def testIsInVacation_inVacationMode_returnsTrue(self):
-        pe.set_string_value(self.ecobee_event_type, 'vacation')
+        self.ecobee_event_type.set_value('vacation')
         zm = ZoneManager().add_zone(self.zone1).add_zone(self.zone2).add_zone(self.zone3)
         izm = zm.get_immutable_instance()
 
@@ -121,12 +121,12 @@ class ImmutableZoneManagerTest(DeviceTest):
         self.assertEqual(None, self.immutable_zm.is_light_on_time())
 
     def testIsLightOnTime_withSensorIndicatesDayTime_returnsFalse(self):
-        pe.set_string_value(self.astroSensorItem, 'MORNING')
+        self.astroSensorItem.set_value('MORNING')
         izm = ZoneManager().add_zone(self.zone4).get_immutable_instance()
         self.assertFalse(izm.is_light_on_time())
 
     def testIsLightOnTime_withSensorIndicatesEveningTime_returnsTrue(self):
-        pe.set_string_value(self.astroSensorItem, AstroSensor.LIGHT_ON_TIMES[0])
+        self.astroSensorItem.set_value(AstroSensor.LIGHT_ON_TIMES[0])
         izm = ZoneManager().add_zone(self.zone4).get_immutable_instance()
         self.assertTrue(izm.is_light_on_time())
 

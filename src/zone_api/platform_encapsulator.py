@@ -7,10 +7,10 @@ from email.message import EmailMessage
 from email.utils import make_msgid
 import mimetypes
 
-from typing import cast, List, Union, TYPE_CHECKING
+from typing import cast, List, TYPE_CHECKING
 
 from zone_api.core.zone_manager import ZoneManager
-from zone_api.models import BaseItem, DimmerItem, NumberItem, StringItem, SwitchItem
+from zone_api.models import BaseItem
 from zone_api.openhab.oh_models import OpenHabStringItem, OpenHabSwitchItem
 
 from zone_api.core.immutable_zone_manager import EmailSettings, ImmutableZoneManager
@@ -69,59 +69,19 @@ def set_main_event_loop(loop):
 def get_main_event_loop() -> AbstractEventLoop:
     return MAIN_EVENT_LOOP
 
-def is_in_on_state(item: SwitchItem):
-    """
-    :param SwitchItem item:
-    :return: True if the state is ON.
-    """
-    return item.is_on()
-
-def set_number_value(item_or_item_name: Union[NumberItem, str], value: float):
-    item:NumberItem
-    if isinstance(item_or_item_name, str):
-        item: NumberItem = cast(NumberItem, ZONE_MANAGER.get_item(item_or_item_name))
-    else:
-        item = item_or_item_name
-
-    item.set_value(value)
-
-
-def get_number_value(item_or_item_name: Union[NumberItem, DimmerItem, str]) -> Union[float, int]:
-    item:NumberItem
-    if isinstance(item_or_item_name, str):
-        item: NumberItem = cast(NumberItem, ZONE_MANAGER.get_item(item_or_item_name))
-    else:
-        item = item_or_item_name
-
-    return item.get_value() or 0
-
-
-def set_string_value(item_or_item_name: Union[StringItem, str], value: str):
-    item: StringItem
-    if isinstance(item_or_item_name, str):
-        item: StringItem = cast(StringItem, ZONE_MANAGER.get_item(item_or_item_name))
-    else:
-        item = item_or_item_name
-
-    item.set_value(value)
-
-
-def get_string_value(item_or_item_name: Union[StringItem, str]) -> str:
-    item: StringItem
-    if isinstance(item_or_item_name, str):
-        item: StringItem = cast(StringItem, ZONE_MANAGER.get_item(item_or_item_name)) 
-    else:
-        item = item_or_item_name
-
-    return item.get_value() or ""
-
-
 def has_item(item_name: str):
     """ Returns true if the item name is present in the back store. """
     return ZONE_MANAGER.has_item(item_name)
 
 def get_item(item_name: str):
     return ZONE_MANAGER.get_item(item_name)
+
+def get_item_or_throw(item_name: str) -> BaseItem:
+    item = ZONE_MANAGER.get_item(item_name)
+    if item is not None:
+        return item
+    else:
+        raise RuntimeError(f"Item {item_name} does not exist")
 
 def log_debug(message: str):
     """ Log a debug message. """
@@ -158,10 +118,8 @@ def set_in_unit_tests():
     if not is_in_unit_tests():
         _in_unit_tests = True
 
-
 def is_in_unit_tests():
     return _in_unit_tests
-
 
 def play_local_audio_file(sink_name: str, file_location: str):
     """ Plays a local audio file on the given audio sink. """

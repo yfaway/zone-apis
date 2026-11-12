@@ -58,8 +58,8 @@ class AlertOnInactiveDevicesTest(DeviceTest):
         self.motion1.update_last_activated_timestamp()
         self.motion2.last_activated_timestamp = time.time() - (2 * 3600)  # 10 secs ago
 
-        pe.set_string_value(self.deferred_setting.get_item_name(), "invalid device name")
-        pe.set_number_value(self.deferred_setting.get_all_items()[-1], 1)
+        self.deferred_setting.get_item().set_value("invalid device name")
+        self.deferred_setting.get_all_items()[-1].set_value(1)
         event_info = EventInfo(ZoneEvent.DEFERRED_NOTIFICATION_DEVICE_NAME_CHANGED, self.get_items()[3], self.zone1,
                                self.zm, pe.get_event_dispatcher(), None, self.deferred_setting)
         self.action.on_action(event_info)
@@ -72,8 +72,8 @@ class AlertOnInactiveDevicesTest(DeviceTest):
         self.motion1.update_last_activated_timestamp()
         self.motion2.last_activated_timestamp = time.time() - (2 * 3600)  # 10 secs ago
 
-        pe.set_string_value(self.deferred_setting.get_item_name(), self.motion2.get_item_name())
-        pe.set_number_value(self.deferred_setting.get_all_items()[-1], 1)
+        self.deferred_setting.get_item().set_value(self.motion2.get_item_name())
+        self.deferred_setting.get_all_items()[-1].set_value(1)
         event_info = EventInfo(ZoneEvent.DEFERRED_NOTIFICATION_DEVICE_NAME_CHANGED, self.get_items()[2], self.zone1,
                                self.zm, pe.get_event_dispatcher(), None, self.deferred_setting)
         self.action.on_action(event_info)

@@ -58,21 +58,24 @@ class AlarmPartition(Device):
         :return: True if the partition is in alarm; False otherwise.
         :rtype: bool
         """
-        return pe.is_in_on_state(self.get_item())
+        return self.get_item().is_on()
 
     def is_in_fire_alarm(self):
         """
         :return: True if the panic fire key was pressed; False otherwise.
         :rtype: bool
         """
-        return pe.is_in_on_state(self.get_panel_fire_key_alarm_item())
+        return self.get_panel_fire_key_alarm_item().is_on()
 
     def get_arm_mode(self) -> AlarmState:
         """
         :return: one of STATE_UNARMED, STATE_ARM_AWAY, STATE_ARM_STAY
         :rtype: int
         """
-        return AlarmState(pe.get_number_value(self.arm_mode_item))
+        value = self.arm_mode_item.get_value()
+        if value is None:
+            return AlarmState.UNARMED
+        return AlarmState(value)
 
     def is_armed_away(self):
         """
@@ -132,7 +135,7 @@ class AlarmPartition(Device):
         self.send_command_item.set_value("060,3")
 
     def has_fire_alarm(self):
-        return pe.is_in_on_state(self.get_panel_fire_key_alarm_item())
+        return self.get_panel_fire_key_alarm_item().is_on()
 
     def cancel_panic_alarm(self, events):
         """ Turn off the panic alarm. """

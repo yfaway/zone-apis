@@ -27,11 +27,11 @@ class AlertOnLowBatteryLevelTest(DeviceTest):
         self.zm = create_zone_manager([self.zone1])
 
     def testOnAction_noInactiveBatteryDevice_noAlert(self):
-        pe.set_number_value(self.get_items()[1], 90)
+        self.get_items()[1].set_value(90)
         self.assert_no_low_battery_devices()
 
     def testOnAction_oneLowBatteryDevice_sendAlert(self):
-        pe.set_number_value(self.get_items()[1], 10)
+        self.get_items()[1].set_value(10)
         self.assert_low_battery_devices()
 
     def assert_no_low_battery_devices(self):

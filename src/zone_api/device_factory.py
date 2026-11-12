@@ -203,7 +203,7 @@ def create_alarm_partition(zm: ImmutableZoneManager, item: OpenHabSwitchItem) ->
         def handler(event: ValueChangeEvent):
             # We don't propagate the OFF state to work around a limitation on the DSC panel (the RESTORE event is sent
             # immediately).
-            if pe.is_in_on_state(dsc_item):
+            if dsc_item.is_on():
                 panel_item.on()
 
         dsc_item.listen_event(handler, OpenHabEvent.ItemStateChanged)
@@ -414,7 +414,7 @@ def create_ikea_remote_control(brightness_up_hold_event: ZoneEvent, brightness_d
             if mapped_zone_event is not None:
                 # noinspection PyUnusedLocal
                 def handler(event: ValueChangeEvent):
-                    if pe.is_in_on_state(control_item):
+                    if control_item.is_on():
                         dispatch_event(zm, mapped_zone_event, sensor, control_item)
                         sensor.reset_value_states()  # Set the switch to off to wait for the next triggering event.
 
@@ -439,7 +439,7 @@ def create_network_presence_device(zm: ImmutableZoneManager, item) -> NetworkPre
 
     # noinspection PyUnusedLocal
     def handler(event: ValueChangeEvent):
-        if pe.is_in_on_state(item):
+        if item.is_on():
             zm.on_network_device_connected(pe.get_event_dispatcher(), sensor, item)
 
         dispatch_event(zm, ZoneEvent.NETWORK_PRESENCE_CHANGED, sensor, item)
@@ -629,19 +629,19 @@ def create_ecobee_thermostat(zm: ImmutableZoneManager, item) -> EcobeeThermostat
         if device.is_in_vacation():
             dispatch_event(zm, ZoneEvent.VACATION_MODE_ON, device, event_item)
             if pe.has_item(display_item_name):
-                cast(SwitchItem, pe.get_item(display_item_name)).on()
+                cast(SwitchItem, pe.get_item_or_throw(display_item_name)).on()
         elif event.old_value == EcobeeThermostat.VACATION_EVENT_TYPE:
             dispatch_event(zm, ZoneEvent.VACATION_MODE_OFF, device, event_item)
             if pe.has_item(display_item_name):
-                cast(SwitchItem, pe.get_item(display_item_name)).off()
+                cast(SwitchItem, pe.get_item_or_throw(display_item_name)).off()
 
     event_item.listen_event(handler, OpenHabEvent.ItemStateChanged)
 
     # Set to the correct state on start-up.
     if device.is_in_vacation():
-        cast(SwitchItem, pe.get_item(display_item_name)).on()
+        cast(SwitchItem, pe.get_item_or_throw(display_item_name)).on()
     else:
-        cast(SwitchItem, pe.get_item(display_item_name)).off()
+        cast(SwitchItem, pe.get_item_or_throw(display_item_name)).off()
 
     # noinspection PyTypeChecker
     return device
@@ -675,7 +675,7 @@ def create_television_device(zm: ImmutableZoneManager, item) -> Tv:
 
     # noinspection PyUnusedLocal
     def handler(event: ValueChangeEvent):
-        zone_event = ZoneEvent.ENTERTAINMENT_ON if pe.is_in_on_state(item) else ZoneEvent.ENTERTAINMENT_OFF
+        zone_event = ZoneEvent.ENTERTAINMENT_ON if item.is_on() else ZoneEvent.ENTERTAINMENT_OFF
         dispatch_event(zm, zone_event, sensor, item)
 
     item.listen_event(handler, OpenHabEvent.ItemStateChanged)

@@ -41,10 +41,10 @@ class TrackSignificantEventsTest(DeviceTest):
         super(TrackSignificantEventsTest, self).tearDown()
 
     def testOnAction_eventTriggered_outputJson(self):
-        pe.set_string_value(TrackSignificantEvents.DEFAULT_OUTPUT_ITEM_NAME, '')
+        pe.get_item_or_throw(TrackSignificantEvents.DEFAULT_OUTPUT_ITEM_NAME).set_value('')
         self.invoke(ZoneEvent.PARTITION_ARMED_AWAY, self.alarmPartition)
 
-        self.assertTrue(pe.get_string_value(TrackSignificantEvents.DEFAULT_OUTPUT_ITEM_NAME) != '')
+        self.assertTrue(pe.get_item_or_throw(TrackSignificantEvents.DEFAULT_OUTPUT_ITEM_NAME).get_value() != '')
 
     def testOnAction_armedAway_recorded(self):
         self.invoke(ZoneEvent.PARTITION_ARMED_AWAY, self.alarmPartition)
