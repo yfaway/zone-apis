@@ -1,4 +1,5 @@
 import re
+from threading import RLock
 from typing import Any, List, TYPE_CHECKING
 
 from zone_api.core.devices.activity_times import ActivityType, ActivityTimes
@@ -57,6 +58,7 @@ class Action(object):
         self._activity_types = None
         self._excluded_activity_types = None
         self._parameters = parameters
+        self._on_action_lock = RLock()
 
     def parameters(self) -> Parameters:
         """ Returns the injected parameters implementation. """
@@ -316,61 +318,62 @@ def validate(function):
     def wrapper(*args, **kwargs):
         obj: Action = args[0]
         event_info = args[1]
-        zone = event_info.get_zone()
-        zone_manager = event_info.get_zone_manager()
+        with obj._on_action_lock:
+            zone = event_info.get_zone()
+            zone_manager = event_info.get_zone_manager()
 
-        if obj.filtering_disabled:
-            return function(*args, **kwargs)
+            if obj.filtering_disabled:
+                return function(*args, **kwargs)
 
-        # Activity types are special. They are not dependent on the device type or whether it belongs to the right zone
-        if len(obj.activity_types) > 0:
-            activity: ActivityTimes = zone_manager.get_first_device_by_type(ActivityTimes)
-            if activity is None:
-                obj.log_error('Missing ActivityTimes.')
-                return False
-
-            if not any(activity.is_at_activity_time(a) for a in obj.activity_types):
-                return False
-
-        if len(obj.excluded_activity_types) > 0:
-            activity: ActivityTimes = zone_manager.get_first_device_by_type(ActivityTimes)
-            if activity is None:
-                obj.log_error('Missing ActivityTimes.')
-                return False
-
-            if any(activity.is_at_activity_time(a) for a in obj.excluded_activity_types):
-                return False
-
-        if event_info.get_event_type() == ZoneEvent.TIMER:
-            return function(*args, **kwargs)
-
-        if zone.contains_open_hab_item(event_info.get_item()):
-            if len(obj.required_events) > 0 \
-                    and not any(e == event_info.get_event_type() for e in obj.required_events):
-
-                return False
-            elif len(obj.required_devices) > 0 \
-                    and not any(len(zone.get_devices_by_type(cls)) > 0 for cls in obj.required_devices):
-
-                return False
-            elif zone.is_internal() and not obj.applicable_to_internal_zone:
-                return False
-            elif zone.is_external() and not obj.applicable_to_external_zone:
-                return False
-            elif len(obj.applicable_levels) > 0 \
-                    and not any(zone.get_level() == level for level in obj.applicable_levels):
-
-                return False
-            elif obj.applicable_zone_name_pattern is not None:
-                pattern = obj.applicable_zone_name_pattern
-                match = re.search(pattern, zone.get_name())
-                if not match:
+            # Activity types are special. They are not dependent on the device type or whether it belongs to the right zone
+            if len(obj.activity_types) > 0:
+                activity: ActivityTimes = zone_manager.get_first_device_by_type(ActivityTimes)
+                if activity is None:
+                    obj.log_error('Missing ActivityTimes.')
                     return False
 
-        else:  # event from other zones
-            if event_info.get_event_type() not in obj.external_events:
-                return False
+                if not any(activity.is_at_activity_time(a) for a in obj.activity_types):
+                    return False
 
-        return function(*args, **kwargs)
+            if len(obj.excluded_activity_types) > 0:
+                activity: ActivityTimes = zone_manager.get_first_device_by_type(ActivityTimes)
+                if activity is None:
+                    obj.log_error('Missing ActivityTimes.')
+                    return False
+
+                if any(activity.is_at_activity_time(a) for a in obj.excluded_activity_types):
+                    return False
+
+            if event_info.get_event_type() == ZoneEvent.TIMER:
+                return function(*args, **kwargs)
+
+            if zone.contains_open_hab_item(event_info.get_item()):
+                if len(obj.required_events) > 0 \
+                        and not any(e == event_info.get_event_type() for e in obj.required_events):
+
+                    return False
+                elif len(obj.required_devices) > 0 \
+                        and not any(len(zone.get_devices_by_type(cls)) > 0 for cls in obj.required_devices):
+
+                    return False
+                elif zone.is_internal() and not obj.applicable_to_internal_zone:
+                    return False
+                elif zone.is_external() and not obj.applicable_to_external_zone:
+                    return False
+                elif len(obj.applicable_levels) > 0 \
+                        and not any(zone.get_level() == level for level in obj.applicable_levels):
+
+                    return False
+                elif obj.applicable_zone_name_pattern is not None:
+                    pattern = obj.applicable_zone_name_pattern
+                    match = re.search(pattern, zone.get_name())
+                    if not match:
+                        return False
+
+            else:  # event from other zones
+                if event_info.get_event_type() not in obj.external_events:
+                    return False
+
+            return function(*args, **kwargs)
 
     return wrapper

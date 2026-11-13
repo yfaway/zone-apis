@@ -62,7 +62,7 @@ class Starter():
         pe.log_info(f"Loaded {self._zm.get_zones().__len__()} zones and {device_count} devices.")
         pe.log_debug(str(self._zm))
 
-    async def event_dispatcher(self, event):
+    def event_dispatcher(self, event):
         if self._zm is None:
             return # No zone manager available yet, ignore the event.
 
@@ -105,6 +105,7 @@ class Starter():
                 pe.log_debug(f"State changed for item '{item_name}': {item_state}")
 
             elif event_type == 'ItemStateUpdatedEvent':
+                # to do handle concurrency
                 item.update_value_from_openhab(item_state)
 
                 handler = item.get_event_handler(OpenHabEvent.ItemStateUpdated)

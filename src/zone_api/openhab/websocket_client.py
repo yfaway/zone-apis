@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from concurrent.futures import Future, ThreadPoolExecutor
 import json
 import logging
 from typing import Any, Callable, Optional, cast
@@ -48,6 +49,10 @@ class OpenHabWebSocketClient:
         self._sender_task: Optional[asyncio.Task] = None
         self._stop_event = asyncio.Event()
         self._send_queue: asyncio.Queue[tuple[str, asyncio.Future[None]]] = asyncio.Queue()
+        self._event_executor: Optional[ThreadPoolExecutor] = ThreadPoolExecutor(
+            max_workers=10,
+            thread_name_prefix='openhab-event',
+        )
 
     async def connect(self) -> None:
         """Connect to the server and subscribe to the selected topics."""
@@ -100,6 +105,29 @@ class OpenHabWebSocketClient:
         if self._websocket is not None:
             await self._websocket.close()
             self._websocket = None
+
+        if self._event_executor is not None:
+            executor = self._event_executor
+            self._event_executor = None
+            executor.shutdown(wait=False, cancel_futures=True)
+
+    @staticmethod
+    def _log_event_dispatch_failure(future: Future[Any]) -> None:
+        if future.cancelled():
+            return
+        try:
+            future.result()
+        except Exception:
+            logger.exception("Error dispatching OpenHAB event")
+
+    def _dispatch_event(self, message: dict[str, Any]) -> None:
+        if self.on_event is None:
+            return
+
+        result = self.on_event(message)
+        if asyncio.iscoroutine(result):
+            result.close()
+            raise TypeError("The OpenHAB event callback must be synchronous.")
 
     async def _send_queued_messages(self) -> None:
         """Serialize websocket writes through a single queue consumer."""
@@ -169,9 +197,13 @@ class OpenHabWebSocketClient:
                     continue
 
                 if self.on_event is not None:
-                    result = await asyncio.to_thread(self.on_event, message)
-                    if asyncio.iscoroutine(result):
-                        result = await result
+                    if self._event_executor is None:
+                        self._event_executor = ThreadPoolExecutor(
+                            max_workers=4,
+                            thread_name_prefix='openhab-event',
+                        )
+                    future = self._event_executor.submit(self._dispatch_event, message)
+                    future.add_done_callback(self._log_event_dispatch_failure)
                 #else:
                 #    print(json.dumps(message, indent=2, sort_keys=True))
             except websockets.ConnectionClosed:
