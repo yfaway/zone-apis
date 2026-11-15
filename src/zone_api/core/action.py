@@ -27,6 +27,9 @@ class Action(object):
       2. Action::on_startup is invoked with ZoneEvent::STARTUP.
       3. Action::on_action is invoked when the specified event is triggered.
       4. Action::on_destroy is invoked with ZoneEvent::DESTROY.
+
+    Action::on_action() is invoked in a threadpool. Each action class maintains an internal lock to ensure that 
+    invocations of on_action() is invoked sequentially.
     """
 
     NOTIFICATION_USERS = 'users'

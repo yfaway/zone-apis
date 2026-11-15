@@ -25,6 +25,7 @@ class OpenHabBaseItem(BaseItem):
     """Base model mirroring the OpenHAB REST item payload."""
 
     def __init__(self, payload: Dict[str, Any]):
+        self._state_lock = threading.RLock()
         self._raw: Dict[str, Any] = payload or {}
 
         # Common fields from the OpenHAB REST API.
@@ -66,19 +67,30 @@ class OpenHabBaseItem(BaseItem):
             if not hasattr(self, snake_key):
                 setattr(self, snake_key, value)
 
+    @property
+    def state(self) -> Any:
+        with self._state_lock:
+            return self._state
+
+    @state.setter
+    def state(self, value: Any) -> None:
+        with self._state_lock:
+            self._state = value
+
     def update_value_from_openhab(self, value: Any) -> None:
         self.state = value
 
     def _set_value(self, openhab_type: str, value: Any) -> None:
-        self.state = value
+        with self._state_lock:
+            self.state = value
 
-        if self._main_event_loop:
-            asyncio.run_coroutine_threadsafe(
-                self._openhab_connection.send_command(self.name, openhab_type, value),
-                self._main_event_loop) # type: ignore
-        else:
-            is_main_thread = threading.current_thread() is threading.main_thread()
-            logger.error(f"Main event loop is undefined (main-thread: {is_main_thread})")
+            if self._main_event_loop:
+                asyncio.run_coroutine_threadsafe(
+                    self._openhab_connection.send_command(self.name, openhab_type, value),
+                    self._main_event_loop) # type: ignore
+            else:
+                is_main_thread = threading.current_thread() is threading.main_thread()
+                logger.error(f"Main event loop is undefined (main-thread: {is_main_thread})")
 
         # logger.debug(f"Sent command {value} to {self.name} ({openhab_type})")
 
@@ -118,17 +130,18 @@ class OpenHabSwitchItem(OpenHabBaseItem, SwitchItem):
 
 class OpenHabNumberItem(OpenHabBaseItem, NumberItem):
     def get_value(self) -> float:
-        if self.state is None:
+        state = self.state
+        if state is None:
             raise ValueError(f"State is None for item '{self.name}', cannot convert to float.")
         try:
             if self.unit_symbol:
                 # Remove the unit symbol from the state string if present
-                state_str = str(self.state).replace(self.unit_symbol, '').strip()
+                state_str = str(state).replace(self.unit_symbol, '').strip()
                 return float(state_str)
             else:
-                return float(self.state)
+                return float(state)
         except (ValueError, TypeError):
-            raise ValueError(f"Cannot convert state '{self.state}' to float for item '{self.name}'.")
+            raise ValueError(f"Cannot convert state '{state}' to float for item '{self.name}'.")
 
     def set_value(self, value: Any) -> None:
         self._set_value('Decimal', str(value))
@@ -136,12 +149,13 @@ class OpenHabNumberItem(OpenHabBaseItem, NumberItem):
 
 class OpenHabStringItem(OpenHabBaseItem, StringItem):
     def get_value(self) -> str:
-        if self.state is None:
+        state = self.state
+        if state is None:
             raise ValueError(f"State is None for item '{self.name}', cannot convert to string.")
         try:
-            return str(self.state)
+            return str(state)
         except (ValueError, TypeError):
-            raise ValueError(f"Cannot convert state '{self.state}' to string for item '{self.name}'.")
+            raise ValueError(f"Cannot convert state '{state}' to string for item '{self.name}'.")
 
     def set_value(self, value: Any) -> None:
         self._set_value('String', str(value))
@@ -158,6 +172,18 @@ class OpenHabContactItem(OpenHabBaseItem, ContactItem):
 class OpenHabDimmerItem(OpenHabSwitchItem, DimmerItem):
     def set_percentage(self, value: float) -> None:
         self._set_value('Percent', str(value))
+
+    def is_on(self) -> bool:
+        with self._state_lock:
+            return super().is_on()
+
+    def is_off(self) -> bool:
+        with self._state_lock:
+            return super().is_off()
+
+    def percentage(self) -> float:
+        with self._state_lock:
+            return super().percentage()
 
 
 class OpenHabDateTimeItem(OpenHabBaseItem, DateTimeItem):

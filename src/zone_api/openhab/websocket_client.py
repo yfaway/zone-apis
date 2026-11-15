@@ -49,15 +49,18 @@ class OpenHabWebSocketClient:
         self._sender_task: Optional[asyncio.Task] = None
         self._stop_event = asyncio.Event()
         self._send_queue: asyncio.Queue[tuple[str, asyncio.Future[None]]] = asyncio.Queue()
-        self._event_executor: Optional[ThreadPoolExecutor] = ThreadPoolExecutor(
-            max_workers=10,
-            thread_name_prefix='openhab-event',
-        )
+        self._event_executor: Optional[ThreadPoolExecutor] = None
 
     async def connect(self) -> None:
         """Connect to the server and subscribe to the selected topics."""
         if self._websocket is not None:
             return
+
+        if self._event_executor is None:
+            self._event_executor = ThreadPoolExecutor(
+                max_workers=10,
+                thread_name_prefix='openhab-event',
+            )
 
         self._websocket = await websockets.connect(
             self.uri,
@@ -129,6 +132,21 @@ class OpenHabWebSocketClient:
             result.close()
             raise TypeError("The OpenHAB event callback must be synchronous.")
 
+    @staticmethod
+    def _run_event_handler(handler: Callable[[Any], Any], event: Any) -> None:
+        result = handler(event)
+        if asyncio.iscoroutine(result):
+            result.close()
+            raise TypeError("OpenHAB item event handlers must be synchronous.")
+
+    def submit_event_handler(self, handler: Callable[[Any], Any], event: Any) -> None:
+        """Run one item event handler in the event worker pool without blocking the caller."""
+        if self._event_executor is None:
+            raise RuntimeError("The event worker pool is not running.")
+
+        future = self._event_executor.submit(self._run_event_handler, handler, event)
+        future.add_done_callback(self._log_event_dispatch_failure)
+
     async def _send_queued_messages(self) -> None:
         """Serialize websocket writes through a single queue consumer."""
         while True:
@@ -197,13 +215,7 @@ class OpenHabWebSocketClient:
                     continue
 
                 if self.on_event is not None:
-                    if self._event_executor is None:
-                        self._event_executor = ThreadPoolExecutor(
-                            max_workers=4,
-                            thread_name_prefix='openhab-event',
-                        )
-                    future = self._event_executor.submit(self._dispatch_event, message)
-                    future.add_done_callback(self._log_event_dispatch_failure)
+                    self._dispatch_event(message)
                 #else:
                 #    print(json.dumps(message, indent=2, sort_keys=True))
             except websockets.ConnectionClosed:

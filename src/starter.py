@@ -100,7 +100,7 @@ class Starter():
                 handler = item.get_event_handler(OpenHabEvent.ItemStateChanged)
                 if handler:
                     event = ValueChangeEvent(item.get_name(), item_state, old_item_state)
-                    handler(event)
+                    self._client.submit_event_handler(handler, event)
 
                 pe.log_debug(f"State changed for item '{item_name}': {item_state}")
 
@@ -111,15 +111,17 @@ class Starter():
                 handler = item.get_event_handler(OpenHabEvent.ItemStateUpdated)
                 if handler:
                     event = ValueUpdateEvent(item.get_name(), item_state)
-                    handler(event)
+                    self._client.submit_event_handler(handler, event)
+
                 pe.log_debug(f"State updated for item '{item_name}': {item_state}")
 
             elif event_type == 'ItemCommandEvent':
                 handler = item.get_event_handler(OpenHabEvent.ItemCommandReceived)
                 if handler:
                     event = ValueUpdateEvent(item.get_name(), item_state)
-                    handler(event)
-                pe.log_info(f"* Received command for item '{item_name}': {item_state}")
+                    self._client.submit_event_handler(handler, event)
+
+                pe.log_debug(f"* Received command for item '{item_name}': {item_state}")
         except Exception as e:
             pe.log_error(f"Error in event_dispatcher: {e}")
 
