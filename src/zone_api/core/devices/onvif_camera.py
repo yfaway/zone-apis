@@ -50,15 +50,18 @@ class OnvifCamera(Camera):
         tmp = tempfile.gettempdir()
 
         step_second = 2
-        for index in range(1, max_number_of_seconds, step_second):  # wait every step seconds
-            img_data = requests.get(self.image_url).content
+        try:
+            for index in range(1, max_number_of_seconds, step_second):  # wait every step seconds
+                img_data = requests.get(self.image_url).content
 
-            image_path = f"{tmp}/snapshot_{index}.jpg"
-            with open(image_path, 'wb') as handler:
-                handler.write(img_data)
+                image_path = f"{tmp}/snapshot_{index}.jpg"
+                with open(image_path, 'wb') as handler:
+                    handler.write(img_data)
 
-            paths.append(image_path)
+                paths.append(image_path)
 
-            time.sleep(step_second)
+                time.sleep(step_second)
+        except Exception as e:
+            pe.log_error(f"Error retrieving snapshot image {str(e)}")
 
         return paths
