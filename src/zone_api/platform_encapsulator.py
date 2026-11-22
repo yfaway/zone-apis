@@ -139,6 +139,14 @@ def play_stream_url(sink_name: str, url: str):
     cast(OpenHabStringItem, zm.get_item(ACTION_AUDIO_SINK_ITEM_NAME)).set_value(sink_name)
     cast(OpenHabStringItem, zm.get_item(ACTION_AUDIO_STREAM_URL_ITEM_NAME)).set_value(url)
 
+def clear_audio_tream(sink_name: str):
+    """ Plays a stream URL on the given audio sink. """
+    #OpenHabStringItem.get_item(ACTION_AUDIO_SINK_ITEM_NAME).oh_post_update(sink_name)
+    #OpenHabStringItem.get_item(ACTION_AUDIO_STREAM_URL_ITEM_NAME).oh_post_update(url)
+
+    zm = get_zone_manager_from_context()
+    cast(OpenHabStringItem, zm.get_item(ACTION_AUDIO_SINK_ITEM_NAME)).set_value(sink_name)
+    cast(OpenHabStringItem, zm.get_item(ACTION_AUDIO_STREAM_URL_ITEM_NAME)).set_value('')
 
 def play_text_to_speech_message(sink_name: str, tts: str):
     """ Plays a text to speech message on the given audio sink. """

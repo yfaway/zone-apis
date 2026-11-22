@@ -162,9 +162,8 @@ class ChromeCastAudioSink(Device):
         else:
             url = url_or_stream
 
-        if url == self.get_stream_url():
-            self.resume()
-        else:
+        if url is not None:
+            pe.clear_audio_tream(self.get_sink_name())
             pe.play_stream_url(self.get_sink_name(), url)
             self.streamUrl = url
 

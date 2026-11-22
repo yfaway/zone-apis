@@ -76,6 +76,8 @@ class MpdDevice(Device):
 
         cast(PlayerItem, self.get_item()).pause()
 
+        self._predefined_category_item.set_value('')
+
         # stop polling for the playing status
         if self._play_status_job:
             scheduler = pe.get_zone_manager_from_context().get_scheduler()
