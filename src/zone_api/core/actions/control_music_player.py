@@ -26,6 +26,10 @@ class ControlMusicPlayer(Action):
             stream: MusicStream = random.choice(list(MusicStreams)).value
             device.play_stream(stream)
         elif event_type == ZoneEvent.PLAYER_PLAY:
-            device.resume()
+            # Only handle the event if the device is not playing anything. Otherwise, we might have
+            # been triggered automatically from playing a file / stream / TTS rather than the user
+            # clicking.
+            if not device.is_active():
+                device.resume()
 
         return True
