@@ -11,7 +11,7 @@ ON_EVENTS = [ZoneEvent.ASTRO_LIGHT_ON]
 
 
 @action(events=ON_EVENTS + [ZoneEvent.ASTRO_BED_TIME], external_events=ON_EVENTS + [ZoneEvent.ASTRO_BED_TIME],
-        has_all_devices=[ColorLight, Plug], external=True, internal=False)
+        has_any_devices=[ColorLight, Plug], external=True, internal=False)
 class TurnOnOutdoorXmasPlugsAndLights(Action):
     """ Turn on the outdoor XMAS plugs in December. """
 
