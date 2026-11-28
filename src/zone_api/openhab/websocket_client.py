@@ -4,10 +4,15 @@ import asyncio
 from concurrent.futures import Future, ThreadPoolExecutor
 import json
 import logging
+import math
+import threading
 from typing import Any, Callable, Optional, cast
 import websockets
 
 logger = logging.getLogger('ZoneApis')
+
+EVENT_WORKER_COUNT = 10
+EVENT_WORKER_WARNING_THRESHOLD = 0.8
 
 
 class OpenHabWebSocketClient:
@@ -50,6 +55,12 @@ class OpenHabWebSocketClient:
         self._stop_event = asyncio.Event()
         self._send_queue: asyncio.Queue[tuple[str, asyncio.Future[None]]] = asyncio.Queue()
         self._event_executor: Optional[ThreadPoolExecutor] = None
+        self._event_worker_count = EVENT_WORKER_COUNT
+        self._event_worker_warning_count = math.ceil(
+            self._event_worker_count * EVENT_WORKER_WARNING_THRESHOLD)
+        self._active_event_workers = 0
+        self._event_worker_lock = threading.Lock()
+        self._event_worker_warning_active = False
 
     async def connect(self) -> None:
         """Connect to the server and subscribe to the selected topics."""
@@ -58,7 +69,7 @@ class OpenHabWebSocketClient:
 
         if self._event_executor is None:
             self._event_executor = ThreadPoolExecutor(
-                max_workers=10,
+                max_workers=self._event_worker_count,
                 thread_name_prefix='openhab-event',
             )
 
@@ -132,12 +143,36 @@ class OpenHabWebSocketClient:
             result.close()
             raise TypeError("The OpenHAB event callback must be synchronous.")
 
-    @staticmethod
-    def _run_event_handler(handler: Callable[[Any], Any], event: Any) -> None:
-        result = handler(event)
-        if asyncio.iscoroutine(result):
-            result.close()
-            raise TypeError("OpenHAB item event handlers must be synchronous.")
+    def _run_event_handler(self, handler: Callable[[Any], Any], event: Any) -> None:
+        with self._event_worker_lock:
+            self._active_event_workers += 1
+            active_workers = self._active_event_workers
+            should_warn = (
+                active_workers >= self._event_worker_warning_count
+                and not self._event_worker_warning_active
+            )
+            if should_warn:
+                self._event_worker_warning_active = True
+
+        if should_warn:
+            logger.warning(
+                "Event worker pool is near saturation: %d/%d workers active "
+                "(%d%% threshold).",
+                active_workers,
+                self._event_worker_count,
+                int(EVENT_WORKER_WARNING_THRESHOLD * 100),
+            )
+
+        try:
+            result = handler(event)
+            if asyncio.iscoroutine(result):
+                result.close()
+                raise TypeError("OpenHAB item event handlers must be synchronous.")
+        finally:
+            with self._event_worker_lock:
+                self._active_event_workers -= 1
+                if self._active_event_workers < self._event_worker_warning_count:
+                    self._event_worker_warning_active = False
 
     def submit_event_handler(self, handler: Callable[[Any], Any], event: Any) -> None:
         """Run one item event handler in the event worker pool without blocking the caller."""

@@ -53,6 +53,10 @@ class SimulateDaytimePresence(Action):
             pe.log_info(f"{self.__module__} - No audio sink available")
             return False
 
+        if audio_sink.is_active():
+            pe.log_info(f"{self.__module__} - Audio sink is already playing; skipping music.")
+            return True
+
         audio_sink.play_stream(self.music_url, self.music_volume)
 
         if self.timer is not None:

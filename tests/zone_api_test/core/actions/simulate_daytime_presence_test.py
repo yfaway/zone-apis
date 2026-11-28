@@ -85,6 +85,17 @@ class SimulateDaytimePresenceTest(DeviceTest):
         time.sleep(0.15)
         self.assertEqual("pause", self.audioSink._get_last_test_command())
 
+    def testOnAction_audioSinkAlreadyPlaying_doesNotReplaceMusic(self):
+        (porch, greatRoom, zm, event_info) = self.create_test_data()
+        self.audioSink._player_item.play()
+
+        value = self.action.on_action(event_info)
+
+        self.assertTrue(value)
+        self.assertEqual("PLAY", self.audioSink._player_item.get_value())
+        self.assertIsNone(self.audioSink._get_last_test_command())
+        self.assertIsNone(self.action.timer)
+
     def testOnAction_multipleTriggering_renewPauseTimerAndReturnsTrue(self):
         (porch, greatRoom, zm, event_info) = self.create_test_data()
 
