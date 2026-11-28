@@ -9,7 +9,7 @@ from zone_api.core.devices.alarm_partition import AlarmPartition
 
 @action(events=[ZoneEvent.TIMER, ZoneEvent.MOTION, ZoneEvent.PARTITION_ARMED_AWAY,
                 ZoneEvent.PARTITION_DISARMED_FROM_AWAY],
-        devices=[AlarmPartition, MotionSensor])
+        has_all_devices=[AlarmPartition, MotionSensor])
 class ManagePlugs(Action):
     """
     Turns off the plugs if the house is armed-away or if it is evening time (via ActivityTimes).

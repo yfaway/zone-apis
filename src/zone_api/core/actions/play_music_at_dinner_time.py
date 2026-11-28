@@ -11,7 +11,7 @@ from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.devices.activity_times import ActivityType
 
 
-@action(events=[ZoneEvent.MOTION], devices=[MotionSensor], activity_types=[ActivityType.DINNER],
+@action(events=[ZoneEvent.MOTION], has_all_devices=[MotionSensor], activity_types=[ActivityType.DINNER],
         zone_name_pattern='.*Kitchen.*')
 class PlayMusicAtDinnerTime(Action):
     """

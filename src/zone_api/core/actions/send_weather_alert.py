@@ -11,7 +11,7 @@ from zone_api.environment_canada import EnvCanada
 from zone_api.core.action import action, Action
 
 
-@action(events=[ZoneEvent.TIMER], devices=[Weather])
+@action(events=[ZoneEvent.TIMER], has_all_devices=[Weather])
 class SendWeatherAlert(Action):
     """
     Periodically check the Alert RSS feed from Environment Canada. If the feed has changed, retrieve the details of

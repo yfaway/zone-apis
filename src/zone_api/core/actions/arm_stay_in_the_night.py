@@ -8,7 +8,7 @@ from zone_api.core.action import action, Action
 from zone_api.core.devices.alarm_partition import AlarmPartition
 
 
-@action(events=[ZoneEvent.TIMER], devices=[AlarmPartition, MotionSensor], activity_types=[ActivityType.AUTO_ARM_STAY])
+@action(events=[ZoneEvent.TIMER], has_all_devices=[AlarmPartition, MotionSensor], activity_types=[ActivityType.AUTO_ARM_STAY])
 class ArmStayInTheNight(Action):
     """
     Automatically arm-stay the house when the current time is within an auto-arm period. Continue to

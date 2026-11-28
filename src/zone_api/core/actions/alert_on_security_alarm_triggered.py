@@ -9,7 +9,7 @@ from zone_api.core.action import action, Action
 
 
 @action(events=[ZoneEvent.PARTITION_IN_ALARM_STATE_CHANGED, ZoneEvent.PARTITION_FIRE_ALARM_STATE_CHANGED],
-        devices=[AlarmPartition])
+        has_all_devices=[AlarmPartition])
 class AlertOnSecurityAlarmTriggered(Action):
     """ Send a critical alert if the security alarm is triggered. """
 

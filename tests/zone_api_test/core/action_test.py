@@ -63,10 +63,55 @@ class ActionTest(unittest.TestCase):
 
     def testValidate_deviceInList_invokeAction(self):
         test_action = self.create_action()
-        test_action.get_required_events = MagicMock(return_value=[ZoneEvent.MOTION])
-        test_action.get_required_devices = MagicMock(return_value=[MotionSensor])
+        type(test_action).required_events = PropertyMock(return_value=[ZoneEvent.MOTION])
+        type(test_action).required_devices = PropertyMock(return_value=[MotionSensor])
+        type(test_action).required_any_devices = PropertyMock(return_value=[])
         self.assertTrue(validate(test_action.on_action)(
             test_action, self.create_event_info_for_internal_event(ZoneEvent.MOTION, MagicMock())))
+
+    def testValidate_notAllRequiredDevicesPresent_notInvokeAction(self):
+        test_action = self.create_action()
+        type(test_action).required_events = PropertyMock(return_value=[ZoneEvent.MOTION])
+        type(test_action).required_devices = PropertyMock(return_value=[MotionSensor, str])
+        type(test_action).required_any_devices = PropertyMock(return_value=[])
+
+        event_info = self.create_event_info_for_internal_event(ZoneEvent.MOTION)
+        event_info.get_zone().get_devices_by_type = MagicMock(
+            side_effect=lambda device_type: [MagicMock()] if device_type is MotionSensor else [])
+
+        self.assertFalse(validate(test_action.on_action)(test_action, event_info))
+
+    def testValidate_missingAnyDevice_notInvokeAction(self):
+        test_action = self.create_action()
+        type(test_action).required_events = PropertyMock(return_value=[ZoneEvent.MOTION])
+        type(test_action).required_devices = PropertyMock(return_value=[])
+        type(test_action).required_any_devices = PropertyMock(return_value=[MotionSensor, str])
+
+        event_info = self.create_event_info_for_internal_event(ZoneEvent.MOTION)
+        event_info.get_zone().get_devices_by_type = MagicMock(return_value=[])
+
+        self.assertFalse(validate(test_action.on_action)(test_action, event_info))
+
+    def testValidate_oneAnyDevicePresent_invokeAction(self):
+        test_action = self.create_action()
+        type(test_action).required_events = PropertyMock(return_value=[ZoneEvent.MOTION])
+        type(test_action).required_devices = PropertyMock(return_value=[])
+        type(test_action).required_any_devices = PropertyMock(return_value=[MotionSensor, str])
+
+        event_info = self.create_event_info_for_internal_event(ZoneEvent.MOTION)
+        event_info.get_zone().get_devices_by_type = MagicMock(
+            side_effect=lambda device_type: [MagicMock()] if device_type is str else [])
+
+        self.assertTrue(validate(test_action.on_action)(test_action, event_info))
+
+    def testValidate_emptyAnyDevices_invokeAction(self):
+        test_action = self.create_action()
+        type(test_action).required_events = PropertyMock(return_value=[ZoneEvent.MOTION])
+        type(test_action).required_devices = PropertyMock(return_value=[])
+        type(test_action).required_any_devices = PropertyMock(return_value=[])
+
+        self.assertTrue(validate(test_action.on_action)(
+            test_action, self.create_event_info_for_internal_event(ZoneEvent.MOTION)))
 
     def testValidate_noRequiredDevice_invokeAction(self):
         test_action = self.create_action()
@@ -242,13 +287,29 @@ class ActionTest(unittest.TestCase):
         self.assertEqual(TestAction().external_events, [ZoneEvent.COMPUTER_CPU_TEMPERATURE_CHANGED])
         self.assertEqual(TestAction().required_events, [])
 
-    def testDecorator_devices_returnsActionWithCorrectAttribute(self):
-        @action(devices=[MotionSensor])
+    def testDecorator_haveAllDevices_returnsActionWithCorrectAttribute(self):
+        @action(has_all_devices=[MotionSensor])
         class TestAction:
             def on_action(self):
                 pass
 
         self.assertEqual(TestAction().required_devices, [MotionSensor])
+
+    def testDecorator_hasAnyDevices_returnsActionWithCorrectAttribute(self):
+        @action(has_any_devices=[MotionSensor, str])
+        class TestAction:
+            def on_action(self):
+                pass
+
+        self.assertEqual(TestAction().required_any_devices, [MotionSensor, str])
+
+    def testDecorator_hasAnyDevicesNotSpecified_defaultsToEmptyList(self):
+        @action()
+        class TestAction:
+            def on_action(self):
+                pass
+
+        self.assertEqual(TestAction().required_any_devices, [])
 
     def testDecorator_internal_returnsActionWithCorrectAttribute(self):
         @action(internal=True)

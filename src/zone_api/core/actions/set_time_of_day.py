@@ -10,7 +10,7 @@ from zone_api.core.action import action, Action
 from zone_api.models import DateTimeItem
 
 
-@action(events=[ZoneEvent.STARTUP], devices=[], zone_name_pattern='.*Virtual.*')
+@action(events=[ZoneEvent.STARTUP], has_all_devices=[], zone_name_pattern='.*Virtual.*')
 class SetTimeOfDay(Action):
     """
     Set the time of day based on the sun position.

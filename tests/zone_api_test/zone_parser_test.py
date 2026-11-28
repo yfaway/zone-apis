@@ -45,7 +45,7 @@ class ZoneParserTest(unittest.TestCase):
         zone.get_devices_by_type.return_value = [MagicMock()]
 
         action = self._create_action_mock()
-        action.get_required_devices.return_value = [MotionSensor]
+        type(action).required_devices = PropertyMock(return_value=[MotionSensor])
 
         self.assertTrue(zp._can_add_action_to_zone(zone, action))
 
@@ -58,6 +58,32 @@ class ZoneParserTest(unittest.TestCase):
         type(action).required_devices = PropertyMock(return_value=[MotionSensor])
 
         self.assertFalse(zp._can_add_action_to_zone(zone, action))
+
+    def testCanAddActionToZone_zoneContainsAnyConfiguredDevice_returnsTrue(self):
+        zone = Zone("blah")
+        zone.get_devices_by_type = MagicMock(
+            side_effect=lambda device_type: [MagicMock()] if device_type is str else [])
+        action = self._create_action_mock()
+        type(action).required_devices = PropertyMock(return_value=[])
+        type(action).required_any_devices = PropertyMock(return_value=[MotionSensor, str])
+
+        self.assertTrue(zp._can_add_action_to_zone(zone, action))
+
+    def testCanAddActionToZone_zoneContainsNoneOfAnyConfiguredDevices_returnsFalse(self):
+        zone = Zone("blah")
+        zone.get_devices_by_type = MagicMock(return_value=[])
+        action = self._create_action_mock()
+        type(action).required_devices = PropertyMock(return_value=[])
+        type(action).required_any_devices = PropertyMock(return_value=[MotionSensor, str])
+
+        self.assertFalse(zp._can_add_action_to_zone(zone, action))
+
+    def testCanAddActionToZone_anyDeviceListEmpty_returnsTrue(self):
+        zone = Zone("blah")
+        action = self._create_action_mock()
+        type(action).required_any_devices = PropertyMock(return_value=[])
+
+        self.assertTrue(zp._can_add_action_to_zone(zone, action))
 
     def testCanAddActionToZone_levelsMatch_returnsTrue(self):
         zone = Zone("blah", [], Level.THIRD_FLOOR)
@@ -93,6 +119,8 @@ class ZoneParserTest(unittest.TestCase):
     def _create_action_mock(self):
         action = MagicMock()
         type(action).applicable_zone_name_pattern = PropertyMock(return_value=None)
+        type(action).required_devices = PropertyMock(return_value=[])
+        type(action).required_any_devices = PropertyMock(return_value=[])
 
         return action
 

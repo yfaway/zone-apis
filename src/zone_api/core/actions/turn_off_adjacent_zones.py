@@ -4,7 +4,7 @@ from zone_api.core.devices.switch import Light
 from zone_api.core.action import action, Action
 
 
-@action(events=[ZoneEvent.SWITCH_TURNED_ON], devices=[Light], internal=True, external=True)
+@action(events=[ZoneEvent.SWITCH_TURNED_ON], has_all_devices=[Light], internal=True, external=True)
 class TurnOffAdjacentZones(Action):
     """
     Turn off the lights in the zones adjacent to the current zone if the 

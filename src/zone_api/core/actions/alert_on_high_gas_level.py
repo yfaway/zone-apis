@@ -7,7 +7,7 @@ from zone_api.core.action import action, Action
 from zone_api.core.devices.gas_sensor import GasSensor
 
 
-@action(events=[ZoneEvent.GAS_TRIGGER_STATE_CHANGED], devices=[GasSensor], unique_instance=True)
+@action(events=[ZoneEvent.GAS_TRIGGER_STATE_CHANGED], has_all_devices=[GasSensor], unique_instance=True)
 class AlertOnHighGasLevel(Action):
     """
     Send a critical alert if the gas sensor is triggered (i.e. the reading

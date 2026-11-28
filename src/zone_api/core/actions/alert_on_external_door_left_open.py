@@ -9,7 +9,7 @@ from zone_api.core.devices.contact import Door
 
 
 @action(events=[ZoneEvent.DOOR_OPEN, ZoneEvent.DOOR_CLOSED],
-        devices=[Door], internal=False, external=True)
+        has_all_devices=[Door], internal=False, external=True)
 class AlertOnExternalDoorLeftOpen(Action):
     """
     Send an warning alert if a door on an external zone has been left open for

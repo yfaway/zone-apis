@@ -51,6 +51,7 @@ class Action(object):
         self._triggering_events = None
         self._external_events = None
         self._devices = None
+        self._any_devices = None
         self._internal = None
         self._external = None
         self._levels = None
@@ -120,10 +121,18 @@ class Action(object):
     @property
     def required_devices(self):
         """
-        :return: list of devices that would generate the events
+        :return: device types that must all be present in a zone
         :rtype: list(Device)
         """
         return self._devices
+
+    @property
+    def required_any_devices(self):
+        """
+        :return: device types of which at least one must be present in a zone
+        :rtype: list(Device)
+        """
+        return self._any_devices
 
     @property
     def required_events(self):
@@ -239,18 +248,20 @@ class Action(object):
             return zm.get_alert_manager().process_admin_alert(alert)
 
 
-def action(devices=None, events=None, internal=True, external=False, levels=None,
+def action(has_all_devices=None, events=None, internal=True, external=False, levels=None,
            unique_instance=False, zone_name_pattern: str = None, external_events=None,
            priority: int = 10, activity_types: List[ActivityType] = None,
-           excluded_activity_types: List[ActivityType] = None):
+           excluded_activity_types: List[ActivityType] = None, has_any_devices=None):
     """
     A decorator that accepts an action class and do the followings:
       - Create a subclass that extends the decorated class and Action.
       - Wrap the Action::on_action to perform various validations before
         invoking on_action.
     
-    :param list(Device) devices: the list of devices the zone must have
+    :param list(Device) has_all_devices: the list of device types the zone must have
         in order to invoke the action.
+    :param list(Device) has_any_devices: the list of device types of which the zone must have
+        at least one in order to invoke the action.
     :param list(ZoneEvent) events: the list of events for which the action
         will response to.
     :param boolean internal: if set, this action is only applicable for internal zone
@@ -278,8 +289,10 @@ def action(devices=None, events=None, internal=True, external=False, levels=None
         events = []
     if external_events is None:
         external_events = []
-    if devices is None:
-        devices = []
+    if has_all_devices is None:
+        has_all_devices = []
+    if has_any_devices is None:
+        has_any_devices = []
     if activity_types is None:
         activity_types = []
     if excluded_activity_types is None:
@@ -290,7 +303,8 @@ def action(devices=None, events=None, internal=True, external=False, levels=None
             clazz.__init__(self, *args, **kwargs)
 
             self._triggering_events = events
-            self._devices = devices
+            self._devices = has_all_devices
+            self._any_devices = has_any_devices
             self._internal = internal
             self._external = external
             self._levels = levels
@@ -356,7 +370,11 @@ def validate(function):
 
                     return False
                 elif len(obj.required_devices) > 0 \
-                        and not any(len(zone.get_devices_by_type(cls)) > 0 for cls in obj.required_devices):
+                        and not all(len(zone.get_devices_by_type(cls)) > 0 for cls in obj.required_devices):
+
+                    return False
+                elif len(obj.required_any_devices or []) > 0 \
+                        and not any(len(zone.get_devices_by_type(cls)) > 0 for cls in obj.required_any_devices):
 
                     return False
                 elif zone.is_internal() and not obj.applicable_to_internal_zone:

@@ -15,7 +15,7 @@ from zone_api import platform_encapsulator as pe
 
 @action(events=[ZoneEvent.STARTUP, ZoneEvent.MOTION],
         external_events=[ZoneEvent.PARTITION_ARMED_AWAY, ZoneEvent.PARTITION_DISARMED_FROM_AWAY],
-        devices=[Camera], internal=False, external=True)
+        has_all_devices=[Camera], internal=False, external=True)
 class AlertOnEntranceActivity(Action):
     """
     The alert is triggered from a PIR motion sensor. The motion sensor sometimes generate false

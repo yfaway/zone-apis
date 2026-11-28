@@ -7,7 +7,7 @@ from zone_api.core.actions.range_violation_alert import RangeViolationAlert
 from zone_api.core.devices.temperature_sensor import TemperatureSensor
 
 
-@action(events=[ZoneEvent.TEMPERATURE_CHANGED], devices=[TemperatureSensor], internal=True, unique_instance=True)
+@action(events=[ZoneEvent.TEMPERATURE_CHANGED], has_all_devices=[TemperatureSensor], internal=True, unique_instance=True)
 class AlertOnTemperatureOutOfRange(Action):
     """
     Send an warning alert if the temperature is outside the range.

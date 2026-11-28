@@ -12,7 +12,7 @@ from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.devices.activity_times import ActivityType
 
 
-@action(events=[ZoneEvent.MOTION], devices=[MotionSensor], internal=False, external=True,
+@action(events=[ZoneEvent.MOTION], has_all_devices=[MotionSensor], internal=False, external=True,
         excluded_activity_types=[ActivityType.SLEEP])
 class SimulateDaytimePresence(Action):
     """

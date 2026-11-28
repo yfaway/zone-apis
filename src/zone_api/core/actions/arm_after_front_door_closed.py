@@ -13,7 +13,7 @@ from zone_api.core.devices.contact import Door
 from zone_api import platform_encapsulator as pe
 
 
-@action(events=[ZoneEvent.DOOR_CLOSED], devices=[Door], internal=False, external=True)
+@action(events=[ZoneEvent.DOOR_CLOSED], has_all_devices=[Door], internal=False, external=True)
 class ArmAfterFrontDoorClosed(Action):
     """
     Automatically arm the house if a front door was closed and there was no

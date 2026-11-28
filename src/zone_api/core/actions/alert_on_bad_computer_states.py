@@ -9,7 +9,7 @@ from zone_api.core.action import action, Action
 
 
 @action(events=[ZoneEvent.COMPUTER_CPU_TEMPERATURE_CHANGED, ZoneEvent.COMPUTER_GPU_TEMPERATURE_CHANGED],
-        devices=[Computer], unique_instance=True)
+        has_all_devices=[Computer], unique_instance=True)
 class AlertOnBadComputerStates(Action):
     """ Send a critical alert if a bad state is detected. """
 

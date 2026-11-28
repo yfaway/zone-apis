@@ -9,7 +9,7 @@ from zone_api.music_streams import MusicStreams
 
 @action(events=[ZoneEvent.TIMER, ZoneEvent.PLAYER_PLAY, ZoneEvent.PLAYER_PAUSE, ZoneEvent.PLAYER_NEXT,
                 ZoneEvent.PLAYER_PREVIOUS],
-        devices=[MpdDevice])
+        has_all_devices=[MpdDevice])
 class ControlMpdMusicPlayer(Action):
     """
     Handle the events of a Player item via MpdDevice. The mode of operation is like this:

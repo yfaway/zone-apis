@@ -9,7 +9,7 @@ SECURITY_EVENTS = [ZoneEvent.PARTITION_ARMED_AWAY, ZoneEvent.PARTITION_ARMED_STA
 CONTACT_EVENTS = [ZoneEvent.DOOR_OPEN, ZoneEvent.DOOR_CLOSED, ZoneEvent.WINDOW_OPEN, ZoneEvent.WINDOW_CLOSED]
 
 
-@action(events=SECURITY_EVENTS + CONTACT_EVENTS, external_events=CONTACT_EVENTS, devices=[AlarmPartition])
+@action(events=SECURITY_EVENTS + CONTACT_EVENTS, external_events=CONTACT_EVENTS, has_all_devices=[AlarmPartition])
 class SecurityAlertInVacationMode(Action):
     """
     Send an info alert when the security arm state changes or a door/window is open/closed while in vacation mode.

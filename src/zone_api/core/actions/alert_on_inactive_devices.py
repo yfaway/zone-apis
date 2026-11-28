@@ -13,7 +13,7 @@ from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.action import action, Action
 
 
-@action(events=[ZoneEvent.TIMER, ZoneEvent.DEFERRED_NOTIFICATION_DEVICE_NAME_CHANGED], devices=[],
+@action(events=[ZoneEvent.TIMER, ZoneEvent.DEFERRED_NOTIFICATION_DEVICE_NAME_CHANGED], has_all_devices=[],
         zone_name_pattern='.*Virtual.*')
 class AlertOnInactiveDevices(Action):
     """

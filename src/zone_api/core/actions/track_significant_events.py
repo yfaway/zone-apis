@@ -16,7 +16,7 @@ EVENTS = [ZoneEvent.PARTITION_ARMED_AWAY, ZoneEvent.PARTITION_ARMED_STAY, ZoneEv
                 ZoneEvent.DOOR_OPEN, ZoneEvent.DOOR_CLOSED, ZoneEvent.WINDOW_OPEN, ZoneEvent.WINDOW_CLOSED,
                 ZoneEvent.NETWORK_PRESENCE_CHANGED]
 
-@action(events=EVENTS, devices=[], internal=True, external=True)
+@action(events=EVENTS, has_all_devices=[], internal=True, external=True)
 class TrackSignificantEvents(Action):
     """
     Track significant events such as security status changes, external door open / close, and so on (see event list

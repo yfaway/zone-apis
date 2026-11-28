@@ -15,7 +15,7 @@ from zone_api.core.actions.turn_off_adjacent_zones import TurnOffAdjacentZones
 DEBUG = False
 
 
-@action(events=[ZoneEvent.MOTION], devices=[Switch], internal=True, external=True, priority=1)
+@action(events=[ZoneEvent.MOTION], has_all_devices=[Switch], internal=True, external=True, priority=1)
 class TurnOnSwitch(Action):
     """
     Turns on a switch (fan, dimmer or regular light), after being triggered by

@@ -8,7 +8,7 @@ from zone_api.core.action import action, Action
 from zone_api.models import DateTimeItem
 
 
-@action(events=[ZoneEvent.TIMER], devices=[], zone_name_pattern='.*Virtual.*')
+@action(events=[ZoneEvent.TIMER], has_all_devices=[], zone_name_pattern='.*Virtual.*')
 class GenerateWeatherForecastHtml(Action):
     """
     Generate the weather forecast HTML page similar to what is on the Ecobee thermostat view, and save it in OpenHab's

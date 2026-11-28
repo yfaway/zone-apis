@@ -7,7 +7,7 @@ from zone_api.core.action import action, Action
 from zone_api.core.devices.alarm_partition import AlarmPartition
 
 
-@action(events=[ZoneEvent.MOTION], devices=[AlarmPartition, MotionSensor])
+@action(events=[ZoneEvent.MOTION], has_all_devices=[AlarmPartition, MotionSensor])
 class DisarmOnInternalMotion(Action):
     """
     Automatically disarm the security system when the motion sensor in the zone containing the

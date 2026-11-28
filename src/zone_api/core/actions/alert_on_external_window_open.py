@@ -5,7 +5,7 @@ from zone_api.core.action import action, Action
 
 
 @action(events=[ZoneEvent.WINDOW_OPEN, ZoneEvent.WINDOW_CLOSED],
-        devices=[Window], internal=False, external=True)
+        has_all_devices=[Window], internal=False, external=True)
 class AlertOnExternalWindowOpen(Action):
     """
     Send an info alert when the window is open / closed.

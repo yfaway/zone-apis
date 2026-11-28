@@ -5,7 +5,7 @@ from zone_api.core.devices.chromecast_audio_sink import ChromeCastAudioSink
 
 
 @action(events=[ZoneEvent.PARTITION_ARMED_AWAY, ZoneEvent.PARTITION_DISARMED_FROM_AWAY],
-        devices=[AlarmPartition])
+        has_all_devices=[AlarmPartition])
 class TurnOffDevicesOnAlarmModeChange(Action):
     """
     Turn off all the lights and audio devices if the house is armed-away or

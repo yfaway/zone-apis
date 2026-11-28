@@ -8,7 +8,7 @@ EVENTS = [ZoneEvent.MANUALLY_TRIGGER_FIRE_ALARM, ZoneEvent.MANUALLY_TRIGGER_AMBU
           ZoneEvent.MANUALLY_TRIGGER_POLICE_ALARM, ZoneEvent.CANCEL_PANIC_ALARM]
 
 
-@action(events=EVENTS, devices=[IkeaRemoteControl])
+@action(events=EVENTS, has_all_devices=[IkeaRemoteControl])
 class TriggerPanicAlarm(Action):
     """
     Trigger a fire, ambulance or police panic alarm. Also support cancelling the panic alarm (will restore the arming

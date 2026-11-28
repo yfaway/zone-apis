@@ -11,7 +11,7 @@ from zone_api.core.action import action, Action
 from zone_api.core.devices.alarm_partition import AlarmPartition
 
 
-@action(events=[ZoneEvent.TIMER], devices=[AlarmPartition, MotionSensor],
+@action(events=[ZoneEvent.TIMER], has_all_devices=[AlarmPartition, MotionSensor],
         excluded_activity_types=[ActivityType.AUTO_ARM_STAY])
 class ArmIfNoMovement(Action):
     """

@@ -18,7 +18,7 @@ OFF_EVENTS = [ZoneEvent.ASTRO_LIGHT_OFF, ZoneEvent.ASTRO_BED_TIME, ZoneEvent.VAC
 DISPLAY_ITEM_NAME = 'Out_Light_Simulation'
 
 
-@action(events=ON_EVENTS + OFF_EVENTS, external_events=ON_EVENTS + OFF_EVENTS, devices=[AstroSensor])
+@action(events=ON_EVENTS + OFF_EVENTS, external_events=ON_EVENTS + OFF_EVENTS, has_all_devices=[AstroSensor])
 class SimulateNighttimePresence(Action):
     """
     When on vacation mode, after the sunset and before bed time, randomly turn on a managed light for a random period.

@@ -9,7 +9,7 @@ from zone_api.music_streams import MusicStreams
 
 
 @action(events=[ZoneEvent.SWITCH_TURNED_ON, ZoneEvent.SWITCH_TURNED_OFF], excluded_activity_types=[ActivityType.SLEEP],
-        devices=[Fan])
+        has_all_devices=[Fan])
 class PlayMusicDuringShower(Action):
     """
     Play the provided URL stream when the washroom fan is turned on. Pause

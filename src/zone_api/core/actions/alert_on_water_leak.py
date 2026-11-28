@@ -7,7 +7,7 @@ from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.action import action, Action
 
 
-@action(events=[ZoneEvent.WATER_LEAK_STATE_CHANGED], devices=[WaterLeakSensor], unique_instance=True)
+@action(events=[ZoneEvent.WATER_LEAK_STATE_CHANGED], has_all_devices=[WaterLeakSensor], unique_instance=True)
 class AlertOnWaterLeak(Action):
     """
     Send a critical alert if a water leak is detected.

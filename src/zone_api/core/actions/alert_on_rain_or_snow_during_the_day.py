@@ -9,7 +9,7 @@ from zone_api import platform_encapsulator as pe
 from zone_api.core.action import action, Action
 
 
-@action(events=[ZoneEvent.TIMER], devices=[], zone_name_pattern='.*Virtual.*')
+@action(events=[ZoneEvent.TIMER], has_all_devices=[], zone_name_pattern='.*Virtual.*')
 class AlertOnRainOrSnowDuringTheDay(Action):
     @staticmethod
     def supported_parameters() -> List[ParameterConstraint]:

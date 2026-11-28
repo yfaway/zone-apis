@@ -9,7 +9,7 @@ from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.action import action, Action
 
 
-@action(events=[ZoneEvent.TIMER], devices=[], zone_name_pattern='.*Virtual.*')
+@action(events=[ZoneEvent.TIMER], has_all_devices=[], zone_name_pattern='.*Virtual.*')
 class AlertOnLowBatteryLevel(Action):
     """ Send an admin info alert if a device's battery level is below a threshold. """
 

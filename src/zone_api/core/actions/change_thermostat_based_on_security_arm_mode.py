@@ -8,7 +8,7 @@ from zone_api.core.action import action, Action
 
 
 @action(events=[ZoneEvent.PARTITION_ARMED_AWAY, ZoneEvent.PARTITION_DISARMED_FROM_AWAY],
-        devices=[AlarmPartition])
+        has_all_devices=[AlarmPartition])
 class ChangeThermostatBasedOnSecurityArmMode(Action):
     """
     Change the thermostat to AWAY mode if the house is armed-away.

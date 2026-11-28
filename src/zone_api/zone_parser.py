@@ -227,13 +227,11 @@ def add_actions(zone_mappings: Dict, action_classes: List[Type], parameters: Par
 
 
 def _can_add_action_to_zone(zone: Zone, action: Action) -> bool:
-    satisfied = True  # must have all devices
-    for device_type in action.required_devices:
-        if len(zone.get_devices_by_type(device_type)) == 0:
-            satisfied = False
-            break
+    if any(not zone.get_devices_by_type(device_type) for device_type in action.required_devices):
+        return False
 
-    if not satisfied:
+    if len(action.required_any_devices or []) > 0 and not any(
+            zone.get_devices_by_type(device_type) for device_type in action.required_any_devices):
         return False
 
     if zone.is_internal() and not action.applicable_to_internal_zone:

@@ -8,7 +8,7 @@ from zone_api.core.actions.range_violation_alert import RangeViolationAlert
 from zone_api.core.devices.humidity_sensor import HumiditySensor
 
 
-@action(events=[ZoneEvent.HUMIDITY_CHANGED], devices=[HumiditySensor], internal=True,
+@action(events=[ZoneEvent.HUMIDITY_CHANGED], has_all_devices=[HumiditySensor], internal=True,
         levels=[Level.FIRST_FLOOR], unique_instance=True)
 class AlertOnHumidityOutOfRange(Action):
     """

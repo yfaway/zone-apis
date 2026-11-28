@@ -9,7 +9,7 @@ from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.action import action, Action
 
 
-@action(events=[ZoneEvent.DOOR_OPEN], devices=[GarageDoor], external=True)
+@action(events=[ZoneEvent.DOOR_OPEN], has_all_devices=[GarageDoor], external=True)
 class DisarmWhenGarageDoorIsOpen(Action):
     """
     Automatically disarm after the garage door is open and a network device is connected to WiFi.

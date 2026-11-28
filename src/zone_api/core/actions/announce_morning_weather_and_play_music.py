@@ -13,7 +13,7 @@ from zone_api.core.devices.activity_times import ActivityType
 
 
 @action(events=[ZoneEvent.MOTION], external_events=[ZoneEvent.DOOR_CLOSED],
-        devices=[MotionSensor], activity_types=[ActivityType.WAKE_UP], zone_name_pattern='.*Kitchen.*')
+        has_all_devices=[MotionSensor], activity_types=[ActivityType.WAKE_UP], zone_name_pattern='.*Kitchen.*')
 class AnnounceMorningWeatherAndPlayMusic(Action):
     """
     Announces the current weather and plays a random music stream twice during the wakeup period.

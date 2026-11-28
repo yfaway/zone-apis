@@ -10,7 +10,7 @@ from zone_api.core.zone import Level
 from zone_api.core.zone_event import ZoneEvent
 
 
-@action(events=[ZoneEvent.TIMER], devices=[ChromeCastAudioSink], levels=[Level.FIRST_FLOOR],
+@action(events=[ZoneEvent.TIMER], has_all_devices=[ChromeCastAudioSink], levels=[Level.FIRST_FLOOR],
         excluded_activity_types=[ActivityType.SLEEP])
 class PlayMindfulnessBell(Action):
     """

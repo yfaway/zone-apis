@@ -4,7 +4,7 @@ from zone_api.core.zone_event import ZoneEvent
 from zone_api.core.action import action, Action
 
 
-@action(events=[ZoneEvent.STARTUP], devices=[], zone_name_pattern='.*Virtual.*')
+@action(events=[ZoneEvent.STARTUP], has_all_devices=[], zone_name_pattern='.*Virtual.*')
 class SetSwitchTimerAfterStartup(Action):
     """
     After the system starts up, if a switch was already on but having no active timer, that means it was turned on
